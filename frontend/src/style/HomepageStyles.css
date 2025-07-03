@@ -1,0 +1,160 @@
+/* General container */
+.homepage-container {
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  background: linear-gradient(120deg, #e3f2fd 0%, #f7fafc 100%);
+  min-height: 100vh;
+  padding: 0 0 2rem 0;
+}
+
+/* Hero section */
+.homepage-hero {
+  background: linear-gradient(90deg, #b3e5fc 0%, #e1f5fe 100%);
+  padding: 3.5rem 1rem 2.5rem 1rem;
+  text-align: center;
+  border-bottom: 2px solid #81d4fa;
+  box-shadow: 0 4px 24px rgba(2,119,189,0.07);
+  border-radius: 0 0 24px 24px;
+}
+
+.homepage-title {
+  font-size: 2.8rem;
+  color: #0277bd;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.homepage-subtitle {
+  font-size: 1.25rem;
+  color: #0288d1;
+  margin: 1.2rem 0 0.7rem 0;
+  font-weight: 500;
+}
+
+.homepage-cta {
+  margin-top: 2rem;
+}
+
+.homepage-cta-text {
+  font-weight: bold;
+  color: #01579b;
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+}
+
+/* Main content */
+.homepage-content {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.homepage-auth-section {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.homepage-form-box {
+  background: #fff;
+  padding: 2.2rem 2rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(2,119,189,0.09);
+  min-width: 320px;
+  max-width: 370px;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.2s;
+  border: 1.5px solid #e3f2fd;
+}
+
+.homepage-form-box:hover {
+  box-shadow: 0 8px 32px rgba(2,119,189,0.13);
+  border-color: #b3e5fc;
+}
+
+.homepage-welcome-box {
+  background: #fff;
+  padding: 2.5rem 3rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(2,119,189,0.09);
+  text-align: center;
+  max-width: 440px;
+  margin: 0 auto;
+  border: 1.5px solid #e3f2fd;
+}
+
+.homepage-info-section {
+  margin: 3.5rem auto 0 auto;
+  max-width: 650px;
+  background: #e1f5fe;
+  border-radius: 12px;
+  padding: 2.2rem 2rem;
+  text-align: center;
+  color: #0277bd;
+  box-shadow: 0 2px 12px rgba(2,119,189,0.07);
+  font-size: 1.08rem;
+}
+
+/* Buttons */
+.homepage-chat-btn {
+  margin-top: 1.7rem;
+  background: linear-gradient(90deg, #0288d1 60%, #26c6da 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.85rem 2.2rem;
+  font-size: 1.08rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(2,119,189,0.09);
+  transition: background 0.18s, transform 0.18s;
+  outline: none;
+}
+
+.homepage-chat-btn:hover, .homepage-chat-btn:focus {
+  background: linear-gradient(90deg, #0277bd 60%, #00bcd4 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Teacher/Admin label */
+.homepage-teacher-label {
+  font-size: 1rem;
+  color: #0288d1;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .homepage-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .homepage-auth-section {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .homepage-form-box, .homepage-welcome-box {
+    max-width: 95vw;
+    min-width: unset;
+    padding: 2rem 1rem;
+  }
+  .homepage-info-section {
+    padding: 1.5rem 0.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .homepage-hero {
+    padding: 2rem 0.5rem 1.2rem 0.5rem;
+    border-radius: 0 0 12px 12px;
+  }
+  .homepage-title {
+    font-size: 2rem;
+  }
+  .homepage-welcome-box {
+    padding: 1.5rem 0.5rem;
+  }
+}

@@ -21,6 +21,7 @@ const AuthProvider = ({ children }) => {
       let endpoint;
       if (type === 'teacher') endpoint = 'http://localhost:5000/api/teachers/login';
       else if (type === 'admin') endpoint = 'http://localhost:5000/api/admins/login';
+      else if (type === 'staff') endpoint = 'http://localhost:5000/api/staff/login';
       else endpoint = 'http://localhost:5000/api/users/login';
 
       const res = await axios.post(endpoint, formData);
@@ -29,6 +30,7 @@ const AuthProvider = ({ children }) => {
       const userObj =
         type === 'teacher' ? res.data.teacher :
         type === 'admin' ? res.data.admin :
+        type === 'staff' ? res.data.staff :
         res.data.user;
       setUser(userObj);
       setUserType(type);
@@ -45,6 +47,7 @@ const AuthProvider = ({ children }) => {
       let endpoint;
       if (type === 'teacher') endpoint = 'http://localhost:5000/api/teachers/register';
       else if (type === 'admin') endpoint = 'http://localhost:5000/api/admins/register';
+      else if (type === 'staff') endpoint = 'http://localhost:5000/api/staff/register';
       else endpoint = 'http://localhost:5000/api/users/register';
 
       const res = await axios.post(endpoint, formData);

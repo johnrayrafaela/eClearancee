@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoginForm from '../../components/LoginForm';
-import RegisterForm from '../../components/RegisterForm';
 import { AuthContext } from '../../Context/AuthContext';
+import '../../style/HomepageStyles.css';
 
 const HomePage = () => {
   const { user, userType } = useContext(AuthContext);
@@ -41,37 +40,49 @@ const HomePage = () => {
   );
 
   return (
-    <div style={styles.container}>
-      <section style={styles.hero}>
-        <h1 style={styles.title}>Welcome to eClearance</h1>
-        <p style={styles.subtitle}>
+    <div className="homepage-container">
+      <section className="homepage-hero">
+        <h1 className="homepage-title">Welcome to eClearance</h1>
+        <p className="homepage-subtitle">
           {userType === 'teacher' ? teacherSubtitle : studentSubtitle}
         </p>
         {!user && (
-          <div style={styles.cta}>
-            <span style={styles.ctaText}>Get started below:</span>
+          <div className="homepage-cta">
+            <span className="homepage-cta-text">Get started below:</span>
           </div>
         )}
       </section>
-      <section style={styles.content}>
+      <section className="homepage-content">
         {!user ? (
-          <div style={styles.authSection}>
-            <div style={styles.formBox}>
-              <LoginForm />
+          <div className="homepage-auth-section">
+            <div className="homepage-form-box">
+              <h3 style={{ textAlign: 'center', color: '#0277bd', marginBottom: '1.5rem' }}>Already have an account?</h3>
+              <button
+                className="homepage-chat-btn"
+                onClick={() => navigate('/login')}
+              >
+                Go to Login
+              </button>
             </div>
-            <div style={styles.formBox}>
-              <RegisterForm />
+            <div className="homepage-form-box">
+              <h3 style={{ textAlign: 'center', color: '#0277bd', marginBottom: '1.5rem' }}>New to eClearance?</h3>
+              <button
+                className="homepage-chat-btn"
+                onClick={() => navigate('/register')}
+              >
+                Go to Register
+              </button>
             </div>
           </div>
         ) : (
-          <div style={styles.welcomeBox}>
+          <div className="homepage-welcome-box">
             <h2>
               Hello,
               {userType === 'teacher' && (
-                <span style={styles.teacherLabel}> (Teacher) </span>
+                <span className="homepage-teacher-label"> (Teacher) </span>
               )}
               {userType === 'admin' && (
-                <span style={styles.teacherLabel}> (Admin) </span>
+                <span className="homepage-teacher-label"> (Admin) </span>
               )}
               {user.firstname}!
             </h2>
@@ -83,12 +94,14 @@ const HomePage = () => {
                 : 'Manage your clearance progress, view pending requirements, or communicate with departments directly.'}
             </p>
             <button
-              style={styles.chatBtn}
+              className="homepage-chat-btn"
               onClick={() => {
                 if (userType === 'admin') {
                   navigate('/admin/dashboard');
                 } else if (userType === 'teacher') {
                   navigate('/teacher/dashboard');
+                } else if (userType === 'staff') {
+                  navigate('/staff/dashboard');
                 } else {
                   navigate('/student/dashboard');
                 }
@@ -98,106 +111,19 @@ const HomePage = () => {
                 ? 'Go to Admin Dashboard'
                 : userType === 'teacher'
                 ? 'Go to Teacher Dashboard'
+                : userType === 'staff'
+                ? 'Go to Staff Dashboard'
                 : 'Go to Student Dashboard'}
             </button>
           </div>
         )}
       </section>
-      <section style={styles.infoSection}>
+      <section className="homepage-info-section">
         <h3>Why use eClearance?</h3>
         {userType === 'teacher' ? teacherInfo : studentInfo}
       </section>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    fontFamily: 'Segoe UI, sans-serif',
-    background: '#f7fafc',
-    minHeight: '100vh',
-    padding: '0 0 2rem 0',
-  },
-  hero: {
-    background: 'linear-gradient(90deg, #b3e5fc 0%, #e1f5fe 100%)',
-    padding: '3rem 1rem 2rem 1rem',
-    textAlign: 'center',
-    borderBottom: '2px solid #81d4fa',
-  },
-  title: {
-    fontSize: '2.5rem',
-    color: '#0277bd',
-    margin: 0,
-  },
-  subtitle: {
-    fontSize: '1.2rem',
-    color: '#0288d1',
-    margin: '1rem 0 0.5rem 0',
-  },
-  cta: {
-    marginTop: '1.5rem',
-  },
-  ctaText: {
-    fontWeight: 'bold',
-    color: '#01579b',
-    fontSize: '1.1rem',
-  },
-  content: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginTop: '2rem',
-  },
-  authSection: {
-    display: 'flex',
-    gap: '2rem',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  formBox: {
-    background: '#fff',
-    padding: '2rem 1.5rem',
-    borderRadius: 8,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-    minWidth: 300,
-    maxWidth: 350,
-  },
-  welcomeBox: {
-    background: '#fff',
-    padding: '2rem 2.5rem',
-    borderRadius: 8,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-    textAlign: 'center',
-    maxWidth: 400,
-  },
-  infoSection: {
-    margin: '3rem auto 0 auto',
-    maxWidth: 600,
-    background: '#e1f5fe',
-    borderRadius: 8,
-    padding: '2rem',
-    textAlign: 'center',
-    color: '#0277bd',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-  },
-  chatBtn: {
-    marginTop: '1.5rem',
-    background: '#0277bd',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    padding: '0.75rem 2rem',
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-    transition: 'background 0.2s',
-  },
-  teacherLabel: {
-    fontSize: '1rem',
-    color: '#0288d1',
-    marginLeft: '0.5rem',
-    fontWeight: 'bold',
-  },
 };
 
 export default HomePage;
