@@ -114,3 +114,41 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Get all students
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await User.findAll();
+    res.json(students);
+  } catch (err) {
+    console.error('Get all students error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get a single student by ID
+exports.getStudent = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const student = await User.findByPk(id);
+    if (!student) return res.status(404).json({ message: 'User not found' });
+    res.json(student);
+  } catch (err) {
+    console.error('Get student error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Delete a student by ID
+exports.deleteStudent = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const student = await User.findByPk(id);
+    if (!student) return res.status(404).json({ message: 'User not found' });
+    await student.destroy();
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error('Delete student error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

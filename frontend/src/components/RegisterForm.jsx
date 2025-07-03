@@ -180,9 +180,10 @@ const RegisterForm = () => {
               >
                 <option value="">Select Course</option>
                 <option value="BSIT">BSIT</option>
-                <option value="BSCS">BSCS</option>
-                <option value="BSEd">BSEd</option>
-                <option value="BSBA">BSBA</option>
+                <option value="BEED">BEED</option>
+                <option value="BSED">BSED</option>
+                <option value="BSHM">BSHM</option>
+                <option value="ENTREP">ENTREP</option>
               </select>
 
               <select
