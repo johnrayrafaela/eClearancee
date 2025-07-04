@@ -1,129 +1,69 @@
-import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../Context/AuthContext';
-import '../style/HomepageStyles.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import logo from "../assets/image/logo/eClearance.png"; // Ensure this path is correct
 
-const Landingpage = () => {
-  const { user, userType } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  // Teacher-specific subtitle and info
-  const teacherSubtitle = (
-    <>
-      Manage student clearances, approve requests, and communicate with students efficiently.<br />
-      Log in to view pending approvals and your assigned clearance tasks.
-    </>
-  );
-  const teacherInfo = (
-    <ul>
-      <li>📝 Approve or reject student clearance requests</li>
-      <li>📬 Communicate directly with students</li>
-      <li>📊 Track clearance progress for your department</li>
-      <li>🔔 Receive real-time notifications for new requests</li>
-    </ul>
-  );
-
-  // Student-specific subtitle and info
-  const studentSubtitle = (
-    <>
-      An Automated School Clearance Processing System for a faster, paperless, and hassle-free clearance process.<br />
-      Log in to monitor, manage, or request your clearance requirements.
-    </>
-  );
-  const studentInfo = (
-    <ul>
-      <li>⚡ Fast and automated clearance request system</li>
-      <li>📄 Digital tracking of pending and approved clearances</li>
-      <li>✅ Hassle-free submission with minimal paperwork</li>
-      <li>📊 Real-time updates from departments and offices</li>
-    </ul>
-  );
-
-  return (
-    <div className="homepage-container">
-      <section className="homepage-hero">
-        <h1 className="homepage-title">Welcome to eClearance</h1>
-        <p className="homepage-subtitle">
-          {userType === 'teacher' ? teacherSubtitle : studentSubtitle}
-        </p>
-        {!user && (
-          <div className="homepage-cta">
-            <span className="homepage-cta-text">Get started below:</span>
-          </div>
-        )}
-      </section>
-      <section className="homepage-content">
-        {!user ? (
-          <div className="homepage-auth-section">
-            <div className="homepage-form-box">
-              <h3 style={{ textAlign: 'center', color: '#0277bd', marginBottom: '1.5rem' }}>Already have an account?</h3>
-              <button
-                className="homepage-chat-btn"
-                onClick={() => navigate('/login')}
-              >
-                Go to Login
-              </button>
-            </div>
-            <div className="homepage-form-box">
-              <h3 style={{ textAlign: 'center', color: '#0277bd', marginBottom: '1.5rem' }}>New to eClearance?</h3>
-              <button
-                className="homepage-chat-btn"
-                onClick={() => navigate('/register')}
-              >
-                Go to Register
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="homepage-welcome-box">
-            <h2>
-              Hello,
-              {userType === 'teacher' && (
-                <span className="homepage-teacher-label"> (Teacher) </span>
-              )}
-              {userType === 'admin' && (
-                <span className="homepage-teacher-label"> (Admin) </span>
-              )}
-              {user.firstname}!
-            </h2>
-            <p>
-              {userType === 'teacher'
-                ? 'Manage your clearance tasks, approve student requests, and communicate with students directly.'
-                : userType === 'admin'
-                ? 'Manage users, view reports, and perform administrative tasks.'
-                : 'Manage your clearance progress, view pending requirements, or communicate with departments directly.'}
-            </p>
-            <button
-              className="homepage-chat-btn"
-              onClick={() => {
-                if (userType === 'admin') {
-                  navigate('/admin/dashboard');
-                } else if (userType === 'teacher') {
-                  navigate('/teacher/dashboard');
-                } else if (userType === 'staff') {
-                  navigate('/staff/dashboard');
-                } else {
-                  navigate('/student/dashboard');
-                }
-              }}
-            >
-              {userType === 'admin'
-                ? 'Go to Admin Dashboard'
-                : userType === 'teacher'
-                ? 'Go to Teacher Dashboard'
-                : userType === 'staff'
-                ? 'Go to Staff Dashboard'
-                : 'Go to Student Dashboard'}
-            </button>
-          </div>
-        )}
-      </section>
-      <section className="homepage-info-section">
-        <h3>Why use eClearance?</h3>
-        {userType === 'teacher' ? teacherInfo : studentInfo}
-      </section>
+const Landingpage = () => (
+  <div style={{
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2rem"
+  }}>
+    <div style={{
+      background: "#fff",
+      borderRadius: 16,
+      boxShadow: "0 4px 24px rgba(2,119,189,0.08)",
+      padding: "3rem 2.5rem",
+      maxWidth: 420,
+      width: "100%",
+      textAlign: "center"
+    }}>
+      <img src={logo} alt="eClearance Logo" style={{
+        width: 80,height: 80,
+        borderRadius: "50%",
+        boxShadow: "0 2px 12px rgba(2,119,189,0.1)"
+      }} />
+      <h1 style={{ fontWeight: 900, color: "#0277bd", marginBottom: 8 }}>
+        eClearance
+      </h1>
+      <div style={{ color: "#444", fontSize: 18, marginBottom: 24 }}>
+        Automated School Clearance Processing System
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <Link to="/login" style={{
+          background: "#0288d1",
+          color: "#fff",
+          fontWeight: 700,
+          padding: "0.9rem 0",
+          borderRadius: 8,
+          textDecoration: "none",
+          fontSize: 18,
+          letterSpacing: 0.5,
+          transition: "background 0.2s"
+        }}>
+          Login
+        </Link>
+        <Link to="/register" style={{
+          background: "#ffc107",
+          color: "#222",
+          fontWeight: 700,
+          padding: "0.9rem 0",
+          borderRadius: 8,
+          textDecoration: "none",
+          fontSize: 18,
+          letterSpacing: 0.5,
+          transition: "background 0.2s"
+        }}>
+          Register
+        </Link>
+      </div>
+      <div style={{ marginTop: 32, color: "#90caf9", fontSize: 14 }}>
+        &copy; {new Date().getFullYear()} eClearance | All rights reserved.
+      </div>
     </div>
-  );
-};
+  </div>
+);
 
 export default Landingpage;

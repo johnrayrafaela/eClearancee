@@ -78,7 +78,7 @@ const Admindashboard = () => {
       <h2 style={{ fontWeight: 900, color: '#0277bd', marginBottom: 16 }}>eClearance Admin Dashboard</h2>
 
       {/* Top Info Cards */}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24,  }}>
         <div style={{ ...cardShadow, minWidth: 220, flex: 1, background: '#26c6da', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <span style={{ fontSize: 36 }}>👥</span>
@@ -118,7 +118,7 @@ const Admindashboard = () => {
       </div>
 
       {/* Overall Cleared Clearances Progress */}
-      <div style={{ ...cardShadow, marginBottom: 24, maxWidth: 600 }}>
+      <div style={{ ...cardShadow, marginBottom: 24, width: '100%', maxWidth: '100vw', padding: '1.5rem' }}>
         <div style={{ fontWeight: 700, marginBottom: 8, color: '#0277bd' }}>
           <span role="img" aria-label="progress" style={{ marginRight: 8 }}>📈</span>
           Overall Cleared Clearances
