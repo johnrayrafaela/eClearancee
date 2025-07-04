@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../Context/AuthContext';
-import '../../style/HomepageStyles.css';
+import { AuthContext } from '../Context/AuthContext';
+import '../style/HomepageStyles.css';
 
-const HomePage = () => {
+const Landingpage = () => {
   const { user, userType } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -126,4 +126,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Landingpage;

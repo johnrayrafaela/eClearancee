@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 exports.register = async (req, res) => {
-  const { firstname, lastname, email, phone, password, course, year_level, block } = req.body; // <-- add block
+  const { firstname, lastname, email, phone, password, course, year_level, block } = req.body;
 
   try {
     const existingUser = await User.findOne({ where: { email } });
@@ -19,7 +19,8 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       course,
       year_level,
-      block, // <-- save block
+      block,
+      // Do NOT set created_at here; Sequelize will handle it
     });
 
     res.status(201).json({
@@ -32,7 +33,7 @@ exports.register = async (req, res) => {
         phone: user.phone,
         course: user.course,
         year_level: user.year_level,
-        block: user.block, // <-- return block
+        block: user.block,
       }
     });
   } catch (err) {

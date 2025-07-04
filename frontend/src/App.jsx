@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Navbar from './components/Navbar';
-import HomePage from './pages/student/Homepage';
+import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
 import TeacherDashboard from './pages/teacher/Teacherdashboard';
@@ -19,7 +19,7 @@ function App() {
       <Layout>
         <Navbar/>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={< LandingPage/>} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/login" element={<LoginForm />} />

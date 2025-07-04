@@ -3,6 +3,7 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../Context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import '../style/RegisterForm.css';
+import logo from '../assets/image/logo/eClearance.png'; // Ensure this path is correct
 
 const RegisterForm = () => {
   const { register } = useContext(AuthContext);
@@ -28,10 +29,6 @@ const RegisterForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleAccountTypeChange = e => {
-    setAccountType(e.target.value);
-    setShowForm(true);
-  };
 
   const handleGoBack = () => {
     setShowForm(false);
@@ -67,33 +64,66 @@ const RegisterForm = () => {
 
   return (
     <div className="register-container">
-      <h2 className="register-title">Register</h2>
+      <h2 className="register-title">
+        <span className="register-title-bar">|</span>
+        eClearance <span className="register-title-light">Registration</span>
+      </h2>
+      <div className="register-subtitle">
+        Automated School Clearance Proccessing System
+      </div>
       {showSuccess && (
         <div className="success-anim">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
             <circle cx="24" cy="24" r="24" fill="#b2f5ea"/>
             <path d="M15 25L22 32L34 18" stroke="#0277bd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <div style={{ color: '#0277bd', fontWeight: 'bold', fontSize: '1.1rem', marginTop: 12 }}>
+          <div className="success-text">
             Registration Successful!
           </div>
         </div>
       )}
       {message && !showSuccess && <p className="register-message">{message}</p>}
       {!showSuccess && (!showForm ? (
-        <div>
-          <label className="register-label">Register as:</label>
-          <select
-            value={accountType}
-            onChange={handleAccountTypeChange}
-            required
-            className="register-select"
+        <div className="register-options-row">
+          <div
+            className="register-option"
+            onClick={() => { setAccountType('faculty'); setShowForm(true); }}
           >
-            <option value="">Select Account Type</option>
-            <option value="user">Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="staff">Staff</option>
-          </select>
+            <img
+              src={logo}
+              alt="Faculty"
+              className="register-option-img"
+            />
+            <div className="register-option-label">
+              FACULTY<br />REGISTRATION
+            </div>
+          </div>
+          <div
+            className="register-option"
+            onClick={() => { setAccountType('teacher'); setShowForm(true); }}
+          >
+            <img
+              src={logo}
+              alt="Teacher"
+              className="register-option-img"
+            />
+            <div className="register-option-label">
+              TEACHER<br />REGISTRATION
+            </div>
+          </div>
+          <div
+            className="register-option"
+            onClick={() => { setAccountType('user'); setShowForm(true); }}
+          >
+            <img
+              src={logo}
+              alt="Student"
+              className="register-option-img"
+            />
+            <div className="register-option-label">
+              STUDENT<br />REGISTRATION
+            </div>
+          </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
@@ -169,6 +199,7 @@ const RegisterForm = () => {
             className="register-input"
           />
 
+          {/* Only show course/year/block for students */}
           {accountType === 'user' && (
             <>
               <select
@@ -219,9 +250,9 @@ const RegisterForm = () => {
           <button type="submit" className="register-button">Register</button>
         </form>
       ))}
-      <p style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+      <p className="register-login-link">
         Already have an account?{' '}
-        <Link to="/login" style={{ color: '#0288d1', fontWeight: 'bold', textDecoration: 'underline' }}>
+        <Link to="/login" className="register-login-link-a">
           Login here
         </Link>
       </p>

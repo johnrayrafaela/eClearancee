@@ -40,6 +40,8 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+}, {
+  timestamps: false
 });
 
 module.exports = User;

@@ -1,206 +1,13 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
+import '../../style/ProfilePage.css';
 
-const bgStyle = {
-  minHeight: '100vh',
-  background: '#f4f7fa',
-  fontFamily: 'Segoe UI, sans-serif',
-  margin: 0,
-  padding: '2rem 0',
+const statusColors = {
+  approved: '#43a047',
+  pending: '#ffa000',
+  rejected: '#e53935',
 };
-
-const containerStyle = {
-  padding: '0rem 2rem 2rem 2rem',
-  display: 'flex',
-  flexDirection: 'row',
-  gap: '2rem',
-  width: '100%',
-  maxWidth: 1200,
-  margin: '0 auto',
-  alignItems: 'flex-start',
-  justifyContent: 'center',
-};
-
-const profileCardStyle = {
-  background: '#fff',
-  borderRadius: 8,
-  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-  padding: '2rem 2rem 1.5rem 2rem',
-  minWidth: 320,
-  maxWidth: 340,
-  width: 340,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  border: '1px solid #e0e0e0',
-};
-
-const avatarStyle = {
-  width: 120,
-  height: 120,
-  borderRadius: '50%',
-  objectFit: 'cover',
-  border: '4px solid #e3eaf1',
-  marginBottom: 16,
-  background: '#f7fafc',
-};
-
-const nameStyle = {
-  fontWeight: 'bold',
-  fontSize: '1.35rem',
-  marginBottom: 4,
-  color: '#222',
-  textAlign: 'center',
-};
-
-const roleStyle = {
-  color: '#888',
-  fontSize: '1rem',
-  marginBottom: 8,
-  textAlign: 'center',
-};
-
-const locationStyle = {
-  color: '#6b7280',
-  fontSize: '0.98rem',
-  marginBottom: 18,
-  textAlign: 'center',
-};
-
-// const buttonRow = {
-//   display: 'flex',
-//   gap: 10,
-//   marginBottom: 18,
-// };
-
-// const followBtn = {
-//   background: '#1976d2',
-//   color: '#fff',
-//   border: 'none',
-//   borderRadius: 4,
-//   padding: '0.5rem 1.2rem',
-//   fontWeight: 'bold',
-//   fontSize: '1rem',
-//   cursor: 'pointer',
-// };
-
-// const messageBtn = {
-//   background: '#fff',
-//   color: '#1976d2',
-//   border: '1.5px solid #1976d2',
-//   borderRadius: 4,
-//   padding: '0.5rem 1.2rem',
-//   fontWeight: 'bold',
-//   fontSize: '1rem',
-//   cursor: 'pointer',
-// };
-
-
-
-const rightColStyle = {
-  flex: 1,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.5rem',
-  width: 450,
-};
-
-const boxStyle = {
-  background: '#fff',
-  borderRadius: 8,
-  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-  padding: '2rem 2rem 1.5rem 2rem',
-  border: '1px solid #e0e0e0',
-  marginBottom: 18,
-};
-
-const infoTable = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  fontSize: '1.05rem',
-  background: '#fff',
-};
-
-const thStyle = {
-  textAlign: 'left',
-  padding: '0.7rem 0.5rem 0.7rem 0',
-  color: '#1976d2',
-  fontWeight: 'bold',
-  width: 160,
-  borderBottom: '1px solid #e0e0e0',
-  background: 'none',
-};
-
-const tdStyle = {
-  padding: '0.7rem 0.5rem 0.7rem 0',
-  color: '#333',
-  borderBottom: '1px solid #e0e0e0',
-  background: 'none',
-};
-
-const editBtn = {
-  background: '#1976d2',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 4,
-  padding: '0.5rem 2.2rem',
-  fontWeight: 'bold',
-  fontSize: '1rem',
-  cursor: 'pointer',
-  marginTop: 18,
-};
-
-const modalOverlayStyle = {
-  position: 'fixed',
-  top: 0, left: 0, right: 0, bottom: 0,
-  background: 'rgba(0,0,0,0.25)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 9999,
-};
-
-const modalStyle = {
-  background: '#fff',
-  borderRadius: 12,
-  boxShadow: '0 2px 24px rgba(0,0,0,0.18)',
-  padding: '2rem 2.5rem',
-  minWidth: 340,
-  maxWidth: 400,
-  width: '100%',
-  position: 'relative',
-  animation: 'fadeInScale 0.3s',
-};
-
-const spinnerStyle = {
-  display: 'inline-block',
-  width: 28,
-  height: 28,
-  border: '3px solid #b3e5fc',
-  borderTop: '3px solid #1976d2',
-  borderRadius: '50%',
-  animation: 'spin 1s linear infinite',
-  margin: '0 auto',
-};
-
-const successAnimStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  animation: 'fadeInScale 0.4s',
-};
-
-const keyframes = `
-@keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
-}
-@keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.95);}
-  100% { opacity: 1; transform: scale(1);}
-}
-`;
 
 const ProfilePage = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -253,56 +60,64 @@ const ProfilePage = () => {
 
   if (!user) return <div>Loading...</div>;
 
+  // Clearance status badge
+  const clearanceStatus = user.clearance_status || 'pending';
+  const statusColor = statusColors[clearanceStatus] || '#b0bec5';
+
   return (
     <>
-      <style>{keyframes}</style>
-      <div style={bgStyle}>
-        <div style={containerStyle}>
+      <div className="profile-root">
+        <div className="profile-main-row">
           {/* Profile Card */}
-          <div style={profileCardStyle}>
+          <div className="profile-card">
             <img
-              src={`http://localhost:5000/${user.avatar}`}
+              className="profile-avatar"
+              src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'https://ui-avatars.com/api/?name=' + user.firstname + '+' + user.lastname}
               alt="Avatar"
-              style={avatarStyle}
             />
-            <div style={nameStyle}>{user.firstname} {user.lastname}</div>
-            <div style={roleStyle}>Student</div>
-            <div style={locationStyle}>{user.course} - {user.year_level} {user.block}</div>
-            
+            <div className="profile-name">{user.firstname} {user.lastname}</div>
+            <div className="profile-role">Student</div>
+            <div className="profile-course">{user.course} - {user.year_level} {user.block}</div>
+            <div
+              className="profile-status-badge"
+              style={{ background: statusColor }}
+            >
+              {clearanceStatus.charAt(0).toUpperCase() + clearanceStatus.slice(1)}
+            </div>
           </div>
 
           {/* Info Section */}
-          <div style={rightColStyle}>
-            <div style={boxStyle}>
-              <table style={infoTable}>
+          <div className="profile-info-section">
+            <div className="profile-info-card">
+              <table className="profile-table">
                 <tbody>
                   <tr>
-                    <th style={thStyle}>Full Name</th>
-                    <td style={tdStyle}>{user.firstname} {user.lastname}</td>
+                    <th>Full Name</th>
+                    <td>{user.firstname} {user.lastname}</td>
                   </tr>
                   <tr>
-                    <th style={thStyle}>Email</th>
-                    <td style={tdStyle}>{user.email}</td>
+                    <th>Email</th>
+                    <td>{user.email}</td>
                   </tr>
                   <tr>
-                    <th style={thStyle}>Phone</th>
-                    <td style={tdStyle}>{user.phone}</td>
+                    <th>Phone</th>
+                    <td>{user.phone}</td>
                   </tr>
                   <tr>
-                    <th style={thStyle}>Course</th>
-                    <td style={tdStyle}>{user.course}</td>
+                    <th>Course</th>
+                    <td>{user.course}</td>
                   </tr>
                   <tr>
-                    <th style={thStyle}>Year Level</th>
-                    <td style={tdStyle}>{user.year_level}</td>
+                    <th>Year Level</th>
+                    <td>{user.year_level}</td>
                   </tr>
                   <tr>
-                    <th style={thStyle}>Block</th>
-                    <td style={tdStyle}>{user.block}</td>
+                    <th>Block</th>
+                    <td>{user.block}</td>
                   </tr>
                 </tbody>
               </table>
-              <button style={editBtn} onClick={() => setShowModal(true)}>
+              <button className="profile-edit-btn" onClick={() => setShowModal(true)}>
                 Edit
               </button>
               {message && !showModal && <p>{message}</p>}
@@ -312,15 +127,29 @@ const ProfilePage = () => {
 
         {/* Modal */}
         {showModal && (
-          <div style={modalOverlayStyle}>
-            <div style={modalStyle}>
+          <div className="profile-modal-overlay">
+            <div className="profile-modal">
               {loading ? (
                 <div style={{ textAlign: 'center', padding: 24 }}>
-                  <div style={spinnerStyle}></div>
+                  <div style={{
+                    display: 'inline-block',
+                    width: 28,
+                    height: 28,
+                    border: '3px solid #b3e5fc',
+                    borderTop: '3px solid #1976d2',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto',
+                  }}></div>
                   <div style={{ marginTop: 16, color: '#1976d2', fontWeight: 500 }}>Updating...</div>
                 </div>
               ) : showSuccess ? (
-                <div style={successAnimStyle}>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: 'fadeInScale 0.4s',
+                }}>
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
                     <circle cx="24" cy="24" r="24" fill="#b2f5ea"/>
                     <path d="M15 25L22 32L34 18" stroke="#0277bd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -373,39 +202,9 @@ const ProfilePage = () => {
                       />
                     </div>
                     {message && <p style={{ color: '#d32f2f', marginBottom: 8 }}>{message}</p>}
-                    <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                      <button
-                        type="submit"
-                        style={{
-                          background: '#0277bd',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: 6,
-                          padding: '0.6rem 1.5rem',
-                          fontWeight: 'bold',
-                          fontSize: '1rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancel}
-                        style={{
-                          background: '#b0bec5',
-                          color: '#263238',
-                          border: 'none',
-                          borderRadius: 6,
-                          padding: '0.6rem 1.5rem',
-                          fontWeight: 'bold',
-                          fontSize: '1rem',
-                          cursor: 'pointer',
-                        }}
-                        disabled={loading}
-                      >
-                        Cancel
-                      </button>
+                    <div className="profile-modal-btns">
+                      <button type="submit" className="profile-save-btn">Save</button>
+                      <button type="button" className="profile-cancel-btn" onClick={handleCancel} disabled={loading}>Cancel</button>
                     </div>
                   </form>
                 </>

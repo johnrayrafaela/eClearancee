@@ -39,7 +39,17 @@ const LoginForm = () => {
 
   return (
     <div className="login-container">
-      <h2 className="login-title">Login</h2>
+      <h2 className="login-title">
+        {accountType === 'admin' ? (
+          <>Administrator <span style={{ fontWeight: 400 }}>Access</span></>
+        ) : accountType === 'staff' ? (
+          <>Faculty <span style={{ fontWeight: 400 }}>Access</span></>
+          ) : accountType === 'teacher' ? (
+          <>Teacher <span style={{ fontWeight: 400 }}>Access</span></>
+        ) : (
+          <>Student <span style={{ fontWeight: 400 }}>Access</span></>
+        )}
+      </h2>
       {showSuccess && (
         <div className="success-anim">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -57,7 +67,7 @@ const LoginForm = () => {
           <input
             name="email"
             type="email"
-            placeholder="Email"
+            placeholder="Your Email"
             value={formData.email}
             onChange={handleChange}
             required
@@ -66,23 +76,30 @@ const LoginForm = () => {
           <input
             name="password"
             type="password"
-            placeholder="Password"
+            placeholder="Your Password"
             value={formData.password}
             onChange={handleChange}
             required
             className="login-input"
           />
 
-          <select
-            value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
-            className="login-select"
-          >
-            <option value="user">Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="staff">Staff</option>
-            <option value="admin">Admin</option>
-          </select>
+          <div className="login-remember-row">
+            <label className="login-remember-label">
+              <input type="checkbox" className="login-remember-checkbox" />
+              Remember me
+            </label>
+            <select
+              value={accountType}
+              onChange={(e) => setAccountType(e.target.value)}
+              className="login-select"
+              style={{ width: 'auto', minWidth: 120, marginBottom: 0 }}
+            >
+              <option value="user">Student Access</option>
+              <option value="teacher">Teacher Access</option>
+              <option value="admin">Administrator Access</option>
+              <option value="staff">Faculty Access</option>
+            </select>
+          </div>
 
           <button type="submit" className="login-button">Login</button>
         </form>
