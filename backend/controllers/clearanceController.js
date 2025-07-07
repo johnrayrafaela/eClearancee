@@ -196,3 +196,27 @@ exports.updateClearanceStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+exports.getClearanceStatusAnalytics = async (req, res) => {
+  try {
+    // Count clearances grouped by status
+    const { Sequelize } = require('sequelize');
+    const results = await Clearance.findAll({
+      attributes: [
+        'status',
+        [Sequelize.fn('COUNT', Sequelize.col('status')), 'count']
+      ],
+      group: ['status']
+    });
+
+    // Format as { status: count }
+    const analytics = {};
+    results.forEach(row => {
+      analytics[row.status] = parseInt(row.get('count'), 10);
+    });
+
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};

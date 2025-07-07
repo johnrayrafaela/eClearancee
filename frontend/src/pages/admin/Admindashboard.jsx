@@ -32,6 +32,13 @@ const Admindashboard = () => {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // New: Analytics state for clearance status
+  const [clearanceAnalytics, setClearanceAnalytics] = useState({
+    Pending: 0,
+    Approved: 0,
+    Rejected: 0,
+  });
+
   useEffect(() => {
     Promise.all([
       fetchData('http://localhost:5000/api/users/getAll/students'),
@@ -43,13 +50,24 @@ const Admindashboard = () => {
       setTeachers(teachersData);
       setLoading(false);
     });
+
+    // Fetch clearance analytics from backend
+    fetch('http://localhost:5000/api/clearance/analytics/status')
+      .then(res => res.json())
+      .then(data => setClearanceAnalytics({
+        Pending: data.Pending || 0,
+        Approved: data.Approved || 0,
+        Rejected: data.Rejected || 0,
+      }))
+      .catch(() => setClearanceAnalytics({ Pending: 0, Approved: 0, Rejected: 0 }));
   }, []);
 
   // Student analytics
   const totalUsers = students.length;
-  const clearancePending = students.filter(u => u.clearance_status === 'pending').length;
-  const clearanceApproved = students.filter(u => u.clearance_status === 'approved').length;
-  const clearanceRejected = students.filter(u => u.clearance_status === 'rejected').length;
+  // Use analytics from backend for clearance counts
+  const clearancePending = clearanceAnalytics.Pending;
+  const clearanceApproved = clearanceAnalytics.Approved;
+  const clearanceRejected = clearanceAnalytics.Rejected;
   const totalClearances = clearancePending + clearanceApproved + clearanceRejected;
   const clearedPercent = totalClearances
     ? Math.round((clearanceApproved / totalClearances) * 100)

@@ -4,7 +4,6 @@ import axios from 'axios';
 const styles = {
   container: {
     padding: '2rem',
-    maxWidth: 1000,
     margin: '0 auto',
     background: '#f9fafd',
     borderRadius: 12,
