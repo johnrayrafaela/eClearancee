@@ -15,7 +15,14 @@ const Subject = sequelize.define('Subject', {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  // Remove teacher_id and association
+  course: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  year_level: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 });
 
 module.exports = Subject;

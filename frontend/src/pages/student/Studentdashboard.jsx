@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../Context/AuthContext';
+import ClearanceStatusPage from './ClearanceStatusPage'; // Import the status page
 
 const StudentDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -17,26 +18,19 @@ const StudentDashboard = () => {
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>Quick Links</h3>
           <ul style={styles.linkList}>
-            <li><a href="/clearancestatus" style={styles.link}>Clearance Status</a></li>
+            <li><a href="/student/clearancestatus" style={styles.link}>Clearance Status</a></li>
             <li><a href="/profile" style={styles.link}>My Profile</a></li>
-            <li><a href="/clearance" style={styles.link}>Request Clearance</a></li>
+            <li><a href="/student/clearance" style={styles.link}>Request Clearance</a></li>
           </ul>
         </div>
       </div>
-      <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Clearance Progress</h3>
-        <div style={styles.progressBarContainer}>
-          <div style={{ ...styles.progressBar, width: '70%' }} />
-        </div>
-        <p style={styles.progressText}>70% completed</p>
+
+      {/* Clearance Status Section */}
+      <div>
+        <ClearanceStatusPage />
       </div>
-      <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Notifications</h3>
-        <ul style={styles.notifications}>
-          <li>Your Library clearance has been approved.</li>
-          <li>Pending: Guidance Office clearance.</li>
-        </ul>
-      </div>
+
+      
     </div>
   );
 };
@@ -137,4 +131,4 @@ const styles = {
   },
 };
 
-export default StudentDashboard
+export default StudentDashboard;

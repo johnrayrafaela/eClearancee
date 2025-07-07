@@ -27,20 +27,22 @@ const Navbar = () => {
         <div style={styles.links}>
           {user && userType === 'user' && (
             <>
+
               <Link to="/profile" style={styles.link}>Profile</Link>
               <Link to="/student/dashboard" style={styles.link}>Student Dashboard</Link>
-              <Link to="/clearancestatus" style={styles.link}>Clearance Status</Link>
-              <Link to="/requestclearance" style={styles.link}>Request Clearance</Link>
+              <Link to="/student/clearance" style={styles.link}>Clearance Request</Link>
+              <Link to="/student/clearancestatus" style={styles.link}>Clearance Status</Link>
             </>
           )}
           {user && userType === 'admin' && (
             <>
+            <Link to="/admin/clearancerequest" style={styles.link}> Pending Clearance Request</Link>
             <Link to="/admin/dashboard" style={styles.link}>Admin Dashboard</Link>
              <Link to="/studentmanagement" style={styles.link}>Student Management</Link>
               <Link to="/staffmanagement" style={styles.link}>Staff Management</Link>
-              <Link to="/teachermanagement" style={styles.link}> Teacher Management</Link>
-              <Link to="/admin/departmentmanagement" style={styles.link}>Subject Management</Link>
-              <Link to="/admin/subjectmanagement" style={styles.link}>Department Management</Link>
+              <Link to="/admin/teachermanagement" style={styles.link}> Teacher Management</Link>
+              <Link to="/admin/subjectmanagement" style={styles.link}>Subject Management</Link>
+              <Link to="/admin/departmentmanagement" style={styles.link}>Department Management</Link>
               <Link to="/admin/analytics" style={styles.link}>Analytics</Link>
              
             </>

@@ -7,6 +7,7 @@ const teacherRoutes = require('./routes/teacherRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const staffRoutes = require('./routes/StaffRoutes');
+const clearanceRoutes = require('./routes/clearanceRoutes');
 
 
 const app = express();
@@ -19,6 +20,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/clearance', clearanceRoutes); 
 
 const PORT = process.env.PORT || 5000;
 

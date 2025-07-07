@@ -12,10 +12,10 @@ const keyframes = `
 }
 `;
 
-const API_URL = 'http://localhost:5000/api/staff';
+const API_URL = 'http://localhost:5000/api/teachers';
 
-const StaffManagement = () => {
-  const [staffs, setStaffs] = useState([]);
+const TeacherManagement = () => {
+  const [teachers, setTeachers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
     firstname: '',
@@ -27,34 +27,34 @@ const StaffManagement = () => {
   const [search, setSearch] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Fetch all staff
-  const fetchStaffs = async () => {
+  // Fetch all teachers
+  const fetchTeachers = async () => {
     try {
       const res = await axios.get(API_URL);
-      setStaffs(res.data);
+      setTeachers(res.data);
     } catch (err) {
       console.error(err);
-      setMessage('Failed to fetch staff');
+      setMessage('Failed to fetch teachers');
     }
   };
 
   useEffect(() => {
-    fetchStaffs();
+    fetchTeachers();
   }, []);
 
   // Handle form input
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Add or update staff
+  // Add or update teacher
   const handleSubmit = async e => {
     e.preventDefault();
     try {
       if (editing) {
-        await axios.put(`${API_URL}/${editing.staff_id}`, form);
-        setMessage('Staff updated!');
+        await axios.put(`${API_URL}/${editing.teacher_id}`, form);
+        setMessage('Teacher updated!');
       } else {
         await axios.post(`${API_URL}/register`, form);
-        setMessage('Staff added!');
+        setMessage('Teacher added!');
       }
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);
@@ -65,36 +65,36 @@ const StaffManagement = () => {
         password: '',
       });
       setEditing(null);
-      fetchStaffs();
+      fetchTeachers();
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.message || 'Error saving staff');
+      setMessage(err.response?.data?.message || 'Error saving teacher');
     }
   };
 
-  // Edit staff
-  const handleEdit = staff => {
-    setEditing(staff);
+  // Edit teacher
+  const handleEdit = teacher => {
+    setEditing(teacher);
     setForm({
-      firstname: staff.firstname,
-      lastname: staff.lastname,
-      email: staff.email,
+      firstname: teacher.firstname,
+      lastname: teacher.lastname,
+      email: teacher.email,
       password: '',
     });
   };
 
-  // Delete staff
+  // Delete teacher
   const handleDelete = async id => {
-    if (!window.confirm('Are you sure you want to delete this staff?')) return;
+    if (!window.confirm('Are you sure you want to delete this teacher?')) return;
     try {
       await axios.delete(`${API_URL}/${id}`);
-      setMessage('Staff deleted!');
+      setMessage('Teacher deleted!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);
-      fetchStaffs();
+      fetchTeachers();
     } catch (err) {
       console.error(err);
-      setMessage('Failed to delete staff');
+      setMessage('Failed to delete teacher');
     }
   };
 
@@ -110,9 +110,9 @@ const StaffManagement = () => {
     setMessage('');
   };
 
-  // Filtered staff
-  const displayedStaffs = staffs.filter(staff => {
-    const searchMatch = `${staff.firstname} ${staff.lastname} ${staff.email}`
+  // Filtered teachers
+  const displayedTeachers = teachers.filter(teacher => {
+    const searchMatch = `${teacher.firstname} ${teacher.lastname} ${teacher.email}`
       .toLowerCase()
       .includes(search.toLowerCase());
     return searchMatch;
@@ -250,8 +250,8 @@ const StaffManagement = () => {
     <div style={styles.container}>
       {/* Animation keyframes */}
       <style>{keyframes}</style>
-      <h2 style={styles.title}>Staff Management</h2>
-      <p style={styles.subtitle}>Manage staff accounts here.</p>
+      <h2 style={styles.title}>Teacher Management</h2>
+      <p style={styles.subtitle}>Manage all teachers here.</p>
       {showSuccess && (
         <div style={styles.successAnim}>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -268,7 +268,7 @@ const StaffManagement = () => {
       {/* Search Bar */}
       <input
         type="text"
-        placeholder="Search staff by name or email..."
+        placeholder="Search teachers by name or email..."
         value={search}
         onChange={e => setSearch(e.target.value)}
         style={styles.search}
@@ -276,7 +276,7 @@ const StaffManagement = () => {
 
       {/* Add/Edit Form */}
       <form onSubmit={handleSubmit} style={styles.form}>
-        <h4 style={{ color: '#0277bd', marginBottom: 10 }}>{editing ? 'Edit Staff' : 'Add Staff'}</h4>
+        <h4 style={{ color: '#0277bd', marginBottom: 10 }}>{editing ? 'Edit Teacher' : 'Add Teacher'}</h4>
         <div style={styles.formRow}>
           <input name="firstname" placeholder="First Name" value={form.firstname} onChange={handleChange} required style={styles.formInput} />
           <input name="lastname" placeholder="Last Name" value={form.lastname} onChange={handleChange} required style={styles.formInput} />
@@ -297,7 +297,7 @@ const StaffManagement = () => {
         </div>
       </form>
 
-      {/* Staff List */}
+      {/* Teacher List */}
       <table style={styles.table}>
         <thead>
           <tr>
@@ -307,13 +307,13 @@ const StaffManagement = () => {
           </tr>
         </thead>
         <tbody>
-          {displayedStaffs.map(staff => (
-            <tr key={staff.staff_id}>
-              <td style={styles.td}>{staff.firstname} {staff.lastname}</td>
-              <td style={styles.td}>{staff.email}</td>
+          {displayedTeachers.map(teacher => (
+            <tr key={teacher.teacher_id}>
+              <td style={styles.td}>{teacher.firstname} {teacher.lastname}</td>
+              <td style={styles.td}>{teacher.email}</td>
               <td style={styles.td}>
-                <button onClick={() => handleEdit(staff)} style={styles.actionBtn}>Edit</button>
-                <button onClick={() => handleDelete(staff.staff_id)} style={styles.deleteBtn}>Delete</button>
+                <button onClick={() => handleEdit(teacher)} style={styles.actionBtn}>Edit</button>
+                <button onClick={() => handleDelete(teacher.teacher_id)} style={styles.deleteBtn}>Delete</button>
               </td>
             </tr>
           ))}
@@ -323,4 +323,4 @@ const StaffManagement = () => {
   );
 };
 
-export default StaffManagement;
+export default TeacherManagement;

@@ -12,89 +12,92 @@ const keyframes = `
 }
 `;
 
-const API_URL = 'http://localhost:5000/api/staff';
+const API_URL = 'http://localhost:5000/api/subjects';
 
-const StaffManagement = () => {
-  const [staffs, setStaffs] = useState([]);
+const courses = ['BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'];
+const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+
+const SubjectManagement = () => {
+  const [subjects, setSubjects] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
-    firstname: '',
-    lastname: '',
-    email: '',
-    password: '',
+    name: '',
+    description: '',
+    course: '',
+    year_level: '',
   });
   const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Fetch all staff
-  const fetchStaffs = async () => {
+  // Fetch all subjects
+  const fetchSubjects = async () => {
     try {
       const res = await axios.get(API_URL);
-      setStaffs(res.data);
+      setSubjects(res.data);
     } catch (err) {
       console.error(err);
-      setMessage('Failed to fetch staff');
+      setMessage('Failed to fetch subjects');
     }
   };
 
   useEffect(() => {
-    fetchStaffs();
+    fetchSubjects();
   }, []);
 
   // Handle form input
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Add or update staff
+  // Add or update subject
   const handleSubmit = async e => {
     e.preventDefault();
     try {
       if (editing) {
-        await axios.put(`${API_URL}/${editing.staff_id}`, form);
-        setMessage('Staff updated!');
+        await axios.put(`${API_URL}/${editing.subject_id}`, form);
+        setMessage('Subject updated!');
       } else {
-        await axios.post(`${API_URL}/register`, form);
-        setMessage('Staff added!');
+        await axios.post(API_URL, form);
+        setMessage('Subject added!');
       }
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);
       setForm({
-        firstname: '',
-        lastname: '',
-        email: '',
-        password: '',
+        name: '',
+        description: '',
+        course: '',
+        year_level: '',
       });
       setEditing(null);
-      fetchStaffs();
+      fetchSubjects();
     } catch (err) {
       console.error(err);
-      setMessage(err.response?.data?.message || 'Error saving staff');
+      setMessage(err.response?.data?.message || 'Error saving subject');
     }
   };
 
-  // Edit staff
-  const handleEdit = staff => {
-    setEditing(staff);
+  // Edit subject
+  const handleEdit = subject => {
+    setEditing(subject);
     setForm({
-      firstname: staff.firstname,
-      lastname: staff.lastname,
-      email: staff.email,
-      password: '',
+      name: subject.name,
+      description: subject.description || '',
+      course: subject.course || '',
+      year_level: subject.year_level || '',
     });
   };
 
-  // Delete staff
+  // Delete subject
   const handleDelete = async id => {
-    if (!window.confirm('Are you sure you want to delete this staff?')) return;
+    if (!window.confirm('Are you sure you want to delete this subject?')) return;
     try {
       await axios.delete(`${API_URL}/${id}`);
-      setMessage('Staff deleted!');
+      setMessage('Subject deleted!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);
-      fetchStaffs();
+      fetchSubjects();
     } catch (err) {
       console.error(err);
-      setMessage('Failed to delete staff');
+      setMessage('Failed to delete subject');
     }
   };
 
@@ -102,17 +105,17 @@ const StaffManagement = () => {
   const handleCancel = () => {
     setEditing(null);
     setForm({
-      firstname: '',
-      lastname: '',
-      email: '',
-      password: '',
+      name: '',
+      description: '',
+      course: '',
+      year_level: '',
     });
     setMessage('');
   };
 
-  // Filtered staff
-  const displayedStaffs = staffs.filter(staff => {
-    const searchMatch = `${staff.firstname} ${staff.lastname} ${staff.email}`
+  // Filtered subjects
+  const displayedSubjects = subjects.filter(subject => {
+    const searchMatch = `${subject.name} ${subject.description || ''} ${subject.course || ''} ${subject.year_level || ''}`
       .toLowerCase()
       .includes(search.toLowerCase());
     return searchMatch;
@@ -250,8 +253,8 @@ const StaffManagement = () => {
     <div style={styles.container}>
       {/* Animation keyframes */}
       <style>{keyframes}</style>
-      <h2 style={styles.title}>Staff Management</h2>
-      <p style={styles.subtitle}>Manage staff accounts here.</p>
+      <h2 style={styles.title}>Subject Management</h2>
+      <p style={styles.subtitle}>Manage all subjects here. Assign a course and year level to each subject.</p>
       {showSuccess && (
         <div style={styles.successAnim}>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -268,7 +271,7 @@ const StaffManagement = () => {
       {/* Search Bar */}
       <input
         type="text"
-        placeholder="Search staff by name or email..."
+        placeholder="Search subjects by name, course, or year level..."
         value={search}
         onChange={e => setSearch(e.target.value)}
         style={styles.search}
@@ -276,14 +279,34 @@ const StaffManagement = () => {
 
       {/* Add/Edit Form */}
       <form onSubmit={handleSubmit} style={styles.form}>
-        <h4 style={{ color: '#0277bd', marginBottom: 10 }}>{editing ? 'Edit Staff' : 'Add Staff'}</h4>
+        <h4 style={{ color: '#0277bd', marginBottom: 10 }}>{editing ? 'Edit Subject' : 'Add Subject'}</h4>
         <div style={styles.formRow}>
-          <input name="firstname" placeholder="First Name" value={form.firstname} onChange={handleChange} required style={styles.formInput} />
-          <input name="lastname" placeholder="Last Name" value={form.lastname} onChange={handleChange} required style={styles.formInput} />
-          <input name="email" placeholder="Email" value={form.email} onChange={handleChange} required style={styles.formInput} />
-          {!editing && (
-            <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required style={styles.formInput} />
-          )}
+          <input name="name" placeholder="Subject Name" value={form.name} onChange={handleChange} required style={styles.formInput} />
+          <input name="description" placeholder="Description" value={form.description} onChange={handleChange} style={styles.formInput} />
+          <select
+            name="course"
+            value={form.course}
+            onChange={handleChange}
+            required
+            style={styles.formInput}
+          >
+            <option value="">Select Course</option>
+            {courses.map(course => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
+          <select
+            name="year_level"
+            value={form.year_level}
+            onChange={handleChange}
+            required
+            style={styles.formInput}
+          >
+            <option value="">Select Year Level</option>
+            {yearLevels.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
         </div>
         <div style={{ marginTop: 10 }}>
           <button type="submit" style={styles.formBtn}>
@@ -297,23 +320,27 @@ const StaffManagement = () => {
         </div>
       </form>
 
-      {/* Staff List */}
+      {/* Subject List */}
       <table style={styles.table}>
         <thead>
           <tr>
             <th style={styles.th}>Name</th>
-            <th style={styles.th}>Email</th>
+            <th style={styles.th}>Description</th>
+            <th style={styles.th}>Course</th>
+            <th style={styles.th}>Year Level</th>
             <th style={styles.th}>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {displayedStaffs.map(staff => (
-            <tr key={staff.staff_id}>
-              <td style={styles.td}>{staff.firstname} {staff.lastname}</td>
-              <td style={styles.td}>{staff.email}</td>
+          {displayedSubjects.map(subject => (
+            <tr key={subject.subject_id}>
+              <td style={styles.td}>{subject.name}</td>
+              <td style={styles.td}>{subject.description}</td>
+              <td style={styles.td}>{subject.course}</td>
+              <td style={styles.td}>{subject.year_level}</td>
               <td style={styles.td}>
-                <button onClick={() => handleEdit(staff)} style={styles.actionBtn}>Edit</button>
-                <button onClick={() => handleDelete(staff.staff_id)} style={styles.deleteBtn}>Delete</button>
+                <button onClick={() => handleEdit(subject)} style={styles.actionBtn}>Edit</button>
+                <button onClick={() => handleDelete(subject.subject_id)} style={styles.deleteBtn}>Delete</button>
               </td>
             </tr>
           ))}
@@ -323,4 +350,4 @@ const StaffManagement = () => {
   );
 };
 
-export default StaffManagement;
+export default SubjectManagement;
