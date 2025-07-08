@@ -47,6 +47,16 @@ const Navbar = () => {
              
             </>
           )}
+
+          {user && userType === 'teacher' && (
+            <>
+              <Link to="/teacher/dashboard" style={styles.link}>Teacher Dashboard</Link>
+              <Link to="/teacher/subject-requests" style={styles.link}>Subject Requests</Link>
+              <Link to="/teacher/profile" style={styles.link}>Profile</Link>
+              <Link to="/teacher/subjects" style={styles.link}>My Subjects</Link>
+              <Link to="/teacher/analytics" style={styles.link}>Analytics</Link>
+            </>
+          )}
           {user ? (
             <div style={styles.avatarContainer}>
               <img
@@ -123,7 +133,6 @@ const styles = {
   },
   avatarContainer: {
     position: 'relative',
-    marginTop: '2.2rem',
     cursor: 'pointer',
     alignSelf: 'flex-start',
   },

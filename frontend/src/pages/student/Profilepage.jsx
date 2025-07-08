@@ -3,11 +3,6 @@ import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
 import '../../style/ProfilePage.css';
 
-const statusColors = {
-  approved: '#43a047',
-  pending: '#ffa000',
-  rejected: '#e53935',
-};
 
 const ProfilePage = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -18,8 +13,16 @@ const ProfilePage = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    if (user) setFormData({ ...user });
-  }, [user]);
+    const fetchUser = async () => {
+      if (user && user.student_id) {
+        const res = await axios.get(`http://localhost:5000/api/users/${user.student_id}`);
+        setUser(res.data); // This will update the context and the profile page
+        setFormData({ ...res.data });
+      }
+    };
+    fetchUser();
+    // eslint-disable-next-line
+  }, []);
 
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -61,8 +64,6 @@ const ProfilePage = () => {
   if (!user) return <div>Loading...</div>;
 
   // Clearance status badge
-  const clearanceStatus = user.clearance_status || 'pending';
-  const statusColor = statusColors[clearanceStatus] || '#b0bec5';
 
   return (
     <>
@@ -78,12 +79,7 @@ const ProfilePage = () => {
             <div className="profile-name">{user.firstname} {user.lastname}</div>
             <div className="profile-role">Student</div>
             <div className="profile-course">{user.course} - {user.year_level} {user.block}</div>
-            <div
-              className="profile-status-badge"
-              style={{ background: statusColor }}
-            >
-              {clearanceStatus.charAt(0).toUpperCase() + clearanceStatus.slice(1)}
-            </div>
+           
           </div>
 
           {/* Info Section */}

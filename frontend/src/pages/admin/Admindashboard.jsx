@@ -16,7 +16,6 @@ const cardShadow = {
 };
 
 const quickLinks = [
-  { to: "/studentmanagement", label: "Student Management" },
   { to: "/staffmanagement", label: "Staff Management" },
   { to: "/teachermanagement", label: "Teacher Management" },
   { to: "/admin/departmentmanagement", label: "Department Management" },

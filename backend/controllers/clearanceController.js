@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const Subject = require('../models/Subject');
 const Clearance = require('../models/Clearance');
+const Teacher = require('../models/Teacher');
 const bcrypt = require('bcrypt'); // Make sure to install bcrypt if not yet
 
 exports.getStudentClearanceInfo = async (req, res) => {
@@ -115,7 +116,14 @@ exports.getClearanceStatus = async (req, res) => {
       where: {
         course: student.course,
         year_level: student.year_level,
-      }
+      },
+      include: [
+        {
+          model: Teacher,
+          as: 'teacher',
+          attributes: ['teacher_id', 'firstname', 'lastname', 'email']
+        }
+      ]
     });
 
     res.json({
@@ -191,6 +199,13 @@ exports.updateClearanceStatus = async (req, res) => {
     if (!clearance) return res.status(404).json({ message: 'Clearance not found.' });
     clearance.status = status;
     await clearance.save();
+
+    // After updating the clearance status to 'Approved'
+    await User.update(
+      { clearance_status: 'approved' },
+      { where: { student_id: clearance.student_id } }
+    );
+
     res.json({ message: `Clearance ${status.toLowerCase()}.`, clearance });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

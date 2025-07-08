@@ -39,7 +39,7 @@ exports.loginTeacher = async (req, res) => {
     res.json({
       token,
       teacher: {
-        id: teacher.teacher_id,
+        teacher_id: teacher.teacher_id,
         firstname: teacher.firstname,
         lastname: teacher.lastname,
         email: teacher.email,

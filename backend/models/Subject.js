@@ -23,6 +23,14 @@ const Subject = sequelize.define('Subject', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  teacher_id: {
+  type: DataTypes.INTEGER,
+  allowNull: false,
+  references: {
+    model: 'teachers', // table name in lowercase
+    key: 'teacher_id'
+  }
+}
 });
 
 module.exports = Subject;

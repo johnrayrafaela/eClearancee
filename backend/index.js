@@ -8,7 +8,21 @@ const subjectRoutes = require('./routes/subjectRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const staffRoutes = require('./routes/StaffRoutes');
 const clearanceRoutes = require('./routes/clearanceRoutes');
+const StudentSubjectStatusRoutes = require('./routes/studentSubjectStatusRoutes');
+const StudentSubjectStatus = require('./models/StudentSubjectStatus');
 
+
+
+// Associations
+const User = require('./models/User');
+const Teacher = require('./models/Teacher');
+const Subject = require('./models/Subject');
+
+Teacher.hasMany(Subject, { foreignKey: 'teacher_id' });
+Subject.belongsTo(Teacher, { foreignKey: 'teacher_id', as: 'teacher' });
+
+StudentSubjectStatus.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+StudentSubjectStatus.belongsTo(Subject, { foreignKey: 'subject_id', as: 'subject' });
 
 const app = express();
 
@@ -21,6 +35,7 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/clearance', clearanceRoutes); 
+app.use('/api/student-subject-status', StudentSubjectStatusRoutes);
 
 const PORT = process.env.PORT || 5000;
 

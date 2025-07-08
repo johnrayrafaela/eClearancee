@@ -4,7 +4,10 @@ import Navbar from './components/Navbar';
 import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
+
+
 import TeacherDashboard from './pages/teacher/Teacherdashboard';
+import TeacherSubjectRequests from './pages/teacher/TeacherSubjectRequests'; // Import Teacher Subject Requests
 
 import ClearanceStatusPage from './pages/student/ClearanceStatusPage';
 import CreateStudentClearance from './pages/student/createClearancePage';
@@ -47,6 +50,7 @@ function App() {
           <Route path="/studentmanagement" element={<StudentManagement />} />
 
           {/* Teacher routes */}
+          <Route path="/teacher/subject-requests" element={<TeacherSubjectRequests />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
         </Routes>
       </Layout>

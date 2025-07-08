@@ -18,6 +18,30 @@ const styles = {
     letterSpacing: '1px',
     textAlign: 'center'
   },
+  nav: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: 24,
+    gap: 12,
+  },
+  navBtn: isActive => ({
+    padding: '8px 24px',
+    borderRadius: 6,
+    border: 'none',
+    fontWeight: 700,
+    fontSize: 16,
+    background: isActive ? '#0277bd' : '#e1f5fe',
+    color: isActive ? '#fff' : '#0277bd',
+    cursor: 'pointer',
+    boxShadow: isActive ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+    transition: 'background 0.2s'
+  }),
+  sectionTitle: {
+    color: '#2563eb',
+    fontWeight: 700,
+    fontSize: '1.2rem',
+    margin: '24px 0 12px 0'
+  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -62,6 +86,7 @@ const styles = {
 const AdminClearanceRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('Pending');
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -79,44 +104,39 @@ const AdminClearanceRequests = () => {
     fetchRequests();
   };
 
-  return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Clearance Requests</h2>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Student Name</th>
-              <th style={styles.th}>Course</th>
-              <th style={styles.th}>Year</th>
-              <th style={styles.th}>Block</th>
-              <th style={styles.th}>Email</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map(req => (
-              <tr key={req.clearance_id}>
-                <td style={styles.td}>{req.student?.firstname} {req.student?.lastname}</td>
-                <td style={styles.td}>{req.student?.course}</td>
-                <td style={styles.td}>{req.student?.year_level}</td>
-                <td style={styles.td}>{req.student?.block}</td>
-                <td style={styles.td}>{req.student?.email}</td>
-                <td style={styles.td}>{req.status}</td>
-                <td style={styles.td}>
+  const renderTable = (data) => (
+    <table style={styles.table}>
+      <thead>
+        <tr>
+          <th style={styles.th}>Student Name</th>
+          <th style={styles.th}>Course</th>
+          <th style={styles.th}>Year</th>
+          <th style={styles.th}>Block</th>
+          <th style={styles.th}>Email</th>
+          <th style={styles.th}>Status</th>
+          <th style={styles.th}>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map(req => (
+          <tr key={req.clearance_id}>
+            <td style={styles.td}>{req.student?.firstname} {req.student?.lastname}</td>
+            <td style={styles.td}>{req.student?.course}</td>
+            <td style={styles.td}>{req.student?.year_level}</td>
+            <td style={styles.td}>{req.student?.block}</td>
+            <td style={styles.td}>{req.student?.email}</td>
+            <td style={styles.td}>{req.status}</td>
+            <td style={styles.td}>
+              {req.status === 'Pending' ? (
+                <>
                   <button
                     style={{ ...styles.button, ...styles.approve }}
-                    disabled={req.status === 'Approved'}
                     onClick={() => handleStatus(req.clearance_id, 'Approved')}
                   >
                     Approve
                   </button>
                   <button
                     style={{ ...styles.button, ...styles.reject }}
-                    disabled={req.status === 'Rejected' || req.status === 'Approved'}
                     onClick={() => handleStatus(req.clearance_id, 'Rejected')}
                   >
                     Reject
@@ -132,11 +152,52 @@ const AdminClearanceRequests = () => {
                   >
                     Delete
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </>
+              ) : (
+                <button
+                  style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
+                  onClick={async () => {
+                    await axios.delete('http://localhost:5000/api/clearance/admin/delete', {
+                      data: { student_id: req.student?.student_id }
+                    });
+                    fetchRequests();
+                  }}
+                >
+                  Delete
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  // Separate requests by status
+  const pending = requests.filter(r => r.status === 'Pending');
+  const approved = requests.filter(r => r.status === 'Approved');
+  const rejected = requests.filter(r => r.status === 'Rejected');
+
+  let currentData = [];
+  if (tab === 'Pending') currentData = pending;
+  else if (tab === 'Approved') currentData = approved;
+  else if (tab === 'Rejected') currentData = rejected;
+
+  return (
+    <div style={styles.container}>
+      <h2 style={styles.heading}>Clearance Requests</h2>
+      <div style={styles.nav}>
+        <button style={styles.navBtn(tab === 'Pending')} onClick={() => setTab('Pending')}>Pending</button>
+        <button style={styles.navBtn(tab === 'Approved')} onClick={() => setTab('Approved')}>Approved</button>
+        <button style={styles.navBtn(tab === 'Rejected')} onClick={() => setTab('Rejected')}>Rejected</button>
+      </div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <>
+          <div style={styles.sectionTitle}>{tab} Requests</div>
+          {currentData.length > 0 ? renderTable(currentData) : <div>No {tab.toLowerCase()} requests.</div>}
+        </>
       )}
     </div>
   );

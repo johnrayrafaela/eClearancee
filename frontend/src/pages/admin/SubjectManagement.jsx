@@ -19,16 +19,20 @@ const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 
 const SubjectManagement = () => {
   const [subjects, setSubjects] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
     course: '',
     year_level: '',
+    teacher_id: ''
   });
   const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [activeCourse, setActiveCourse] = useState(courses[0]);
+  const [activeYear, setActiveYear] = useState(yearLevels[0]);
 
   // Fetch all subjects
   const fetchSubjects = async () => {
@@ -41,8 +45,20 @@ const SubjectManagement = () => {
     }
   };
 
+  // Fetch all teachers
+  const fetchTeachers = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/teachers');
+      setTeachers(res.data);
+    } catch (err) {
+      console.error(err);
+      setMessage('Failed to fetch teachers');
+    }
+  };
+
   useEffect(() => {
     fetchSubjects();
+    fetchTeachers();
   }, []);
 
   // Handle form input
@@ -57,7 +73,7 @@ const SubjectManagement = () => {
         setMessage('Subject updated!');
       } else {
         await axios.post(API_URL, form);
-        setMessage('Subject added!');
+        setMessage('Subject added and teacher assigned!');
       }
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);
@@ -66,6 +82,7 @@ const SubjectManagement = () => {
         description: '',
         course: '',
         year_level: '',
+        teacher_id: ''
       });
       setEditing(null);
       fetchSubjects();
@@ -83,6 +100,7 @@ const SubjectManagement = () => {
       description: subject.description || '',
       course: subject.course || '',
       year_level: subject.year_level || '',
+      teacher_id: subject.teacher_id || ''
     });
   };
 
@@ -109,16 +127,19 @@ const SubjectManagement = () => {
       description: '',
       course: '',
       year_level: '',
+      teacher_id: ''
     });
     setMessage('');
   };
 
-  // Filtered subjects
+  // Filtered subjects by course and year level
   const displayedSubjects = subjects.filter(subject => {
     const searchMatch = `${subject.name} ${subject.description || ''} ${subject.course || ''} ${subject.year_level || ''}`
       .toLowerCase()
       .includes(search.toLowerCase());
-    return searchMatch;
+    const courseMatch = subject.course === activeCourse;
+    const yearMatch = subject.year_level === activeYear;
+    return searchMatch && courseMatch && yearMatch;
   });
 
   const styles = {
@@ -268,6 +289,53 @@ const SubjectManagement = () => {
       )}
       {message && !showSuccess && <div style={styles.message}>{message}</div>}
 
+      {/* Tabs for Course */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+        {courses.map(course => (
+          <button
+            key={course}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 6,
+              border: 'none',
+              fontWeight: 700,
+              fontSize: 15,
+              background: activeCourse === course ? '#0277bd' : '#e1f5fe',
+              color: activeCourse === course ? '#fff' : '#0277bd',
+              cursor: 'pointer',
+              boxShadow: activeCourse === course ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+              transition: 'background 0.2s'
+            }}
+            onClick={() => setActiveCourse(course)}
+          >
+            {course}
+          </button>
+        ))}
+      </div>
+      {/* Tabs for Year Level */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+        {yearLevels.map(year => (
+          <button
+            key={year}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 6,
+              border: 'none',
+              fontWeight: 700,
+              fontSize: 15,
+              background: activeYear === year ? '#0277bd' : '#e1f5fe',
+              color: activeYear === year ? '#fff' : '#0277bd',
+              cursor: 'pointer',
+              boxShadow: activeYear === year ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+              transition: 'background 0.2s'
+            }}
+            onClick={() => setActiveYear(year)}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+
       {/* Search Bar */}
       <input
         type="text"
@@ -307,6 +375,20 @@ const SubjectManagement = () => {
               <option key={year} value={year}>{year}</option>
             ))}
           </select>
+          <select
+            name="teacher_id"
+            value={form.teacher_id}
+            onChange={handleChange}
+            required
+            style={styles.formInput}
+          >
+            <option value="">Select Teacher</option>
+            {teachers.map(teacher => (
+              <option key={teacher.teacher_id} value={teacher.teacher_id}>
+                {teacher.firstname} {teacher.lastname}
+              </option>
+            ))}
+          </select>
         </div>
         <div style={{ marginTop: 10 }}>
           <button type="submit" style={styles.formBtn}>
@@ -328,6 +410,7 @@ const SubjectManagement = () => {
             <th style={styles.th}>Description</th>
             <th style={styles.th}>Course</th>
             <th style={styles.th}>Year Level</th>
+            <th style={styles.th}>Teacher</th>
             <th style={styles.th}>Actions</th>
           </tr>
         </thead>
@@ -338,6 +421,7 @@ const SubjectManagement = () => {
               <td style={styles.td}>{subject.description}</td>
               <td style={styles.td}>{subject.course}</td>
               <td style={styles.td}>{subject.year_level}</td>
+              <td style={styles.td}>{subject.teacher ? `${subject.teacher.firstname} ${subject.teacher.lastname}` : 'N/A'}</td>
               <td style={styles.td}>
                 <button onClick={() => handleEdit(subject)} style={styles.actionBtn}>Edit</button>
                 <button onClick={() => handleDelete(subject.subject_id)} style={styles.deleteBtn}>Delete</button>

@@ -1,9 +1,15 @@
 const Subject = require('../models/Subject');
+const Teacher = require('../models/Teacher'); // Add this at the top
 
 exports.createSubject = async (req, res) => {
   try {
-    const { name, description, course, year_level } = req.body;
-    const subject = await Subject.create({ name, description, course, year_level });
+    const { name, description, course, year_level, teacher_id } = req.body;
+    // Check if teacher exists
+    const teacher = await Teacher.findByPk(teacher_id);
+    if (!teacher) {
+      return res.status(400).json({ message: 'Teacher not found' });
+    }
+    const subject = await Subject.create({ name, description, course, year_level, teacher_id });
     res.status(201).json(subject);
   } catch (err) {
     res.status(500).json({ message: 'Error creating subject', error: err.message });
@@ -12,7 +18,15 @@ exports.createSubject = async (req, res) => {
 
 exports.getSubjects = async (req, res) => {
   try {
-    const subjects = await Subject.findAll();
+    const subjects = await Subject.findAll({
+      include: [
+        {
+          model: require('../models/Teacher'),
+          as: 'teacher',
+          attributes: ['teacher_id', 'firstname', 'lastname', 'email']
+        }
+      ]
+    });
     res.json(subjects);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching subjects', error: err.message });
@@ -33,8 +47,8 @@ exports.updateSubject = async (req, res) => {
   try {
     const subject = await Subject.findByPk(req.params.id);
     if (!subject) return res.status(404).json({ message: 'Subject not found' });
-    const { name, description, course, year_level } = req.body;
-    await subject.update({ name, description, course, year_level });
+    const { name, description, course, year_level, teacher_id } = req.body;
+    await subject.update({ name, description, course, year_level, teacher_id });
     res.json(subject);
   } catch (err) {
     res.status(500).json({ message: 'Error updating subject', error: err.message });
