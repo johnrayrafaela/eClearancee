@@ -3,13 +3,13 @@ const Teacher = require('../models/Teacher'); // Add this at the top
 
 exports.createSubject = async (req, res) => {
   try {
-    const { name, description, course, year_level, teacher_id } = req.body;
+    const { name, description, course, year_level, semester, teacher_id } = req.body;
     // Check if teacher exists
     const teacher = await Teacher.findByPk(teacher_id);
     if (!teacher) {
       return res.status(400).json({ message: 'Teacher not found' });
     }
-    const subject = await Subject.create({ name, description, course, year_level, teacher_id });
+    const subject = await Subject.create({ name, description, course, year_level, semester, teacher_id });
     res.status(201).json(subject);
   } catch (err) {
     res.status(500).json({ message: 'Error creating subject', error: err.message });
@@ -47,8 +47,8 @@ exports.updateSubject = async (req, res) => {
   try {
     const subject = await Subject.findByPk(req.params.id);
     if (!subject) return res.status(404).json({ message: 'Subject not found' });
-    const { name, description, course, year_level, teacher_id } = req.body;
-    await subject.update({ name, description, course, year_level, teacher_id });
+    const { name, description, course, year_level, semester, teacher_id } = req.body;
+    await subject.update({ name, description, course, year_level, semester, teacher_id });
     res.json(subject);
   } catch (err) {
     res.status(500).json({ message: 'Error updating subject', error: err.message });
@@ -67,11 +67,11 @@ exports.deleteSubject = async (req, res) => {
 };
 
 exports.getSubjectsForStudent = async (req, res) => {
-  const { course, year_level } = req.query;
+  const { course, year_level, semester } = req.query;
   try {
-    const subjects = await Subject.findAll({
-      where: { course, year_level }
-    });
+    const where = { course, year_level };
+    if (semester) where.semester = semester;
+    const subjects = await Subject.findAll({ where });
     res.json(subjects);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching subjects', error: err.message });

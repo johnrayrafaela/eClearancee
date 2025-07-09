@@ -16,6 +16,7 @@ const API_URL = 'http://localhost:5000/api/subjects';
 
 const courses = ['BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'];
 const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const semesters = ['1st', '2nd'];
 
 const SubjectManagement = () => {
   const [subjects, setSubjects] = useState([]);
@@ -26,13 +27,15 @@ const SubjectManagement = () => {
     description: '',
     course: '',
     year_level: '',
-    teacher_id: ''
+    teacher_id: '',
+    semester: ''
   });
   const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [activeCourse, setActiveCourse] = useState(courses[0]);
   const [activeYear, setActiveYear] = useState(yearLevels[0]);
+  const [activeSemester, setActiveSemester] = useState(semesters[0]);
 
   // Fetch all subjects
   const fetchSubjects = async () => {
@@ -82,7 +85,8 @@ const SubjectManagement = () => {
         description: '',
         course: '',
         year_level: '',
-        teacher_id: ''
+        teacher_id: '',
+        semester: ''
       });
       setEditing(null);
       fetchSubjects();
@@ -100,7 +104,8 @@ const SubjectManagement = () => {
       description: subject.description || '',
       course: subject.course || '',
       year_level: subject.year_level || '',
-      teacher_id: subject.teacher_id || ''
+      teacher_id: subject.teacher_id || '',
+      semester: subject.semester || ''
     });
   };
 
@@ -127,19 +132,21 @@ const SubjectManagement = () => {
       description: '',
       course: '',
       year_level: '',
-      teacher_id: ''
+      teacher_id: '',
+      semester: ''
     });
     setMessage('');
   };
 
-  // Filtered subjects by course and year level
+  // Filtered subjects by course, year level, and semester
   const displayedSubjects = subjects.filter(subject => {
     const searchMatch = `${subject.name} ${subject.description || ''} ${subject.course || ''} ${subject.year_level || ''}`
       .toLowerCase()
       .includes(search.toLowerCase());
     const courseMatch = subject.course === activeCourse;
     const yearMatch = subject.year_level === activeYear;
-    return searchMatch && courseMatch && yearMatch;
+    const semesterMatch = subject.semester === activeSemester;
+    return searchMatch && courseMatch && yearMatch && semesterMatch;
   });
 
   const styles = {
@@ -272,165 +279,200 @@ const SubjectManagement = () => {
 
   return (
     <div style={styles.container}>
-      {/* Animation keyframes */}
-      <style>{keyframes}</style>
-      <h2 style={styles.title}>Subject Management</h2>
-      <p style={styles.subtitle}>Manage all subjects here. Assign a course and year level to each subject.</p>
-      {showSuccess && (
-        <div style={styles.successAnim}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="24" fill="#b2f5ea"/>
-            <path d="M15 25L22 32L34 18" stroke="#0277bd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <div style={{ color: '#0277bd', fontWeight: 'bold', fontSize: '1.1rem', marginTop: 12 }}>
-            Success!
-          </div>
-        </div>
-      )}
-      {message && !showSuccess && <div style={styles.message}>{message}</div>}
+  {/* Animation keyframes */}
+  <style>{keyframes}</style>
+  <h2 style={styles.title}>Subject Management</h2>
+  <p style={styles.subtitle}>Manage all subjects here. Assign a course and year level to each subject.</p>
 
-      {/* Tabs for Course */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-        {courses.map(course => (
-          <button
-            key={course}
-            style={{
-              padding: '8px 18px',
-              borderRadius: 6,
-              border: 'none',
-              fontWeight: 700,
-              fontSize: 15,
-              background: activeCourse === course ? '#0277bd' : '#e1f5fe',
-              color: activeCourse === course ? '#fff' : '#0277bd',
-              cursor: 'pointer',
-              boxShadow: activeCourse === course ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
-              transition: 'background 0.2s'
-            }}
-            onClick={() => setActiveCourse(course)}
-          >
-            {course}
-          </button>
-        ))}
+  {showSuccess && (
+    <div style={styles.successAnim}>
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="24" fill="#b2f5ea"/>
+        <path d="M15 25L22 32L34 18" stroke="#0277bd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <div style={{ color: '#0277bd', fontWeight: 'bold', fontSize: '1.1rem', marginTop: 12 }}>
+        Success!
       </div>
-      {/* Tabs for Year Level */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
-        {yearLevels.map(year => (
-          <button
-            key={year}
-            style={{
-              padding: '8px 18px',
-              borderRadius: 6,
-              border: 'none',
-              fontWeight: 700,
-              fontSize: 15,
-              background: activeYear === year ? '#0277bd' : '#e1f5fe',
-              color: activeYear === year ? '#fff' : '#0277bd',
-              cursor: 'pointer',
-              boxShadow: activeYear === year ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
-              transition: 'background 0.2s'
-            }}
-            onClick={() => setActiveYear(year)}
-          >
-            {year}
-          </button>
-        ))}
-      </div>
-
-      {/* Search Bar */}
-      <input
-        type="text"
-        placeholder="Search subjects by name, course, or year level..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={styles.search}
-      />
-
-      {/* Add/Edit Form */}
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <h4 style={{ color: '#0277bd', marginBottom: 10 }}>{editing ? 'Edit Subject' : 'Add Subject'}</h4>
-        <div style={styles.formRow}>
-          <input name="name" placeholder="Subject Name" value={form.name} onChange={handleChange} required style={styles.formInput} />
-          <input name="description" placeholder="Description" value={form.description} onChange={handleChange} style={styles.formInput} />
-          <select
-            name="course"
-            value={form.course}
-            onChange={handleChange}
-            required
-            style={styles.formInput}
-          >
-            <option value="">Select Course</option>
-            {courses.map(course => (
-              <option key={course} value={course}>{course}</option>
-            ))}
-          </select>
-          <select
-            name="year_level"
-            value={form.year_level}
-            onChange={handleChange}
-            required
-            style={styles.formInput}
-          >
-            <option value="">Select Year Level</option>
-            {yearLevels.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-          <select
-            name="teacher_id"
-            value={form.teacher_id}
-            onChange={handleChange}
-            required
-            style={styles.formInput}
-          >
-            <option value="">Select Teacher</option>
-            {teachers.map(teacher => (
-              <option key={teacher.teacher_id} value={teacher.teacher_id}>
-                {teacher.firstname} {teacher.lastname}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={{ marginTop: 10 }}>
-          <button type="submit" style={styles.formBtn}>
-            {editing ? 'Update' : 'Add'}
-          </button>
-          {editing && (
-            <button type="button" onClick={handleCancel} style={styles.cancelBtn}>
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-
-      {/* Subject List */}
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.th}>Name</th>
-            <th style={styles.th}>Description</th>
-            <th style={styles.th}>Course</th>
-            <th style={styles.th}>Year Level</th>
-            <th style={styles.th}>Teacher</th>
-            <th style={styles.th}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {displayedSubjects.map(subject => (
-            <tr key={subject.subject_id}>
-              <td style={styles.td}>{subject.name}</td>
-              <td style={styles.td}>{subject.description}</td>
-              <td style={styles.td}>{subject.course}</td>
-              <td style={styles.td}>{subject.year_level}</td>
-              <td style={styles.td}>{subject.teacher ? `${subject.teacher.firstname} ${subject.teacher.lastname}` : 'N/A'}</td>
-              <td style={styles.td}>
-                <button onClick={() => handleEdit(subject)} style={styles.actionBtn}>Edit</button>
-                <button onClick={() => handleDelete(subject.subject_id)} style={styles.deleteBtn}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
+  )}
+  {message && !showSuccess && <div style={styles.message}>{message}</div>}
+
+  {/* Dropdown for Course */}
+  <div style={{ marginBottom: 10 }}>
+    <select
+      value={activeCourse}
+      onChange={e => setActiveCourse(e.target.value)}
+      style={styles.formInput}
+    >
+      {courses.map(course => (
+        <option key={course} value={course}>
+          {course}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Dropdown for Year Level */}
+  <div style={{ marginBottom: 10 }}>
+    <select
+      value={activeYear}
+      onChange={e => setActiveYear(e.target.value)}
+      style={styles.formInput}
+    >
+      {yearLevels.map(year => (
+        <option key={year} value={year}>
+          {year}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Dropdown for Semester */}
+  <div style={{ marginBottom: 18 }}>
+    <select
+      value={activeSemester}
+      onChange={e => setActiveSemester(e.target.value)}
+      style={styles.formInput}
+    >
+      {semesters.map(sem => (
+        <option key={sem} value={sem}>
+          {sem} Semester
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Search Bar */}
+  <input
+    type="text"
+    placeholder="Search subjects by name, course, or year level..."
+    value={search}
+    onChange={e => setSearch(e.target.value)}
+    style={styles.search}
+  />
+
+  {/* Add/Edit Form */}
+  <form onSubmit={handleSubmit} style={styles.form}>
+    <h4 style={{ color: '#0277bd', marginBottom: 10 }}>
+      {editing ? 'Edit Subject' : 'Add Subject'}
+    </h4>
+    <div style={styles.formRow}>
+      <input
+        name="name"
+        placeholder="Subject Name"
+        value={form.name}
+        onChange={handleChange}
+        required
+        style={styles.formInput}
+      />
+      <input
+        name="description"
+        placeholder="Description"
+        value={form.description}
+        onChange={handleChange}
+        style={styles.formInput}
+      />
+      <select
+        name="course"
+        value={form.course}
+        onChange={handleChange}
+        required
+        style={styles.formInput}
+      >
+        <option value="">Select Course</option>
+        {courses.map(course => (
+          <option key={course} value={course}>
+            {course}
+          </option>
+        ))}
+      </select>
+      <select
+        name="year_level"
+        value={form.year_level}
+        onChange={handleChange}
+        required
+        style={styles.formInput}
+      >
+        <option value="">Select Year Level</option>
+        {yearLevels.map(year => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </select>
+      <select
+        name="teacher_id"
+        value={form.teacher_id}
+        onChange={handleChange}
+        required
+        style={styles.formInput}
+      >
+        <option value="">Select Teacher</option>
+        {teachers.map(teacher => (
+          <option key={teacher.teacher_id} value={teacher.teacher_id}>
+            {teacher.firstname} {teacher.lastname}
+          </option>
+        ))}
+      </select>
+      <select
+        name="semester"
+        value={form.semester}
+        onChange={handleChange}
+        required
+        style={styles.formInput}
+      >
+        <option value="">Select Semester</option>
+        <option value="1st">1st Semester</option>
+        <option value="2nd">2nd Semester</option>
+      </select>
+    </div>
+    <div style={{ marginTop: 10 }}>
+      <button type="submit" style={styles.formBtn}>
+        {editing ? 'Update' : 'Add'}
+      </button>
+      {editing && (
+        <button type="button" onClick={handleCancel} style={styles.cancelBtn}>
+          Cancel
+        </button>
+      )}
+    </div>
+  </form>
+
+  {/* Subject List */}
+  <table style={styles.table}>
+    <thead>
+      <tr>
+        <th style={styles.th}>Name</th>
+        <th style={styles.th}>Description</th>
+        <th style={styles.th}>Course</th>
+        <th style={styles.th}>Year Level</th>
+        <th style={styles.th}>Teacher</th>
+        <th style={styles.th}>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {displayedSubjects.map(subject => (
+        <tr key={subject.subject_id}>
+          <td style={styles.td}>{subject.name}</td>
+          <td style={styles.td}>{subject.description}</td>
+          <td style={styles.td}>{subject.course}</td>
+          <td style={styles.td}>{subject.year_level}</td>
+          <td style={styles.td}>
+            {subject.teacher ? `${subject.teacher.firstname} ${subject.teacher.lastname}` : 'N/A'}
+          </td>
+          <td style={styles.td}>
+            <button onClick={() => handleEdit(subject)} style={styles.actionBtn}>
+              Edit
+            </button>
+            <button onClick={() => handleDelete(subject.subject_id)} style={styles.deleteBtn}>
+              Delete
+            </button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
   );
 };
 
