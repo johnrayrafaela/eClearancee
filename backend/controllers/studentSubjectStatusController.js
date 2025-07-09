@@ -62,3 +62,14 @@ exports.getRequestedStatuses = async (req, res) => {
     res.status(500).json({ message: 'Error fetching subject statuses', error: err.message });
   }
 };
+
+exports.getAllStatuses = async (req, res) => {
+  try {
+    const statuses = await require('../models/StudentSubjectStatus').findAll({
+      attributes: ['status']
+    });
+    res.json(statuses);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching all subject statuses', error: err.message });
+  }
+};

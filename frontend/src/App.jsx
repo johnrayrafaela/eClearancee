@@ -21,6 +21,7 @@ import SubjectManagement from './pages/admin/SubjectManagement';
 import StaffManagement from './pages/admin/StaffManagement';
 import StudentManagement from './pages/admin/StudentManagement';
 import TeacherManagement from './pages/admin/TeacherManagement'; // Import Teacher Management
+import AnalyticsPage from './pages/admin/AnalyticsPage';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/staffmanagement" element={<StaffManagement />} />
           <Route path="/studentmanagement" element={<StudentManagement />} />
+          <Route path="/admin/analytics" element={<AnalyticsPage />} />
 
           {/* Teacher routes */}
           <Route path="/teacher/subject-requests" element={<TeacherSubjectRequests />} />

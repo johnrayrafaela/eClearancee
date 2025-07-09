@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Pie } from 'react-chartjs-2';
+import 'chart.js/auto';
 
 // Helper function to fetch data from your backend
 const fetchData = async (endpoint) => {
@@ -17,10 +19,10 @@ const cardShadow = {
 
 const quickLinks = [
   { to: "/staffmanagement", label: "Staff Management" },
-  { to: "/teachermanagement", label: "Teacher Management" },
+  { to: "/admin/teachermanagement", label: "Teacher Management" },
   { to: "/admin/departmentmanagement", label: "Department Management" },
   { to: "/admin/dashboard", label: "Admin Dashboard" },
-  { to: "/admin/clearancerequests", label: "Clearance Requests" },
+  { to: "/admin/clearancerequest", label: "Pending Clearance Requests" },
   { to: "/admin/notifications", label: "Notifications" },
   { to: "/admin/analytics", label: "Analytics" },
 ];
@@ -76,15 +78,23 @@ const Admindashboard = () => {
   const totalStaff = staffs.length;
   const totalTeachers = teachers.length;
 
-  const analyticsData = [
-    { label: 'Total Students', value: totalUsers },
-    { label: 'Total Staff', value: totalStaff },
-    { label: 'Total Teachers', value: totalTeachers },
-    { label: 'Clearance Pending', value: clearancePending },
-    { label: 'Clearance Approved', value: clearanceApproved },
-    { label: 'Clearance Rejected', value: clearanceRejected },
-    // Add more analytics as needed
-  ];
+  // Pie data for users
+  const usersPieData = {
+    labels: ['Students', 'Staff', 'Teachers'],
+    datasets: [
+      {
+        data: [totalUsers, totalStaff, totalTeachers],
+        backgroundColor: [
+          '#26c6da', // Students
+          '#ab47bc', // Staff
+          '#ffa726', // Teachers
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  
 
   if (loading) {
     return <div style={{ padding: '2rem' }}>Loading...</div>;
@@ -100,13 +110,13 @@ const Admindashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <span style={{ fontSize: 36 }}>👥</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 18 }}>Enrolled Students</div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>Total Users</div>
             </div>
           </div>
-          {/* Add total students info below */}
+          {/* Add total users info below */}
           <div style={{ marginTop: 10, width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-              <span style={{ color: '#e0f7fa' }}>Total Students</span>
+              <span style={{ color: '#e0f7fa' }}>Total Users</span>
               <span style={{ color: '#fff', fontWeight: 900 }}>{totalUsers}</span>
             </div>
           </div>
@@ -180,19 +190,26 @@ const Admindashboard = () => {
             cursor: 'pointer',
           }}>UPDATE PROFILE</button>
         </div>
-        {/* Data Analytics */}
-        <div style={{ ...cardShadow, flex: 1, minWidth: 260 }}>
+        {/* Data Analytics - Users */}
+        <div style={{ ...cardShadow, flex: 1, minWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>
             <span role="img" aria-label="analytics" style={{ marginRight: 8 }}>📊</span>
-            Data Analytics
+            Users Analytics
           </div>
-          <div>
-            {analyticsData.map((item, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ color: '#263238', fontWeight: 600 }}>{item.label}</span>
-                <span style={{ color: '#0288d1', fontWeight: 900 }}>{item.value}</span>
-              </div>
-            ))}
+          <Pie data={usersPieData} />
+          <div style={{ marginTop: 18, width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, marginBottom: 4 }}>
+              <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: '#26c6da', border: '1px solid #e0e0e0' }}></span>
+              Students: <b style={{ color: '#0277bd' }}>{totalUsers}</b>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, marginBottom: 4 }}>
+              <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: '#ab47bc', border: '1px solid #e0e0e0' }}></span>
+              Staff: <b style={{ color: '#0277bd' }}>{totalStaff}</b>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, marginBottom: 4 }}>
+              <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: '#ffa726', border: '1px solid #e0e0e0' }}></span>
+              Teachers: <b style={{ color: '#0277bd' }}>{totalTeachers}</b>
+            </div>
           </div>
         </div>
       </div>
