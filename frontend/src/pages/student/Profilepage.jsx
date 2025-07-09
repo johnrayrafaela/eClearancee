@@ -15,7 +15,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       if (user && user.student_id) {
-        const res = await axios.get(`http://localhost:5000/api/users/${user.student_id}`);
+        const res = await axios.get(`http://localhost:5000/api/users/get/${user.student_id}`);
         setUser(res.data); // This will update the context and the profile page
         setFormData({ ...res.data });
       }

@@ -44,19 +44,22 @@ exports.getStudentClearanceInfo = async (req, res) => {
 
 exports.createClearance = async (req, res) => {
   try {
-    const { student_id } = req.body;
+    const { student_id, semester } = req.body;
     const student = await User.findByPk(student_id);
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    // Check if clearance already exists
-    const existing = await Clearance.findOne({ where: { student_id } });
+    // Check if clearance already exists for this semester
+    const existing = await Clearance.findOne({ where: { student_id, semester } });
     if (existing) {
-      return res.status(400).json({ message: 'You already have a clearance. Delete it to create a new one.' });
+      return res.status(400).json({ message: 'You already have a clearance for this semester. Delete it to create a new one.' });
     }
 
-    const clearance = await Clearance.create({ student_id });
+    // Save semester in clearance (add semester column to Clearance model if needed)
+    const clearance = await Clearance.create({ student_id, semester });
+
+    // Fetch subjects for the selected semester
     const subjects = await Subject.findAll({
-      where: { course: student.course, year_level: student.year_level }
+      where: { course: student.course, year_level: student.year_level, semester }
     });
 
     res.status(201).json({
@@ -78,17 +81,19 @@ exports.createClearance = async (req, res) => {
 
 exports.precheckClearance = async (req, res) => {
   try {
-    const { student_id } = req.query;
+    const { student_id, semester } = req.query;
     const student = await User.findByPk(student_id);
 
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    const subjects = await Subject.findAll({
-      where: {
-        course: student.course,
-        year_level: student.year_level,
-      }
-    });
+    // Filter subjects by semester
+    const where = {
+      course: student.course,
+      year_level: student.year_level,
+    };
+    if (semester) where.semester = semester;
+
+    const subjects = await Subject.findAll({ where });
 
     res.json({
       student: {
@@ -107,16 +112,23 @@ exports.precheckClearance = async (req, res) => {
 
 exports.getClearanceStatus = async (req, res) => {
   try {
-    const { student_id } = req.query;
-    const clearance = await Clearance.findOne({ where: { student_id } });
+    const { student_id, semester } = req.query;
+    const whereClearance = { student_id };
+    if (semester) whereClearance.semester = semester;
+    const clearance = await Clearance.findOne({ where: whereClearance });
     if (!clearance) return res.status(404).json({ message: 'No clearance found for this student.' });
 
     const student = await User.findByPk(student_id);
+
+    // Filter subjects by semester
+    const whereSubject = {
+      course: student.course,
+      year_level: student.year_level,
+    };
+    if (semester) whereSubject.semester = semester;
+
     const subjects = await Subject.findAll({
-      where: {
-        course: student.course,
-        year_level: student.year_level,
-      },
+      where: whereSubject,
       include: [
         {
           model: Teacher,

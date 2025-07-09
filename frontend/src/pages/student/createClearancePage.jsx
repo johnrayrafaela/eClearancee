@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../../Context/AuthContext'; // adjust path as needed
+import { AuthContext } from '../../Context/AuthContext';
 
 const styles = {
   container: {
@@ -107,6 +107,8 @@ const styles = {
   }
 };
 
+const semesters = ['1st', '2nd'];
+
 const CreateClearancePage = () => {
   const { user, userType } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
@@ -119,14 +121,15 @@ const CreateClearancePage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('');
 
+  // Fetch clearance for selected semester
   useEffect(() => {
-    // Wait for user to be loaded
     if (userType && !user) {
       setLoading(false);
       return;
     }
-    if (!user || userType !== 'user') {
+    if (!user || userType !== 'user' || !selectedSemester) {
       setClearance(null);
       setStudent(null);
       setSubjects([]);
@@ -136,7 +139,7 @@ const CreateClearancePage = () => {
       return;
     }
     setLoading(true);
-    axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}`)
+    axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`)
       .then(res => {
         if (res.data.clearance) {
           setClearance(res.data.clearance);
@@ -148,10 +151,32 @@ const CreateClearancePage = () => {
           setCreated(false);
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        setClearance(null);
+        setCreated(false);
+      })
       .finally(() => setLoading(false));
-  }, [user, userType]);
+  }, [user, userType, selectedSemester]);
 
+  // Step 1: Precheck - fetch subjects for selected semester before confirmation
+  const handlePrecheck = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/clearance/precheck?student_id=${user.student_id}&semester=${selectedSemester}`
+      );
+      setStudent(response.data.student);
+      setSubjects(response.data.subjects);
+      setShowConfirm(true);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load student info.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Create clearance for selected semester
   const handleCreateClearance = async () => {
     setShowConfirm(false);
     setLoading(true);
@@ -159,8 +184,8 @@ const CreateClearancePage = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/clearance/create', {
         student_id: user.student_id,
+        semester: selectedSemester
       });
-
       setClearance(response.data.clearance);
       setStudent(response.data.student);
       setSubjects(response.data.subjects);
@@ -172,6 +197,7 @@ const CreateClearancePage = () => {
     }
   };
 
+  // Delete clearance for selected semester
   const handleDeleteClearance = async () => {
     setLoading(true);
     setDeleteError('');
@@ -200,6 +226,26 @@ const CreateClearancePage = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📄 Clearance Request</h2>
+
+      {/* Semester Selector */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={styles.label}>Semester:</label>
+        <select
+          style={styles.input}
+          value={selectedSemester}
+          onChange={e => {
+            setSelectedSemester(e.target.value);
+            setShowConfirm(false);
+            setError('');
+          }}
+          required
+        >
+          <option value="">Select Semester</option>
+          {semesters.map(sem => (
+            <option key={sem} value={sem}>{sem} Semester</option>
+          ))}
+        </select>
+      </div>
 
       {/* Clearance Table */}
       {clearance && student && (
@@ -250,27 +296,15 @@ const CreateClearancePage = () => {
 
       {/* Step 1: Initial Create button */}
       {!clearance && !showConfirm && !created && (
-        <button
-          style={styles.button}
-          onClick={async () => {
-            setLoading(true);
-            setError('');
-            try {
-              // Fetch student info and subjects before showing the form
-              const response = await axios.get(`http://localhost:5000/api/clearance/precheck?student_id=${user.student_id}`);
-              setStudent(response.data.student);
-              setSubjects(response.data.subjects);
-              setShowConfirm(true);
-            } catch (err) {
-              setError(err.response?.data?.message || 'Failed to load student info.');
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : 'Create Clearance'}
-        </button>
+        <div>
+          <button
+            style={styles.button}
+            onClick={handlePrecheck}
+            disabled={loading || !selectedSemester}
+          >
+            {loading ? 'Loading...' : 'Create Clearance'}
+          </button>
+        </div>
       )}
 
       {/* Step 2: Show form and table for confirmation */}

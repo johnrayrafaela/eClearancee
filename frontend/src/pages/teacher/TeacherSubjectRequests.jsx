@@ -19,6 +19,29 @@ const styles = {
     letterSpacing: '1px',
     textAlign: 'center'
   },
+  filterRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 16,
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  },
+  label: {
+    fontWeight: 600,
+    color: '#0277bd',
+    marginRight: 8,
+  },
+  select: {
+    padding: '6px 12px',
+    borderRadius: 6,
+    border: '1.5px solid #b3e5fc',
+    background: '#fff',
+    color: '#0277bd',
+    fontSize: '1rem',
+    minWidth: 120,
+    outline: 'none'
+  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -63,14 +86,26 @@ const styles = {
   }
 };
 
+const semesters = ['1st Semester', '2nd Semester'];
+const courses = [
+  'BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'
+];
+const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const blocks = ['A', 'B', 'C', 'D'];
+
 const TeacherSubjectRequests = () => {
   const { user, userType } = useContext(AuthContext);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Filters
+  const [selectedSemester, setSelectedSemester] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedBlock, setSelectedBlock] = useState('');
+
   // Fetch requests for this teacher
   useEffect(() => {
-    console.log('user:', user); // Add this line
     if (!user || userType !== 'teacher') return;
     setLoading(true);
     axios.get(`http://localhost:5000/api/student-subject-status/teacher?teacher_id=${user.teacher_id}`)
@@ -84,6 +119,15 @@ const TeacherSubjectRequests = () => {
     setRequests(prev => prev.filter(r => r.id !== id));
   };
 
+  // Filter requests by semester, course, year, block
+  const filteredRequests = requests.filter(req => {
+    const matchSemester = selectedSemester ? req.semester === selectedSemester : true;
+    const matchCourse = selectedCourse ? req.student?.course === selectedCourse : true;
+    const matchYear = selectedYear ? req.student?.year_level === selectedYear : true;
+    const matchBlock = selectedBlock ? req.student?.block === selectedBlock : true;
+    return matchSemester && matchCourse && matchYear && matchBlock;
+  });
+
   if (!user || userType !== 'teacher') {
     return <div style={{ color: '#e11d48', padding: 20 }}>❌ Access denied. Only teachers can view this page.</div>;
   }
@@ -91,9 +135,64 @@ const TeacherSubjectRequests = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📥 Subject Approval Requests</h2>
+      {/* Filter Row */}
+      <div style={styles.filterRow}>
+        <div>
+          <label style={styles.label}>Semester:</label>
+          <select
+            style={styles.select}
+            value={selectedSemester}
+            onChange={e => setSelectedSemester(e.target.value)}
+          >
+            <option value="">All Semesters</option>
+            {semesters.map(sem => (
+              <option key={sem} value={sem}>{sem}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>Course:</label>
+          <select
+            style={styles.select}
+            value={selectedCourse}
+            onChange={e => setSelectedCourse(e.target.value)}
+          >
+            <option value="">All Courses</option>
+            {courses.map(course => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>Year:</label>
+          <select
+            style={styles.select}
+            value={selectedYear}
+            onChange={e => setSelectedYear(e.target.value)}
+          >
+            <option value="">All Years</option>
+            {yearLevels.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>Block:</label>
+          <select
+            style={styles.select}
+            value={selectedBlock}
+            onChange={e => setSelectedBlock(e.target.value)}
+          >
+            <option value="">All Blocks</option>
+            {blocks.map(block => (
+              <option key={block} value={block}>{block}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       {loading ? (
         <div>Loading...</div>
-      ) : requests.length === 0 ? (
+      ) : filteredRequests.length === 0 ? (
         <div>No pending requests.</div>
       ) : (
         <table style={styles.table}>
@@ -106,7 +205,7 @@ const TeacherSubjectRequests = () => {
             </tr>
           </thead>
           <tbody>
-            {requests.map(req => (
+            {filteredRequests.map(req => (
               <tr key={req.id}>
                 <td style={styles.td}>
                   {req.student?.firstname} {req.student?.lastname}

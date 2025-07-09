@@ -70,8 +70,25 @@ const styles = {
     background: '#0277bd',
     color: '#fff',
     transition: 'background 0.2s'
+  },
+  label: {
+    display: 'block',
+    marginBottom: 8,
+    fontWeight: 600,
+    color: '#333'
+  },
+  input: {
+    padding: 10,
+    borderRadius: 6,
+    border: '1px solid #d1d5db',
+    width: '100%',
+    maxWidth: 300,
+    fontSize: 16,
+    color: '#333'
   }
 };
+
+const semesters = ['1st', '2nd'];
 
 const ClearanceStatusPage = () => {
   const { user, userType } = useContext(AuthContext);
@@ -81,26 +98,34 @@ const ClearanceStatusPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [requesting, setRequesting] = useState({}); // { [subject_id]: boolean }
+  const [selectedSemester, setSelectedSemester] = useState('');
 
   // Fetch clearance, subjects, and subject statuses
   useEffect(() => {
-    if (!user || userType !== 'user') return;
+    if (!user || userType !== 'user' || !selectedSemester) return;
     setLoading(true);
     Promise.all([
-      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}`),
-      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}`)
+      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`),
+      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${selectedSemester}`)
     ])
       .then(([clearanceRes, statusRes]) => {
         setClearance(clearanceRes.data.clearance);
         setSubjects(clearanceRes.data.subjects);
         setSubjectStatuses(statusRes.data.statuses || []);
+        setError('');
       })
       .catch(err => {
-        console.error('Error fetching clearance or subject statuses:', err);
-        setError('Failed to load clearance or subject statuses.');
+        if (err.response && err.response.status === 404) {
+          setClearance(null);
+          setSubjects([]);
+          setSubjectStatuses([]);
+          setError('No clearance found. Please request clearance first.');
+        } else {
+          setError('Failed to load clearance or subject statuses.');
+        }
       })
       .finally(() => setLoading(false));
-  }, [user, userType]);
+  }, [user, userType, selectedSemester]);
 
   // Request approval for a subject
   const requestApproval = async (subjectId) => {
@@ -108,7 +133,8 @@ const ClearanceStatusPage = () => {
     try {
       await axios.post('http://localhost:5000/api/student-subject-status/request', {
         student_id: user.student_id,
-        subject_id: subjectId
+        subject_id: subjectId,
+        semester: selectedSemester
       });
       // Update status locally
       setSubjectStatuses(prev =>
@@ -139,64 +165,80 @@ const ClearanceStatusPage = () => {
     return <div style={styles.error}>❌ Access denied. Only students can view clearance status.</div>;
   }
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div style={styles.error}>{error}</div>;
-
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📝 My Clearance Status</h2>
-      {clearance && (
+      <div style={{ marginBottom: 18 }}>
+        <label style={styles.label}>Semester:</label>
+        <select
+          style={styles.input}
+          value={selectedSemester}
+          onChange={e => setSelectedSemester(e.target.value)}
+        >
+          <option value="">Select Semester</option>
+          {semesters.map(sem => (
+            <option key={sem} value={sem}>{sem} Semester</option>
+          ))}
+        </select>
+      </div>
+      {loading && selectedSemester && <div>Loading...</div>}
+      {error && !clearance && selectedSemester && <div style={styles.error}>{error}</div>}
+      {clearance && selectedSemester && (
         <div style={styles.statusBox}>
           <strong>Status:</strong> {clearance.status}
         </div>
       )}
-      <h3 style={{ color: '#2563eb' }}>📘 Subjects</h3>
-      {subjects.length > 0 ? (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Subject Name</th>
-              <th style={styles.th}>Teacher</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subjects.map(subject => {
-              const status = getStatus(subject.subject_id);
-              return (
-                <tr key={subject.subject_id}>
-                  <td style={styles.td}>{subject.name}</td>
-                  <td style={styles.td}>
-                    {subject.teacher
-                      ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
-                      : 'N/A'}
-                  </td>
-                  <td style={styles.td}>{status}</td>
-                  <td style={styles.td}>
-                    {(status === 'Pending' || status === 'Rejected') && (
-                      <button
-                        style={styles.button}
-                        disabled={requesting[subject.subject_id]}
-                        onClick={() => requestApproval(subject.subject_id)}
-                      >
-                        {requesting[subject.subject_id] ? 'Requesting...' : 'Request Approval'}
-                      </button>
-                    )}
-                    {status === 'Requested' && (
-                      <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Teacher</span>
-                    )}
-                    {status === 'Approved' && (
-                      <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>
-                    )}
-                  </td>
+      {selectedSemester && (
+        <>
+          <h3 style={{ color: '#2563eb' }}>📘 Subjects</h3>
+          {subjects.length > 0 ? (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Subject Name</th>
+                  <th style={styles.th}>Teacher</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Action</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      ) : (
-        <p>No subjects found.</p>
+              </thead>
+              <tbody>
+                {subjects.map(subject => {
+                  const status = getStatus(subject.subject_id);
+                  return (
+                    <tr key={subject.subject_id}>
+                      <td style={styles.td}>{subject.name}</td>
+                      <td style={styles.td}>
+                        {subject.teacher
+                          ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
+                          : 'N/A'}
+                      </td>
+                      <td style={styles.td}>{status}</td>
+                      <td style={styles.td}>
+                        {(status === 'Pending' || status === 'Rejected') && (
+                          <button
+                            style={styles.button}
+                            disabled={requesting[subject.subject_id]}
+                            onClick={() => requestApproval(subject.subject_id)}
+                          >
+                            {requesting[subject.subject_id] ? 'Requesting...' : 'Request Approval'}
+                          </button>
+                        )}
+                        {status === 'Requested' && (
+                          <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Teacher</span>
+                        )}
+                        {status === 'Approved' && (
+                          <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            selectedSemester && <p>No subjects found.</p>
+          )}
+        </>
       )}
     </div>
   );

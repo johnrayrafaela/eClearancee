@@ -5,6 +5,10 @@ const Clearance = sequelize.define('Clearance', {
   clearance_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   student_id: { type: DataTypes.INTEGER, allowNull: false },
   status: { type: DataTypes.STRING, defaultValue: 'Pending' },
+  semester: {
+  type: DataTypes.STRING,
+  allowNull: false
+}
   // Add more fields as needed (date, remarks, etc.)
 });
 

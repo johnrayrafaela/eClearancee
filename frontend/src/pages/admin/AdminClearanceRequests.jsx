@@ -42,6 +42,29 @@ const styles = {
     fontSize: '1.2rem',
     margin: '24px 0 12px 0'
   },
+  filterRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 16,
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  },
+  label: {
+    fontWeight: 600,
+    color: '#0277bd',
+    marginRight: 8,
+  },
+  select: {
+    padding: '6px 12px',
+    borderRadius: 6,
+    border: '1.5px solid #b3e5fc',
+    background: '#fff',
+    color: '#0277bd',
+    fontSize: '1rem',
+    minWidth: 120,
+    outline: 'none'
+  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -83,10 +106,21 @@ const styles = {
   }
 };
 
+const semesters = ['1st', '2nd'];
+const courses = [
+  'BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'
+];
+const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const blocks = ['A', 'B', 'C', 'D'];
+
 const AdminClearanceRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('Pending');
+  const [selectedSemester, setSelectedSemester] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedBlock, setSelectedBlock] = useState('');
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -104,6 +138,25 @@ const AdminClearanceRequests = () => {
     fetchRequests();
   };
 
+  // Filter by semester, course, year, block if selected
+  const filteredRequests = requests.filter(r => {
+    const matchSemester = selectedSemester ? r.semester === selectedSemester : true;
+    const matchCourse = selectedCourse ? r.student?.course === selectedCourse : true;
+    const matchYear = selectedYear ? r.student?.year_level === selectedYear : true;
+    const matchBlock = selectedBlock ? r.student?.block === selectedBlock : true;
+    return matchSemester && matchCourse && matchYear && matchBlock;
+  });
+
+  // Separate requests by status
+  const pending = filteredRequests.filter(r => r.status === 'Pending');
+  const approved = filteredRequests.filter(r => r.status === 'Approved');
+  const rejected = filteredRequests.filter(r => r.status === 'Rejected');
+
+  let currentData = [];
+  if (tab === 'Pending') currentData = pending;
+  else if (tab === 'Approved') currentData = approved;
+  else if (tab === 'Rejected') currentData = rejected;
+
   const renderTable = (data) => (
     <table style={styles.table}>
       <thead>
@@ -113,6 +166,7 @@ const AdminClearanceRequests = () => {
           <th style={styles.th}>Year</th>
           <th style={styles.th}>Block</th>
           <th style={styles.th}>Email</th>
+          <th style={styles.th}>Semester</th>
           <th style={styles.th}>Status</th>
           <th style={styles.th}>Action</th>
         </tr>
@@ -125,6 +179,7 @@ const AdminClearanceRequests = () => {
             <td style={styles.td}>{req.student?.year_level}</td>
             <td style={styles.td}>{req.student?.block}</td>
             <td style={styles.td}>{req.student?.email}</td>
+            <td style={styles.td}>{req.semester ? `${req.semester} Semester` : '-'}</td>
             <td style={styles.td}>{req.status}</td>
             <td style={styles.td}>
               {req.status === 'Pending' ? (
@@ -173,19 +228,64 @@ const AdminClearanceRequests = () => {
     </table>
   );
 
-  // Separate requests by status
-  const pending = requests.filter(r => r.status === 'Pending');
-  const approved = requests.filter(r => r.status === 'Approved');
-  const rejected = requests.filter(r => r.status === 'Rejected');
-
-  let currentData = [];
-  if (tab === 'Pending') currentData = pending;
-  else if (tab === 'Approved') currentData = approved;
-  else if (tab === 'Rejected') currentData = rejected;
-
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>Clearance Requests</h2>
+      {/* Filter Row */}
+      <div style={styles.filterRow}>
+        <div>
+          <label style={styles.label}>Semester:</label>
+          <select
+            style={styles.select}
+            value={selectedSemester}
+            onChange={e => setSelectedSemester(e.target.value)}
+          >
+            <option value="">All Semesters</option>
+            {semesters.map(sem => (
+              <option key={sem} value={sem}>{sem} Semester</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>Course:</label>
+          <select
+            style={styles.select}
+            value={selectedCourse}
+            onChange={e => setSelectedCourse(e.target.value)}
+          >
+            <option value="">All Courses</option>
+            {courses.map(course => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>Year:</label>
+          <select
+            style={styles.select}
+            value={selectedYear}
+            onChange={e => setSelectedYear(e.target.value)}
+          >
+            <option value="">All Years</option>
+            {yearLevels.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>Block:</label>
+          <select
+            style={styles.select}
+            value={selectedBlock}
+            onChange={e => setSelectedBlock(e.target.value)}
+          >
+            <option value="">All Blocks</option>
+            {blocks.map(block => (
+              <option key={block} value={block}>{block}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       <div style={styles.nav}>
         <button style={styles.navBtn(tab === 'Pending')} onClick={() => setTab('Pending')}>Pending</button>
         <button style={styles.navBtn(tab === 'Approved')} onClick={() => setTab('Approved')}>Approved</button>
