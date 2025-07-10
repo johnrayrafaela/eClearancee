@@ -26,9 +26,7 @@ const Subject = sequelize.define('Subject', {
   semester: { // <-- Add this
     type: DataTypes.STRING,
     allowNull: false,
-    validate: {
-      isIn: [['1st', '2nd']]
-    }
+    
   },
   teacher_id: {
   type: DataTypes.INTEGER,

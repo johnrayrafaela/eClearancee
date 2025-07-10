@@ -18,7 +18,12 @@ exports.createSubject = async (req, res) => {
 
 exports.getSubjects = async (req, res) => {
   try {
+    const { semester } = req.query; // get semester from query
+    const where = {};
+    if (semester) where.semester = semester; // filter if provided
+
     const subjects = await Subject.findAll({
+      where,
       include: [
         {
           model: require('../models/Teacher'),

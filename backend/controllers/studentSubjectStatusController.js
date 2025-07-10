@@ -21,10 +21,13 @@ exports.requestSubjectApproval = async (req, res) => {
 
 
 exports.getRequestsForTeacher = async (req, res) => {
-  const { teacher_id } = req.query;
+  const { teacher_id, semester } = req.query;
   console.log('teacher_id:', teacher_id); // Add this line
+  const subjectWhere = { teacher_id };
+  if (semester) subjectWhere.semester = semester;
+
   try {
-    const subjects = await Subject.findAll({ where: { teacher_id } });
+    const subjects = await Subject.findAll({ where: subjectWhere });
     const subjectIds = subjects.map(s => s.subject_id);
 
     const requests = await StudentSubjectStatus.findAll({

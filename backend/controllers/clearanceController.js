@@ -156,8 +156,8 @@ exports.getClearanceStatus = async (req, res) => {
 
 exports.deleteClearance = async (req, res) => {
   try {
-    const { student_id, password } = req.body;
-    const clearance = await Clearance.findOne({ where: { student_id } });
+    const { student_id, password, semester } = req.body;
+    const clearance = await Clearance.findOne({ where: { student_id, semester } });
     if (!clearance) return res.status(404).json({ message: 'No clearance found to delete.' });
 
     const student = await User.findByPk(student_id);

@@ -86,7 +86,7 @@ const styles = {
   }
 };
 
-const semesters = ['1st Semester', '2nd Semester'];
+const semesters = ['1st', '2nd'];
 const courses = [
   'BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'
 ];
@@ -104,28 +104,33 @@ const TeacherSubjectRequests = () => {
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedBlock, setSelectedBlock] = useState('');
 
-  // Fetch requests for this teacher
+  // Fetch requests for this teacher, filtered by semester if selected
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
     setLoading(true);
-    axios.get(`http://localhost:5000/api/student-subject-status/teacher?teacher_id=${user.teacher_id}`)
+    // Add semester as query param if selected
+    const params = { teacher_id: user.teacher_id };
+    if (selectedSemester) {
+      // Use only "1st" or "2nd" for backend compatibility
+      params.semester = selectedSemester.startsWith('1st') ? '1st' : '2nd';
+    }
+    axios.get('http://localhost:5000/api/student-subject-status/teacher', { params })
       .then(res => setRequests(res.data))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
-  }, [user, userType]);
+  }, [user, userType, selectedSemester]);
 
   const handleRespond = async (id, status) => {
     await axios.patch(`http://localhost:5000/api/student-subject-status/${id}/respond`, { status });
     setRequests(prev => prev.filter(r => r.id !== id));
   };
 
-  // Filter requests by semester, course, year, block
+  // Filter requests by course, year, block (semester is now handled by backend)
   const filteredRequests = requests.filter(req => {
-    const matchSemester = selectedSemester ? req.semester === selectedSemester : true;
     const matchCourse = selectedCourse ? req.student?.course === selectedCourse : true;
     const matchYear = selectedYear ? req.student?.year_level === selectedYear : true;
     const matchBlock = selectedBlock ? req.student?.block === selectedBlock : true;
-    return matchSemester && matchCourse && matchYear && matchBlock;
+    return matchCourse && matchYear && matchBlock;
   });
 
   if (!user || userType !== 'teacher') {
@@ -135,7 +140,6 @@ const TeacherSubjectRequests = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📥 Subject Approval Requests</h2>
-      {/* Filter Row */}
       <div style={styles.filterRow}>
         <div>
           <label style={styles.label}>Semester:</label>
@@ -200,6 +204,7 @@ const TeacherSubjectRequests = () => {
             <tr>
               <th style={styles.th}>Student Name</th>
               <th style={styles.th}>Subject</th>
+              <th style={styles.th}>Semester</th>
               <th style={styles.th}>Status</th>
               <th style={styles.th}>Action</th>
             </tr>
@@ -212,6 +217,9 @@ const TeacherSubjectRequests = () => {
                 </td>
                 <td style={styles.td}>
                   {req.subject?.name}
+                </td>
+                <td style={styles.td}>
+                  {req.subject?.semester || req.semester}
                 </td>
                 <td style={styles.td}>
                   {req.status}
