@@ -10,7 +10,6 @@ const styles = {
     borderRadius: 12,
     boxShadow: '0 2px 12px rgba(2,119,189,0.07)',
     fontFamily: 'Segoe UI, Arial, sans-serif',
-    maxWidth: 700
   },
   heading: {
     color: '#0277bd',
@@ -104,6 +103,16 @@ const TeacherDashboard = () => {
           </tbody>
         </table>
       )}
+
+      <div>
+        <h2 style={styles.analyticsTitle}>📥 Subject Approval Requests</h2>
+        <p style={{ textAlign: 'center', marginBottom: 24 }}>
+          Manage student subject requests and approvals.
+        </p>
+        <a href="/teacher/subject-requests" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+          View Subject Requests
+        </a>
+      </div>
     </div>
   );
 };

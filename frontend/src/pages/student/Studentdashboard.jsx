@@ -3,7 +3,6 @@ import { AuthContext } from '../../Context/AuthContext';
 import ClearanceStatusPage from './ClearanceStatusPage'; // Import the status page
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import axios from 'axios';
 
 const StudentDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -33,99 +32,12 @@ const StudentDashboard = () => {
         <ClearanceStatusPage />
       </div>
 
-      <SubjectStatusBar studentId={user?.student_id} /> {/* Add the SubjectStatusBar component here */}
     </div>
   );
 };
 
-const SubjectStatusBar = ({ studentId }) => {
-  const [statusCounts, setStatusCounts] = React.useState({
-    Pending: 0,
-    Requested: 0,
-    Approved: 0,
-    Rejected: 0,
-  });
-  const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    if (!studentId) return;
-    axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${studentId}`)
-      .then(res => {
-        const counts = { Pending: 0, Requested: 0, Approved: 0, Rejected: 0 };
-        (res.data.statuses || []).forEach(s => {
-          counts[s.status] = (counts[s.status] || 0) + 1;
-        });
-        setStatusCounts(counts);
-      })
-      .finally(() => setLoading(false));
-  }, [studentId]);
-
-  // Calculate total subjects and percentages
-  const total = statusCounts.Pending + statusCounts.Requested + statusCounts.Approved + statusCounts.Rejected;
-  const approvedPercent = total > 0 ? Math.round((statusCounts.Approved / total) * 100) : 0;
-
-  return (
-    <div style={{
-      background: '#fff',
-      borderRadius: 10,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-      padding: '2rem 2.5rem',
-      margin: '2rem auto',
-      textAlign: 'center'
-    }}>
-      <h3 style={{ color: '#0288d1', fontWeight: 'bold', marginBottom: 18 }}>
-        📊 Subject Status Progress
-      </h3>
-      {loading ? (
-        <p style={{ color: '#666' }}>Loading status...</p>
-      ) : (
-        <>
-          <div style={{ fontWeight: 600, marginBottom: 8, color: '#2563eb' }}>
-            {approvedPercent}% Subjects Approved ({statusCounts.Approved} of {total})
-          </div>
-          <div style={{
-            background: '#e0e0e0',
-            borderRadius: 10,
-            height: 18,
-            width: '100%',
-            overflow: 'hidden',
-            marginBottom: 18,
-          }}>
-            <div style={{
-              width: `${approvedPercent}%`,
-              background: '#43a047',
-              height: '100%',
-              borderRadius: 10,
-              transition: 'width 0.5s',
-            }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: 8, flexWrap: 'wrap', fontSize: 15 }}>
-            <div>
-              <span style={{ color: '#ffd54f', fontWeight: 700 }}>Pending:</span>
-              <span style={{ marginLeft: 6, fontWeight: 700 }}>{total > 0 ? ((statusCounts.Pending / total) * 100).toFixed(1) : 0}%</span>
-            </div>
-            <div>
-              <span style={{ color: '#42a5f5', fontWeight: 700 }}>Requested:</span>
-              <span style={{ marginLeft: 6, fontWeight: 700 }}>{total > 0 ? ((statusCounts.Requested / total) * 100).toFixed(1) : 0}%</span>
-            </div>
-            <div>
-              <span style={{ color: '#43a047', fontWeight: 700 }}>Approved:</span>
-              <span style={{ marginLeft: 6, fontWeight: 700 }}>{total > 0 ? ((statusCounts.Approved / total) * 100).toFixed(1) : 0}%</span>
-            </div>
-            <div>
-              <span style={{ color: '#e53935', fontWeight: 700 }}>Rejected:</span>
-              <span style={{ marginLeft: 6, fontWeight: 700 }}>{total > 0 ? ((statusCounts.Rejected / total) * 100).toFixed(1) : 0}%</span>
-            </div>
-          </div>
-          <div style={{ color: '#666', fontSize: 15 }}>
-            <b>Total Subjects:</b> {total}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
+  
 const styles = {
   container: {
     padding: '2.5rem 2rem',

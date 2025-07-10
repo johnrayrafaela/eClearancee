@@ -51,7 +51,7 @@ const Navbar = () => {
           {user && userType === 'teacher' && (
             <>
               <Link to="/teacher/dashboard" style={styles.link}>Teacher Dashboard</Link>
-              <Link to="/teacher/subject-requests" style={styles.link}>Subject Requests</Link>
+              <Link to="/teacher/subject-requests" style={styles.link}>Subject Approval Requests</Link>
               <Link to="/teacher/profile" style={styles.link}>Profile</Link>
               <Link to="/teacher/subjects" style={styles.link}>My Subjects</Link>
               <Link to="/teacher/analytics" style={styles.link}>Analytics</Link>
@@ -60,7 +60,7 @@ const Navbar = () => {
           {user ? (
             <div style={styles.avatarContainer}>
               <img
-                src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?fit=facearea&w=64&h=64"
+                src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'https://ui-avatars.com/api/?name=' + user.firstname + '+' + user.lastname}
                 alt="User Avatar"
                 style={styles.avatar}
                 onClick={handleAvatarClick}
