@@ -53,7 +53,7 @@ const styles = {
 const semesters = ['1st', '2nd'];
 const statusLabels = ['Requested', 'Approved', 'Rejected'];
 
-const TeacherDashboard = () => {
+function TeacherDashboard() {
   const { user, userType } = useContext(AuthContext);
   const [analytics, setAnalytics] = useState({});
   const [loading, setLoading] = useState(true);
@@ -68,70 +68,122 @@ const TeacherDashboard = () => {
       .catch(() => setAnalytics({}))
       .finally(() => setLoading(false));
   }, [user, userType]);
+  // Card style for teacher dashboard
+  const cardShadow = {
+    background: '#fff',
+    borderRadius: 12,
+    boxShadow: '0 2px 12px rgba(2,119,189,0.07)',
+    padding: '1.5rem',
+    margin: '1rem 0',
+    minWidth: 220,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8
+  };
 
   return (
     <div style={styles.container}>
       <h1 style={styles.heading}>Teacher Dashboard</h1>
       <p style={{ textAlign: 'center', marginBottom: 24 }}>
-        Welcome, Teacher! Here you can manage your classes, view student progress, and handle academic tasks.
+        Welcome, Teacher! Here you view student progress, and handle academic tasks.
       </p>
 
-      <div style={styles.analyticsTitle}>📊 Subject Status Analytics by Semester</div>
-      {loading ? (
-        <div>Loading analytics...</div>
-      ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Semester</th>
-              {statusLabels.map(status => (
-                <th key={status} style={styles.th}>{status}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {semesters.map(sem => (
-              <tr key={sem}>
-                <td style={styles.td}>{sem} Semester</td>
-                {statusLabels.map(status => (
-                  <td key={status} style={styles.td}>
-                    {analytics[sem]?.[status] || 0}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <div>
-        <h2 style={styles.analyticsTitle}>� My Subject Request Status</h2>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Count</th>
-            </tr>
-          </thead>
-          <tbody>
-            {['Requested', 'Approved', 'Rejected'].map(status => (
-              <tr key={status}>
-                <td style={styles.td}>{status}</td>
-                <td style={styles.td}>{
-                  (semesters.reduce((sum, sem) => sum + (analytics[sem]?.[status] || 0), 0))
-                }</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Analytics Cards */}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
+        {/* Total Requests Card */}
+        <div style={{ ...cardShadow, background: '#26c6da', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 36 }}>📋</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>Total Requests</div>
+              <div style={{ fontSize: 14 }}>All Semesters</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 10, width: '100%', fontWeight: 900, fontSize: 28, textAlign: 'right' }}>
+            {semesters.reduce((sum, sem) => sum + (statusLabels.reduce((s, st) => s + (analytics[sem]?.[st] || 0), 0)), 0)}
+          </div>
+        </div>
+        {/* Pending Card */}
+        <div style={{ ...cardShadow, background: '#ffd54f', color: '#333', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 36 }}>⏳</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>Pending</div>
+              <div style={{ fontSize: 14 }}>All Semesters</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 10, width: '100%', fontWeight: 900, fontSize: 28, textAlign: 'right' }}>
+            {semesters.reduce((sum, sem) => sum + (analytics[sem]?.Requested || 0), 0)}
+          </div>
+        </div>
+        {/* Approved Card */}
+        <div style={{ ...cardShadow, background: '#66bb6a', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 36 }}>✅</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>Approved</div>
+              <div style={{ fontSize: 14 }}>All Semesters</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 10, width: '100%', fontWeight: 900, fontSize: 28, textAlign: 'right' }}>
+            {semesters.reduce((sum, sem) => sum + (analytics[sem]?.Approved || 0), 0)}
+          </div>
+        </div>
+        {/* Rejected Card */}
+        <div style={{ ...cardShadow, background: '#ef5350', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 36 }}>❌</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>Rejected</div>
+              <div style={{ fontSize: 14 }}>All Semesters</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 10, width: '100%', fontWeight: 900, fontSize: 28, textAlign: 'right' }}>
+            {semesters.reduce((sum, sem) => sum + (analytics[sem]?.Rejected || 0), 0)}
+          </div>
+        </div>
       </div>
 
-      <div>
-        <h2 style={styles.analyticsTitle}>�📥 Subject Approval Requests</h2>
+      {/* Table Analytics by Semester */}
+      <div style={{ ...cardShadow, background: '#e1f5fe', color: '#0277bd', marginBottom: 24 }}>
+        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>� Subject Status by Semester</div>
+        {loading ? (
+          <div>Loading analytics...</div>
+        ) : (
+          <table style={{ ...styles.table, background: 'transparent', boxShadow: 'none', marginTop: 0 }}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Semester</th>
+                {statusLabels.map(status => (
+                  <th key={status} style={styles.th}>{status}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {semesters.map(sem => (
+                <tr key={sem}>
+                  <td style={styles.td}>{sem} Semester</td>
+                  {statusLabels.map(status => (
+                    <td key={status} style={styles.td}>
+                      {analytics[sem]?.[status] || 0}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Subject Approval Requests Link */}
+      <div style={{ ...cardShadow, background: '#e3f2fd', color: '#0277bd', marginBottom: 24 }}>
+        <h2 style={{ ...styles.analyticsTitle, margin: 0 }}>� Subject Approval Requests</h2>
         <p style={{ textAlign: 'center', marginBottom: 24 }}>
           Manage student subject requests and approvals.
         </p>
-        <a href="/teacher/subject-requests" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+        <a href="/teacher/subject-requests" style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: 700 }}>
           View Subject Requests
         </a>
       </div>
