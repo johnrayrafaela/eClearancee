@@ -6,6 +6,8 @@ const StudentSubjectStatus = sequelize.define('StudentSubjectStatus', {
   student_id: { type: DataTypes.INTEGER, allowNull: false },
   subject_id: { type: DataTypes.INTEGER, allowNull: false },
   status: { type: DataTypes.STRING, defaultValue: 'Pending' }, // Pending, Requested, Approved, Rejected
+  requirements: { type: DataTypes.TEXT },
+  file_path: { type: DataTypes.STRING },
   // Optionally: request_date, response_date, remarks, etc.
 });
 

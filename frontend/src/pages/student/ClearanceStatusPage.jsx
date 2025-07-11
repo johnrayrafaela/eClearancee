@@ -98,6 +98,8 @@ const ClearanceStatusPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [requesting, setRequesting] = useState({}); // { [subject_id]: boolean }
+  // Removed requirements state
+  const [files, setFiles] = useState({}); // { [subject_id]: File | null }
   const [selectedSemester, setSelectedSemester] = useState('');
 
   // Fetch clearance, subjects, and subject statuses
@@ -129,12 +131,21 @@ const ClearanceStatusPage = () => {
 
   // Request approval for a subject
   const requestApproval = async (subjectId) => {
+    if (!window.confirm('Are you sure you want to request approval for this subject? This will submit your uploaded file and requirements.')) {
+      return;
+    }
     setRequesting(prev => ({ ...prev, [subjectId]: true }));
     try {
-      await axios.post('http://localhost:5000/api/student-subject-status/request', {
-        student_id: user.student_id,
-        subject_id: subjectId,
-        semester: selectedSemester
+      const formData = new FormData();
+      formData.append('student_id', user.student_id);
+      formData.append('subject_id', subjectId);
+      formData.append('semester', selectedSemester);
+      // No requirements field
+      if (files[subjectId]) {
+        formData.append('file', files[subjectId]);
+      }
+      await axios.post('http://localhost:5000/api/student-subject-status/request', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       // Update status locally
       setSubjectStatuses(prev =>
@@ -148,6 +159,8 @@ const ClearanceStatusPage = () => {
             : [{ subject_id: subjectId, status: 'Requested' }]
         )
       );
+      // No requirements reset
+      setFiles(prev => ({ ...prev, [subjectId]: null }));
     } catch (err) {
       console.error('Error requesting approval:', err);
       setError('Failed to request approval.');
@@ -197,7 +210,9 @@ const ClearanceStatusPage = () => {
                 <tr>
                   <th style={styles.th}>Subject Name</th>
                   <th style={styles.th}>Teacher</th>
+                  <th style={styles.th}>Requirements</th>
                   <th style={styles.th}>Status</th>
+                  <th style={styles.th}>File Upload</th>
                   <th style={styles.th}>Action</th>
                 </tr>
               </thead>
@@ -212,12 +227,25 @@ const ClearanceStatusPage = () => {
                           ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
                           : 'N/A'}
                       </td>
+                      <td style={styles.td}>{subject.requirements}</td>
                       <td style={styles.td}>{status}</td>
+                      
+                      <td style={styles.td}>
+                        {(status === 'Pending' || status === 'Rejected') && (
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            style={styles.input}
+                            onChange={e => setFiles(prev => ({ ...prev, [subject.subject_id]: e.target.files[0] }))}
+                          />
+                        )}
+                        {status !== 'Pending' && status !== 'Rejected' && <span>-</span>}
+                      </td>
                       <td style={styles.td}>
                         {(status === 'Pending' || status === 'Rejected') && (
                           <button
                             style={styles.button}
-                            disabled={requesting[subject.subject_id]}
+                            disabled={requesting[subject.subject_id] || !files[subject.subject_id]}
                             onClick={() => requestApproval(subject.subject_id)}
                           >
                             {requesting[subject.subject_id] ? 'Requesting...' : 'Request Approval'}

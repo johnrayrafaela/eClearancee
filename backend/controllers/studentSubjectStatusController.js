@@ -32,19 +32,52 @@ const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 const Subject = require('../models/Subject');
 const User = require('../models/User');
 
+// Handle subject approval request with file upload and requirements
 exports.requestSubjectApproval = async (req, res) => {
-  const { student_id, subject_id } = req.body;
+  const { student_id, subject_id, requirements } = req.body;
+  let file_path = null;
+  if (req.file) {
+    file_path = req.file.filename; // Store only filename, not full path
+  }
   try {
     let record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id } });
     if (!record) {
-      record = await StudentSubjectStatus.create({ student_id, subject_id, status: 'Requested' });
+      record = await StudentSubjectStatus.create({
+        student_id,
+        subject_id,
+        status: 'Requested',
+        requirements: requirements || '',
+        file_path
+      });
     } else {
       record.status = 'Requested';
+      record.requirements = requirements || '';
+      if (file_path) record.file_path = file_path;
       await record.save();
     }
     res.json({ message: 'Approval requested', record });
   } catch (err) {
     res.status(500).json({ message: 'Error requesting approval', error: err.message });
+  }
+};
+// Serve the uploaded file for a subject request
+const path = require('path');
+const fs = require('fs');
+exports.serveUploadedFile = async (req, res) => {
+  const { id } = req.params; // StudentSubjectStatus id
+  try {
+    const record = await StudentSubjectStatus.findByPk(id);
+    if (!record || !record.file_path) {
+      return res.status(404).json({ message: 'File not found for this request.' });
+    }
+    const fileDir = path.join(__dirname, '../uploads/subject-requests');
+    const filePath = path.join(fileDir, record.file_path);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'File does not exist on server.' });
+    }
+    res.sendFile(filePath);
+  } catch (err) {
+    res.status(500).json({ message: 'Error serving file', error: err.message });
   }
 };
 
@@ -68,7 +101,12 @@ exports.getRequestsForTeacher = async (req, res) => {
         { model: Subject, as: 'subject' }
       ]
     });
-    res.json(requests);
+    // Attach requirements and file_path to response
+    res.json(requests.map(r => ({
+      ...r.toJSON(),
+      requirements: r.requirements,
+      file_path: r.file_path
+    })));
   } catch (err) {
     res.status(500).json({ message: 'Error fetching requests', error: err.message });
   }

@@ -5,7 +5,8 @@ import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
 
-
+import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
+import TeacherSubjectRequirements from './pages/teacher/TeacherSubjectRequirements'; // Import Teacher Subject Requirements
 import TeacherDashboard from './pages/teacher/Teacherdashboard';
 import TeacherSubjectRequests from './pages/teacher/TeacherSubjectRequests'; // Import Teacher Subject Requests
 
@@ -48,10 +49,12 @@ function App() {
           <Route path="/admin/teachermanagement" element={<TeacherManagement />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/staffmanagement" element={<StaffManagement />} />
-          <Route path="/studentmanagement" element={<StudentManagement />} />
+          <Route path="/studentmanagement" element={<StudentManagement />} /> 
           <Route path="/admin/analytics" element={<AnalyticsPage />} />
 
           {/* Teacher routes */}
+          <Route path="/teacher/profile" element={<TeacherProfilePage />} />
+          <Route path="/teacher/subject-requirements" element={<TeacherSubjectRequirements />} />
           <Route path="/teacher/subject-requests" element={<TeacherSubjectRequests />} />
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
         </Routes>

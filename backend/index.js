@@ -36,6 +36,7 @@ app.use('/api/subjects', subjectRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/clearance', clearanceRoutes); 
 app.use('/api/student-subject-status', StudentSubjectStatusRoutes);
+app.use('/api/subject', require('./routes/subjectRoutes'));
 
 const PORT = process.env.PORT || 5000;
 

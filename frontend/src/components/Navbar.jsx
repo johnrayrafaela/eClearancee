@@ -53,7 +53,7 @@ const Navbar = () => {
               <Link to="/teacher/dashboard" style={styles.link}>Teacher Dashboard</Link>
               <Link to="/teacher/subject-requests" style={styles.link}>Subject Approval Requests</Link>
               <Link to="/teacher/profile" style={styles.link}>Profile</Link>
-              <Link to="/teacher/subjects" style={styles.link}>My Subjects</Link>
+              <Link to="/teacher/subject-requirements" style={styles.link}>My Subjects</Link>
               <Link to="/teacher/analytics" style={styles.link}>Analytics</Link>
             </>
           )}

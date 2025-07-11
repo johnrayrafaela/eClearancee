@@ -82,3 +82,27 @@ exports.getSubjectsForStudent = async (req, res) => {
     res.status(500).json({ message: 'Error fetching subjects', error: err.message });
   }
 };
+
+exports.getSubjectsForTeacher = async (req, res) => {
+  try {
+    const { teacher_id } = req.params;
+    const subjects = await Subject.findAll({ where: { teacher_id } });
+    res.json(subjects);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching subjects', error: err.message });
+  }
+};
+
+exports.updateSubjectRequirements = async (req, res) => {
+  try {
+    const { subject_id } = req.params;
+    const { requirements } = req.body;
+    const subject = await Subject.findByPk(subject_id);
+    if (!subject) return res.status(404).json({ message: 'Subject not found' });
+    subject.requirements = requirements;
+    await subject.save();
+    res.json({ message: 'Requirements updated', subject });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating requirements', error: err.message });
+  }
+};

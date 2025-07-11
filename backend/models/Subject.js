@@ -23,19 +23,23 @@ const Subject = sequelize.define('Subject', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  semester: { // <-- Add this
+  semester: {
     type: DataTypes.STRING,
     allowNull: false,
-    
   },
   teacher_id: {
-  type: DataTypes.INTEGER,
-  allowNull: false,
-  references: {
-    model: 'teachers', // table name in lowercase
-    key: 'teacher_id'
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'teachers',
+      key: 'teacher_id'
+    }
+  },
+  requirements: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: ''
   }
-}
 });
 
 module.exports = Subject;

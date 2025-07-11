@@ -169,23 +169,32 @@ const TeacherSubjectRequests = () => {
           <th style={styles.th}>Subject</th>
           <th style={styles.th}>Semester</th>
           <th style={styles.th}>Status</th>
+          <th style={styles.th}>Requirements</th>
+          <th style={styles.th}>File</th>
           <th style={styles.th}>Action</th>
         </tr>
       </thead>
       <tbody>
         {data.map(req => (
           <tr key={req.id}>
+            <td style={styles.td}>{req.student?.firstname} {req.student?.lastname}</td>
+            <td style={styles.td}>{req.subject?.name}</td>
+            <td style={styles.td}>{req.subject?.semester || req.semester}</td>
+            <td style={styles.td}>{req.status}</td>
+            <td style={styles.td}>{req.requirements || '-'}</td>
             <td style={styles.td}>
-              {req.student?.firstname} {req.student?.lastname}
-            </td>
-            <td style={styles.td}>
-              {req.subject?.name}
-            </td>
-            <td style={styles.td}>
-              {req.subject?.semester || req.semester}
-            </td>
-            <td style={styles.td}>
-              {req.status}
+              {req.file_path ? (
+                <a
+                  href={`http://localhost:5000/api/student-subject-status/file/${req.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#0277bd', textDecoration: 'underline' }}
+                >
+                  View
+                </a>
+              ) : (
+                <span>-</span>
+              )}
             </td>
             <td style={styles.td}>
               {req.status === 'Requested' ? (
