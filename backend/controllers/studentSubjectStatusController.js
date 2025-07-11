@@ -1,3 +1,33 @@
+// Get analytics for teacher: count of Requested, Approved, Rejected per semester
+exports.getTeacherSubjectStatusAnalytics = async (req, res) => {
+  const { teacher_id } = req.query;
+  if (!teacher_id) return res.status(400).json({ message: 'teacher_id is required' });
+  try {
+    // Get all subjects for this teacher
+    const subjects = await Subject.findAll({ where: { teacher_id } });
+    const subjectIds = subjects.map(s => s.subject_id);
+    if (!subjectIds.length) return res.json({});
+
+    // Get all statuses for these subjects, including semester
+    const statuses = await StudentSubjectStatus.findAll({
+      where: { subject_id: subjectIds },
+      include: [
+        { model: Subject, as: 'subject', attributes: ['semester'] }
+      ]
+    });
+
+    // Build analytics: { '1st': { Requested: n, Approved: n, Rejected: n }, '2nd': {...} }
+    const analytics = { '1st': { Requested: 0, Approved: 0, Rejected: 0 }, '2nd': { Requested: 0, Approved: 0, Rejected: 0 } };
+    statuses.forEach(s => {
+      const sem = s.subject?.semester || '1st';
+      if (!analytics[sem]) analytics[sem] = { Requested: 0, Approved: 0, Rejected: 0 };
+      if (analytics[sem][s.status] !== undefined) analytics[sem][s.status]++;
+    });
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching teacher analytics', error: err.message });
+  }
+};
 const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 const Subject = require('../models/Subject');
 const User = require('../models/User');
@@ -30,8 +60,9 @@ exports.getRequestsForTeacher = async (req, res) => {
     const subjects = await Subject.findAll({ where: subjectWhere });
     const subjectIds = subjects.map(s => s.subject_id);
 
+    // Fetch ALL requests for these subjects, regardless of status
     const requests = await StudentSubjectStatus.findAll({
-      where: { subject_id: subjectIds, status: 'Requested' },
+      where: { subject_id: subjectIds },
       include: [
         { model: User, as: 'student' },
         { model: Subject, as: 'subject' }

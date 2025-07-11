@@ -105,7 +105,29 @@ const TeacherDashboard = () => {
       )}
 
       <div>
-        <h2 style={styles.analyticsTitle}>📥 Subject Approval Requests</h2>
+        <h2 style={styles.analyticsTitle}>� My Subject Request Status</h2>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Status</th>
+              <th style={styles.th}>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {['Requested', 'Approved', 'Rejected'].map(status => (
+              <tr key={status}>
+                <td style={styles.td}>{status}</td>
+                <td style={styles.td}>{
+                  (semesters.reduce((sum, sem) => sum + (analytics[sem]?.[status] || 0), 0))
+                }</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h2 style={styles.analyticsTitle}>�📥 Subject Approval Requests</h2>
         <p style={{ textAlign: 'center', marginBottom: 24 }}>
           Manage student subject requests and approvals.
         </p>
@@ -116,5 +138,6 @@ const TeacherDashboard = () => {
     </div>
   );
 };
+
 
 export default TeacherDashboard;

@@ -100,6 +100,17 @@ const styles = {
     background: '#43a047',
     color: '#fff'
   },
+  search: {
+     width: '100%',
+      padding: '0.6rem 1rem',
+      marginBottom: 18,
+      borderRadius: 8,
+      border: '1.5px solid #b3e5fc',
+      fontSize: '1rem',
+      outline: 'none',
+      boxSizing: 'border-box',
+
+  },
   reject: {
     background: '#e53935',
     color: '#fff'
@@ -113,6 +124,7 @@ const courses = [
 const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 const blocks = ['A', 'B', 'C', 'D'];
 
+
 const AdminClearanceRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +133,7 @@ const AdminClearanceRequests = () => {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedBlock, setSelectedBlock] = useState('');
+  const [search, setSearch] = useState('');
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -138,13 +151,16 @@ const AdminClearanceRequests = () => {
     fetchRequests();
   };
 
-  // Filter by semester, course, year, block if selected
+  // Filter by semester, course, year, block, and search if selected
   const filteredRequests = requests.filter(r => {
     const matchSemester = selectedSemester ? r.semester === selectedSemester : true;
     const matchCourse = selectedCourse ? r.student?.course === selectedCourse : true;
     const matchYear = selectedYear ? r.student?.year_level === selectedYear : true;
     const matchBlock = selectedBlock ? r.student?.block === selectedBlock : true;
-    return matchSemester && matchCourse && matchYear && matchBlock;
+    const matchSearch = search.trim() ? (
+      (r.student?.firstname + ' ' + r.student?.lastname).toLowerCase().includes(search.trim().toLowerCase())
+    ) : true;
+    return matchSemester && matchCourse && matchYear && matchBlock && matchSearch;
   });
 
   // Separate requests by status
@@ -232,7 +248,7 @@ const AdminClearanceRequests = () => {
     <div style={styles.container}>
       <h2 style={styles.heading}>Clearance Requests</h2>
       {/* Filter Row */}
-      <div style={styles.filterRow}>
+      <div style={{ ...styles.filterRow, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <label style={styles.label}>Semester:</label>
           <select
@@ -285,7 +301,20 @@ const AdminClearanceRequests = () => {
             ))}
           </select>
         </div>
+        
       </div>
+
+      <div>
+          <label style={styles.label}>Search:</label>
+          <input
+            type="text"
+            style={{ ...styles.search }}
+            placeholder="Search student name..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
       <div style={styles.nav}>
         <button style={styles.navBtn(tab === 'Pending')} onClick={() => setTab('Pending')}>Pending</button>
         <button style={styles.navBtn(tab === 'Approved')} onClick={() => setTab('Approved')}>Approved</button>

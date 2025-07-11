@@ -33,6 +33,7 @@ const styles = {
     marginRight: 8,
   },
   select: {
+    
     padding: '6px 12px',
     borderRadius: 6,
     border: '1.5px solid #b3e5fc',
@@ -41,6 +42,17 @@ const styles = {
     fontSize: '1rem',
     minWidth: 120,
     outline: 'none'
+  },
+  search: {
+     width: '100%',
+      padding: '0.6rem 1rem',
+      marginBottom: 18,
+      borderRadius: 8,
+      border: '1.5px solid #b3e5fc',
+      fontSize: '1rem',
+      outline: 'none',
+      boxSizing: 'border-box',
+
   },
   table: {
     width: '100%',
@@ -93,25 +105,27 @@ const courses = [
 const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 const blocks = ['A', 'B', 'C', 'D'];
 
+
+
 const TeacherSubjectRequests = () => {
   const { user, userType } = useContext(AuthContext);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('Pending');
 
   // Filters
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedBlock, setSelectedBlock] = useState('');
+  const [search, setSearch] = useState('');
 
   // Fetch requests for this teacher, filtered by semester if selected
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
     setLoading(true);
-    // Add semester as query param if selected
     const params = { teacher_id: user.teacher_id };
     if (selectedSemester) {
-      // Use only "1st" or "2nd" for backend compatibility
       params.semester = selectedSemester.startsWith('1st') ? '1st' : '2nd';
     }
     axios.get('http://localhost:5000/api/student-subject-status/teacher', { params })
@@ -122,16 +136,84 @@ const TeacherSubjectRequests = () => {
 
   const handleRespond = async (id, status) => {
     await axios.patch(`http://localhost:5000/api/student-subject-status/${id}/respond`, { status });
-    setRequests(prev => prev.filter(r => r.id !== id));
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
   };
 
-  // Filter requests by course, year, block (semester is now handled by backend)
+
+  // Filter requests by course, year, block, and search (semester is now handled by backend)
   const filteredRequests = requests.filter(req => {
     const matchCourse = selectedCourse ? req.student?.course === selectedCourse : true;
     const matchYear = selectedYear ? req.student?.year_level === selectedYear : true;
     const matchBlock = selectedBlock ? req.student?.block === selectedBlock : true;
-    return matchCourse && matchYear && matchBlock;
+    const matchSearch = search.trim() ? (
+      (req.student?.firstname + ' ' + req.student?.lastname).toLowerCase().includes(search.trim().toLowerCase())
+    ) : true;
+    return matchCourse && matchYear && matchBlock && matchSearch;
   });
+
+  // Separate requests by status
+  const pending = filteredRequests.filter(r => r.status === 'Requested');
+  const approved = filteredRequests.filter(r => r.status === 'Approved');
+  const rejected = filteredRequests.filter(r => r.status === 'Rejected');
+
+  let currentData = [];
+  if (tab === 'Pending') currentData = pending;
+  else if (tab === 'Approved') currentData = approved;
+  else if (tab === 'Rejected') currentData = rejected;
+
+  const renderTable = (data) => (
+    <table style={styles.table}>
+      <thead>
+        <tr>
+          <th style={styles.th}>Student Name</th>
+          <th style={styles.th}>Subject</th>
+          <th style={styles.th}>Semester</th>
+          <th style={styles.th}>Status</th>
+          <th style={styles.th}>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map(req => (
+          <tr key={req.id}>
+            <td style={styles.td}>
+              {req.student?.firstname} {req.student?.lastname}
+            </td>
+            <td style={styles.td}>
+              {req.subject?.name}
+            </td>
+            <td style={styles.td}>
+              {req.subject?.semester || req.semester}
+            </td>
+            <td style={styles.td}>
+              {req.status}
+            </td>
+            <td style={styles.td}>
+              {req.status === 'Requested' ? (
+                <>
+                  <button
+                    style={{ ...styles.button, ...styles.approve }}
+                    onClick={() => handleRespond(req.id, 'Approved')}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    style={{ ...styles.button, ...styles.reject }}
+                    onClick={() => handleRespond(req.id, 'Rejected')}
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <span style={{ color: req.status === 'Approved' ? '#43a047' : '#e53935', fontWeight: 600 }}>
+                  {req.status}
+                </span>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 
   if (!user || userType !== 'teacher') {
     return <div style={{ color: '#e11d48', padding: 20 }}>❌ Access denied. Only teachers can view this page.</div>;
@@ -140,7 +222,7 @@ const TeacherSubjectRequests = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📥 Subject Approval Requests</h2>
-      <div style={styles.filterRow}>
+      <div style={{ ...styles.filterRow, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <label style={styles.label}>Semester:</label>
           <select
@@ -193,55 +275,65 @@ const TeacherSubjectRequests = () => {
             ))}
           </select>
         </div>
+        
+      </div>
+
+      <div>
+          <label style={styles.label}>Search:</label>
+          <input
+            type="text"
+            style={ styles.search }
+            placeholder="Search student name..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, gap: 12 }}>
+        <button style={{
+          padding: '8px 24px',
+          borderRadius: 6,
+          border: 'none',
+          fontWeight: 700,
+          fontSize: 16,
+          background: tab === 'Pending' ? '#0277bd' : '#e1f5fe',
+          color: tab === 'Pending' ? '#fff' : '#0277bd',
+          cursor: 'pointer',
+          boxShadow: tab === 'Pending' ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+          transition: 'background 0.2s'
+        }} onClick={() => setTab('Pending')}>Pending</button>
+        <button style={{
+          padding: '8px 24px',
+          borderRadius: 6,
+          border: 'none',
+          fontWeight: 700,
+          fontSize: 16,
+          background: tab === 'Approved' ? '#0277bd' : '#e1f5fe',
+          color: tab === 'Approved' ? '#fff' : '#0277bd',
+          cursor: 'pointer',
+          boxShadow: tab === 'Approved' ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+          transition: 'background 0.2s'
+        }} onClick={() => setTab('Approved')}>Approved</button>
+        <button style={{
+          padding: '8px 24px',
+          borderRadius: 6,
+          border: 'none',
+          fontWeight: 700,
+          fontSize: 16,
+          background: tab === 'Rejected' ? '#0277bd' : '#e1f5fe',
+          color: tab === 'Rejected' ? '#fff' : '#0277bd',
+          cursor: 'pointer',
+          boxShadow: tab === 'Rejected' ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+          transition: 'background 0.2s'
+        }} onClick={() => setTab('Rejected')}>Rejected</button>
       </div>
       {loading ? (
         <div>Loading...</div>
-      ) : filteredRequests.length === 0 ? (
-        <div>No pending requests.</div>
       ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Student Name</th>
-              <th style={styles.th}>Subject</th>
-              <th style={styles.th}>Semester</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRequests.map(req => (
-              <tr key={req.id}>
-                <td style={styles.td}>
-                  {req.student?.firstname} {req.student?.lastname}
-                </td>
-                <td style={styles.td}>
-                  {req.subject?.name}
-                </td>
-                <td style={styles.td}>
-                  {req.subject?.semester || req.semester}
-                </td>
-                <td style={styles.td}>
-                  {req.status}
-                </td>
-                <td style={styles.td}>
-                  <button
-                    style={{ ...styles.button, ...styles.approve }}
-                    onClick={() => handleRespond(req.id, 'Approved')}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    style={{ ...styles.button, ...styles.reject }}
-                    onClick={() => handleRespond(req.id, 'Rejected')}
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          <div style={{ color: '#2563eb', fontWeight: 700, fontSize: '1.2rem', margin: '24px 0 12px 0' }}>{tab} Requests</div>
+          {currentData.length > 0 ? renderTable(currentData) : <div>No {tab.toLowerCase()} requests.</div>}
+        </>
       )}
     </div>
   );
