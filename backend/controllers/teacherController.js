@@ -93,13 +93,28 @@ exports.updateTeacher = async (req, res) => {
   }
 };
 
-// Delete teacher
+// Delete teacher (with cascade for related subjects and subject statuses)
+const Subject = require('../models/Subject');
+const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 exports.deleteTeacher = async (req, res) => {
   try {
-    const deleted = await Teacher.destroy({
-      where: { teacher_id: req.params.id },
-    });
-    if (!deleted) return res.status(404).json({ message: 'Teacher not found' });
+    const teacher = await Teacher.findByPk(req.params.id);
+    if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+
+    // Find all subject IDs for this teacher
+    const subjects = await Subject.findAll({ where: { teacher_id: req.params.id } });
+    const subjectIds = subjects.map(s => s.subject_id);
+
+    // Delete related StudentSubjectStatus records for these subjects
+    if (subjectIds.length > 0) {
+      await StudentSubjectStatus.destroy({ where: { subject_id: subjectIds } });
+    }
+
+    // Delete related subjects
+    await Subject.destroy({ where: { teacher_id: req.params.id } });
+
+    // Delete teacher
+    await teacher.destroy();
     res.status(200).json({ message: 'Teacher deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

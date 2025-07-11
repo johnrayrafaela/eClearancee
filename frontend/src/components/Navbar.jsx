@@ -32,6 +32,7 @@ const Navbar = () => {
               <Link to="/student/dashboard" style={styles.link}>Student Dashboard</Link>
               <Link to="/student/clearance" style={styles.link}>Clearance Request</Link>
               <Link to="/student/clearancestatus" style={styles.link}>Clearance Status</Link>
+              <Link to="/student/analytics" style={styles.link}>Analytics</Link>
             </>
           )}
           {user && userType === 'admin' && (

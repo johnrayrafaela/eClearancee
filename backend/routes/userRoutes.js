@@ -7,6 +7,6 @@ router.post('/login', login);
 router.put('/:student_id', updateProfile); // Remove '/users' prefix here
 router.get('/getAll/students', getAllStudents);
 router.get('/get/:id', getStudent);
-router.delete('/users/:id', deleteStudent);
+router.delete('/:id', deleteStudent);
 
 module.exports = router;

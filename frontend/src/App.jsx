@@ -5,6 +5,7 @@ import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
 
+import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage'; // Import Teacher Analytics Page
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import TeacherSubjectRequirements from './pages/teacher/TeacherSubjectRequirements'; // Import Teacher Subject Requirements
 import TeacherDashboard from './pages/teacher/Teacherdashboard';
@@ -23,6 +24,7 @@ import StaffManagement from './pages/admin/StaffManagement';
 import StudentManagement from './pages/admin/StudentManagement';
 import TeacherManagement from './pages/admin/TeacherManagement'; // Import Teacher Management
 import AnalyticsPage from './pages/admin/AnalyticsPage';
+import StudentSubjectAnalytics from './pages/student/StudentSubjectAnalytics';
 
 function App() {
   return (
@@ -42,6 +44,7 @@ function App() {
           <Route path='/student/clearancestatus' element={<ClearanceStatusPage/>}/>
           <Route path="/student/clearance" element={<CreateStudentClearance/>} />
           <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/analytics" element={<StudentSubjectAnalytics />} />
 
           {/* Admin routes */}
           <Route path="/admin/clearancerequest" element={<AdminClearanceRequests />} />
@@ -53,6 +56,7 @@ function App() {
           <Route path="/admin/analytics" element={<AnalyticsPage />} />
 
           {/* Teacher routes */}
+          <Route path="/teacher/analytics" element={<TeacherAnalyticsPage />} />
           <Route path="/teacher/profile" element={<TeacherProfilePage />} />
           <Route path="/teacher/subject-requirements" element={<TeacherSubjectRequirements />} />
           <Route path="/teacher/subject-requests" element={<TeacherSubjectRequests />} />

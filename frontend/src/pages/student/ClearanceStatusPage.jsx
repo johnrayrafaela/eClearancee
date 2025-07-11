@@ -99,7 +99,7 @@ const ClearanceStatusPage = () => {
   const [error, setError] = useState('');
   const [requesting, setRequesting] = useState({}); // { [subject_id]: boolean }
   // Removed requirements state
-  const [files, setFiles] = useState({}); // { [subject_id]: File | null }
+  const [files, setFiles] = useState({}); // { [subject_id]: File[] | [] }
   const [selectedSemester, setSelectedSemester] = useState('');
 
   // Fetch clearance, subjects, and subject statuses
@@ -141,8 +141,10 @@ const ClearanceStatusPage = () => {
       formData.append('subject_id', subjectId);
       formData.append('semester', selectedSemester);
       // No requirements field
-      if (files[subjectId]) {
-        formData.append('file', files[subjectId]);
+      if (files[subjectId] && files[subjectId].length > 0) {
+        files[subjectId].forEach((file) => {
+          formData.append('files', file); // backend should accept array under 'files'
+        });
       }
       await axios.post('http://localhost:5000/api/student-subject-status/request', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -229,23 +231,37 @@ const ClearanceStatusPage = () => {
                       </td>
                       <td style={styles.td}>{subject.requirements}</td>
                       <td style={styles.td}>{status}</td>
-                      
                       <td style={styles.td}>
-                        {(status === 'Pending' || status === 'Rejected') && (
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            style={styles.input}
-                            onChange={e => setFiles(prev => ({ ...prev, [subject.subject_id]: e.target.files[0] }))}
-                          />
-                        )}
-                        {status !== 'Pending' && status !== 'Rejected' && <span>-</span>}
+                        {(status === 'Pending' || status === 'Rejected') && subject.requirements && subject.requirements.trim() !== '' ? (
+                          <>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              style={styles.input}
+                              multiple
+                              onChange={e => {
+                                const fileArr = Array.from(e.target.files);
+                                setFiles(prev => ({ ...prev, [subject.subject_id]: fileArr }));
+                              }}
+                            />
+                            {files[subject.subject_id] && files[subject.subject_id].length > 0 && (
+                              <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none', fontSize: 13 }}>
+                                {files[subject.subject_id].map((file, idx) => (
+                                  <li key={idx}>{file.name}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </>
+                        ) : (status !== 'Pending' && status !== 'Rejected') ? <span>-</span> : null}
                       </td>
                       <td style={styles.td}>
                         {(status === 'Pending' || status === 'Rejected') && (
                           <button
                             style={styles.button}
-                            disabled={requesting[subject.subject_id] || !files[subject.subject_id]}
+                            disabled={
+                              requesting[subject.subject_id] ||
+                              (subject.requirements && subject.requirements.trim() !== '' && !files[subject.subject_id])
+                            }
                             onClick={() => requestApproval(subject.subject_id)}
                           >
                             {requesting[subject.subject_id] ? 'Requesting...' : 'Request Approval'}

@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+const Clearance = require('../models/Clearance'); // If you have this model
 
 exports.register = async (req, res) => {
   const { firstname, lastname, email, phone, password, course, year_level, block } = req.body;
@@ -146,6 +148,13 @@ exports.deleteStudent = async (req, res) => {
   try {
     const student = await User.findByPk(id);
     if (!student) return res.status(404).json({ message: 'User not found' });
+
+    // Delete related StudentSubjectStatus records
+    await StudentSubjectStatus.destroy({ where: { student_id: id } });
+
+    // Delete related Clearance records (uncommented to fix FK error)
+    await Clearance.destroy({ where: { student_id: id } });
+
     await student.destroy();
     res.json({ message: 'User deleted successfully' });
   } catch (err) {

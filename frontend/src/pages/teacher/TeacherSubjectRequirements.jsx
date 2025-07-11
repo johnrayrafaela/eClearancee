@@ -19,6 +19,14 @@ const styles = {
     letterSpacing: '1px',
     textAlign: 'center'
   },
+   label: {
+    color: '#0277bd',
+    fontWeight: 900,
+    fontSize: '1.5rem',
+    marginBottom: 0,
+    letterSpacing: '1px',
+    textAlign: 'center'
+  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -78,9 +86,12 @@ const TeacherSubjectRequirements = () => {
   const [success, setSuccess] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeYear, setActiveYear] = useState('All');
+  const [activeSemester, setActiveSemester] = useState('All');
   // Define year levels in order
   const yearLevelOrder = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
   const yearLevels = ['All', ...yearLevelOrder];
+  const semesterOrder = ['1st', '2nd'];
+  const semesters = ['All', ...semesterOrder];
 
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
@@ -120,8 +131,14 @@ const TeacherSubjectRequirements = () => {
     setSaving(prev => ({ ...prev, [subject_id]: false }));
   };
 
-  // Filter subjects by active year level
-  const filteredSubjects = activeYear === 'All' ? subjects : subjects.filter(s => s.year_level === activeYear);
+  // Filter subjects by active year level and semester
+  let filteredSubjects = subjects;
+  if (activeYear !== 'All') {
+    filteredSubjects = filteredSubjects.filter(s => s.year_level === activeYear);
+  }
+  if (activeSemester !== 'All') {
+    filteredSubjects = filteredSubjects.filter(s => s.semester === activeSemester);
+  }
 
   if (!user || userType !== 'teacher') {
     return <div style={{ color: '#e11d48', padding: 20 }}>❌ Access denied. Only teachers can view this page.</div>;
@@ -131,6 +148,7 @@ const TeacherSubjectRequirements = () => {
     <div style={styles.container}>
       <h2 style={styles.heading}>📚 My Subjects & Requirements</h2>
       {/* Year Level Tabs */}
+      <h2 style={styles.label}>Year Level</h2>
       <div style={{ display: 'flex', gap: 12, margin: '18px 0', justifyContent: 'center' }}>
         {yearLevels.map(year => {
           const hasSubjects = year === 'All' ? true : subjects.some(s => s.year_level === year);
@@ -154,6 +172,36 @@ const TeacherSubjectRequirements = () => {
               disabled={!hasSubjects}
             >
               {year}
+            </button>
+          );
+        })}
+      </div>
+      {/* Semester Tabs */}
+
+      <h2 style={styles.label}>Semester</h2>
+      <div style={{ display: 'flex', gap: 12, margin: '0 0 18px 0', justifyContent: 'center' }}>
+        {semesters.map(sem => {
+          const hasSubjects = sem === 'All' ? true : subjects.some(s => (activeYear === 'All' || s.year_level === activeYear) && s.semester === sem);
+          return (
+            <button
+              key={sem}
+              style={{
+                padding: '8px 20px',
+                borderRadius: 6,
+                border: 'none',
+                fontWeight: 700,
+                fontSize: 15,
+                background: activeSemester === sem ? '#0277bd' : '#e1f5fe',
+                color: activeSemester === sem ? '#fff' : '#0277bd',
+                cursor: hasSubjects ? 'pointer' : 'not-allowed',
+                opacity: hasSubjects ? 1 : 0.5,
+                boxShadow: activeSemester === sem ? '0 2px 8px rgba(2,119,189,0.10)' : 'none',
+                transition: 'background 0.2s'
+              }}
+              onClick={() => hasSubjects && setActiveSemester(sem)}
+              disabled={!hasSubjects}
+            >
+              {sem}
             </button>
           );
         })}

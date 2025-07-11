@@ -27,6 +27,8 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      
+
       {/* Clearance Status Section */}
       <div>
         <ClearanceStatusPage />

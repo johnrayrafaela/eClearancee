@@ -24,12 +24,13 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Use multer for file upload on request
-router.post('/request', upload.single('file'), ctrl.requestSubjectApproval);
+router.post('/request', upload.array('files'), ctrl.requestSubjectApproval);
 router.get('/teacher', ctrl.getRequestsForTeacher);
 router.patch('/:id/respond', ctrl.respondToRequest);
 router.get('/requested-statuses', ctrl.getRequestedStatuses);
 router.get('/all-statuses', ctrl.getAllStatuses);
 router.get('/analytics/teacher', ctrl.getTeacherSubjectStatusAnalytics);
+router.get('/analytics/student', ctrl.getStudentSubjectStatusAnalytics);
 
 // Serve uploaded file for a request
 router.get('/file/:id', ctrl.serveUploadedFile);

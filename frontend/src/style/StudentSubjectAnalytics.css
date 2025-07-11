@@ -1,0 +1,54 @@
+.student-analytics-root {
+  margin: auto;
+  padding: 2rem;
+  background: #f9fafd;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(2,119,189,0.07);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  min-width: 500px;
+  
+}
+.student-analytics-heading {
+  color: #0277bd;
+  font-weight: 900;
+  font-size: 2rem;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.student-analytics-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 24px 0;
+  justify-content: center;
+}
+.student-analytics-tab-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
+  font-size: 15px;
+  background: #e1f5fe;
+  color: #0277bd;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.2s;
+}
+.student-analytics-tab-btn.active {
+  background: #0277bd;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(2,119,189,0.10);
+}
+.student-analytics-pie-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+.student-analytics-nodata {
+  color: #e11d48;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 24px;
+}

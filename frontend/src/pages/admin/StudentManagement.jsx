@@ -106,7 +106,7 @@ const UserManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Are you sure you want to delete this student?')) return;
     try {
-      await axios.delete(`${API_URL}/users/${id}`);
+      await axios.delete(`${API_URL}/${id}`);
       setMessage('Student deleted!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);
