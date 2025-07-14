@@ -173,45 +173,101 @@ const AdminClearanceRequests = () => {
   else if (tab === 'Approved') currentData = approved;
   else if (tab === 'Rejected') currentData = rejected;
 
+  // Modal state for viewing subjects
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSubjects, setModalSubjects] = useState([]);
+  const [modalStudent, setModalStudent] = useState(null);
+  const [modalSemester, setModalSemester] = useState('');
+  const [modalAllApproved, setModalAllApproved] = useState(false);
+
+  const openSubjectsModal = async (req) => {
+    // Fetch subjects for this student and semester
+    const res = await axios.get(`http://localhost:5000/api/clearance/status?student_id=${req.student?.student_id}&semester=${req.semester}`);
+    setModalSubjects(res.data.subjects || []);
+    setModalStudent(req.student);
+    setModalSemester(req.semester);
+    // Check if all subjects are approved
+    let allApproved = true;
+    (res.data.subjects || []).forEach(sub => {
+      if (!sub.StudentSubjectStatus || sub.StudentSubjectStatus.status !== 'Approved') {
+        allApproved = false;
+      }
+    });
+    setModalAllApproved(allApproved);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalSubjects([]);
+    setModalStudent(null);
+    setModalSemester('');
+    setModalAllApproved(false);
+  };
+
   const renderTable = (data) => (
-    <table style={styles.table}>
-      <thead>
-        <tr>
-          <th style={styles.th}>Student Name</th>
-          <th style={styles.th}>Course</th>
-          <th style={styles.th}>Year</th>
-          <th style={styles.th}>Block</th>
-          <th style={styles.th}>Email</th>
-          <th style={styles.th}>Semester</th>
-          <th style={styles.th}>Status</th>
-          <th style={styles.th}>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map(req => (
-          <tr key={req.clearance_id}>
-            <td style={styles.td}>{req.student?.firstname} {req.student?.lastname}</td>
-            <td style={styles.td}>{req.student?.course}</td>
-            <td style={styles.td}>{req.student?.year_level}</td>
-            <td style={styles.td}>{req.student?.block}</td>
-            <td style={styles.td}>{req.student?.email}</td>
-            <td style={styles.td}>{req.semester ? `${req.semester} Semester` : '-'}</td>
-            <td style={styles.td}>{req.status}</td>
-            <td style={styles.td}>
-              {req.status === 'Pending' ? (
-                <>
-                  <button
-                    style={{ ...styles.button, ...styles.approve }}
-                    onClick={() => handleStatus(req.clearance_id, 'Approved')}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    style={{ ...styles.button, ...styles.reject }}
-                    onClick={() => handleStatus(req.clearance_id, 'Rejected')}
-                  >
-                    Reject
-                  </button>
+    <>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Student Name</th>
+            <th style={styles.th}>Course</th>
+            <th style={styles.th}>Year</th>
+            <th style={styles.th}>Block</th>
+            <th style={styles.th}>Email</th>
+            <th style={styles.th}>Semester</th>
+            <th style={styles.th}>Status</th>
+            <th style={styles.th}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(req => (
+            <tr key={req.clearance_id}>
+              <td style={styles.td}>{req.student?.firstname} {req.student?.lastname}</td>
+              <td style={styles.td}>{req.student?.course}</td>
+              <td style={styles.td}>{req.student?.year_level}</td>
+              <td style={styles.td}>{req.student?.block}</td>
+              <td style={styles.td}>{req.student?.email}</td>
+              <td style={styles.td}>{req.semester ? `${req.semester} Semester` : '-'}</td>
+              <td style={styles.td}>{req.status}</td>
+              <td style={styles.td}>
+                <button
+                  style={{ ...styles.button, background: '#90caf9', color: '#0277bd', marginBottom: 6 }}
+                  onClick={() => openSubjectsModal(req)}
+                >
+                  View Subjects
+                </button>
+                {req.status === 'Pending' ? (
+                  <>
+                    <button
+                      style={{ ...styles.button, ...styles.approve }}
+                      onClick={() => handleStatus(req.clearance_id, 'Approved')}
+                      disabled={!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester}
+                      title={!modalAllApproved && modalStudent?.student_id === req.student?.student_id && modalSemester === req.semester ? 'All subjects must be approved' : ''}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      style={{ ...styles.button, ...styles.reject }}
+                      onClick={() => handleStatus(req.clearance_id, 'Rejected')}
+                      disabled={!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester}
+                      title={!modalAllApproved && modalStudent?.student_id === req.student?.student_id && modalSemester === req.semester ? 'All subjects must be approved' : ''}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
+                      onClick={async () => {
+                        await axios.delete('http://localhost:5000/api/clearance/admin/delete', {
+                          data: { student_id: req.student?.student_id }
+                        });
+                        fetchRequests();
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </>
+                ) : (
                   <button
                     style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
                     onClick={async () => {
@@ -223,30 +279,49 @@ const AdminClearanceRequests = () => {
                   >
                     Delete
                   </button>
-                </>
-              ) : (
-                <button
-                  style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
-                  onClick={async () => {
-                    await axios.delete('http://localhost:5000/api/clearance/admin/delete', {
-                      data: { student_id: req.student?.student_id }
-                    });
-                    fetchRequests();
-                  }}
-                >
-                  Delete
-                </button>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Modal for viewing subjects */}
+      {modalOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 600, boxShadow: '0 4px 24px rgba(2,119,189,0.15)' }}>
+            <h3 style={{ color: '#0277bd', marginBottom: 16 }}>Subject Status for {modalStudent?.firstname} {modalStudent?.lastname} ({modalSemester} Semester)</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Subject Name</th>
+                  <th style={styles.th}>Teacher</th>
+                  <th style={styles.th}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modalSubjects.map(sub => (
+                  <tr key={sub.subject_id}>
+                    <td style={styles.td}>{sub.name}</td>
+                    <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
+                    <td style={styles.td}>{sub.StudentSubjectStatus ? sub.StudentSubjectStatus.status : 'Pending'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button style={{ ...styles.button, background: '#b0bec5', color: '#263238' }} onClick={closeModal}>Close</button>
+          </div>
+        </div>
+      )}
+    </>
   );
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Clearance Requests</h2>
+      <h2 style={styles.heading}> Admin Pending Clearance Requests</h2>
       {/* Filter Row */}
       <div style={{ ...styles.filterRow, flexWrap: 'wrap', gap: 16 }}>
         <div>

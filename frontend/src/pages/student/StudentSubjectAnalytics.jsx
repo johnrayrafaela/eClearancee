@@ -39,11 +39,10 @@ const StudentSubjectAnalytics = () => {
   const overallPercent = overallTotal ? Math.round((overallApproved / overallTotal) * 100) : 0;
 
   // Pie chart data for the selected semester or all
-  const statusLabels = ['Approved', 'Requested', 'Pending', 'Rejected'];
+  const statusLabels = ['Approved', 'Requested', 'Rejected'];
   const statusColors = {
     Approved: '#43a047',
     Requested: '#0277bd',
-    Pending: '#fbc02d',
     Rejected: '#e53935',
   };
   const getPieData = () => {
