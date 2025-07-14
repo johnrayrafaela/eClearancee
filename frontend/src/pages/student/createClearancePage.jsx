@@ -284,11 +284,26 @@ const CreateClearancePage = () => {
           </table>
           <h4 style={{ marginTop: 20, color: '#2563eb' }}>📘 Subjects</h4>
           {subjects.length > 0 ? (
-            <ul>
-              {subjects.map((subject) => (
-                <li key={subject.subject_id}>{subject.name}</li>
-              ))}
-            </ul>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Subject Name</th>
+                  <th style={styles.th}>Teacher</th>
+                </tr>
+              </thead>
+              <tbody>
+                {subjects.map(subject => (
+                  <tr key={subject.subject_id}>
+                    <td style={styles.td}>{subject.name}</td>
+                    <td style={styles.td}>
+                      {subject.teacher
+                        ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
+                        : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
             <p>No subjects found.</p>
           )}
@@ -303,7 +318,7 @@ const CreateClearancePage = () => {
             onClick={handlePrecheck}
             disabled={loading || !selectedSemester}
           >
-            {loading ? 'Loading...' : 'Create Clearance'}
+            {loading ? 'Loading...' : 'Request Clearance'}
           </button>
         </div>
       )}
@@ -326,11 +341,21 @@ const CreateClearancePage = () => {
             {subjects.length > 0 ? (
               <table style={styles.table}>
                 <thead>
-                  <tr><th style={styles.th}>Subject Name</th></tr>
+                  <tr>
+                    <th style={styles.th}>Subject Name</th>
+                    <th style={styles.th}>Teacher</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {subjects.map(subject => (
-                    <tr key={subject.subject_id}><td style={styles.td}>{subject.name}</td></tr>
+                    <tr key={subject.subject_id}>
+                      <td style={styles.td}>{subject.name}</td>
+                      <td style={styles.td}>
+                        {subject.teacher
+                          ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
+                          : 'N/A'}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

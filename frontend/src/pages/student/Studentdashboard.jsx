@@ -1,40 +1,73 @@
-import React, { useContext } from 'react';
+
+import React, { useContext, useEffect, useState } from 'react';
+import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
-import ClearanceStatusPage from './ClearanceStatusPage'; // Import the status page
-import { Bar } from 'react-chartjs-2';
-import 'chart.js/auto';
+import ClearanceStatusPage from './ClearanceStatusPage';
+
+
 
 const StudentDashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, userType } = useContext(AuthContext);
+  const [subjectAnalytics, setSubjectAnalytics] = useState({});
+
+  useEffect(() => {
+    if (!user || userType !== 'user') return;
+    // setLoading(true); (removed unused loading)
+    // Subject analytics
+    axios.get(`http://localhost:5000/api/student-subject-status/analytics/student?student_id=${user.student_id}`)
+      .then(res => setSubjectAnalytics(res.data || {}))
+      .catch(() => setSubjectAnalytics({}))
+      .finally(() => {}); // removed unused loading
+    // Clearance analytics
+    
+  }, [user, userType]);
+
+  // Calculate subject totals
+  let totalSubjects = 0, totalApproved = 0, totalRejected = 0;
+  Object.values(subjectAnalytics).forEach(sem => {
+    totalSubjects += sem.total || 0;
+    totalApproved += sem.Approved || 0;
+    totalRejected += sem.Rejected || 0;
+  });
+  // Pending = totalSubjects - (Approved + Rejected)
+  let totalPending = totalSubjects - (totalApproved + totalRejected);
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Student Dashboard</h1>
+      <h1 style={{fontWeight: 900, color: '#0277bd', marginBottom: 16}}>Student Dashboard</h1>
+      <p style={{ textAlign: 'center', marginBottom: 24, color: '#0277bd'}}>
+        Welcome, {user?.firstname}! Here you can track your clearance and subject progress.
+      </p>
+
+
+      {/* Subject Status Cards */}
       <div style={styles.cardRow}>
-        <div style={styles.card}>
-          <h2 style={styles.cardTitle}>Welcome, {user?.firstname}!</h2>
-          <p style={styles.cardText}>
-            Here you can track your clearance progress, view pending requirements, and communicate with departments.
-          </p>
+        <div style={{ ...styles.card, background: '#26c6da', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Total Subjects</div>
+          <div style={{ fontWeight: 900, fontSize: 28 }}>{totalSubjects}</div>
         </div>
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Quick Links</h3>
-          <ul style={styles.linkList}>
-            <li><a href="/student/clearancestatus" style={styles.link}>Clearance Status</a></li>
-            <li><a href="/profile" style={styles.link}>My Profile</a></li>
-            <li><a href="/student/clearance" style={styles.link}>Request Clearance</a></li>
-          </ul>
+        <div style={{ ...styles.card, background: '#0277bd', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Requested Subjects</div>
+          <div style={{ fontWeight: 900, fontSize: 28 }}>{totalPending}</div>
+        </div>
+        <div style={{ ...styles.card, background: '#66bb6a', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Approved Subjects</div>
+          <div style={{ fontWeight: 900, fontSize: 28 }}>{totalApproved}</div>
+        </div>
+        <div style={{ ...styles.card, background: '#ef5350', color: '#fff', alignItems: 'center',}}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Rejected Subjects</div>
+          <div style={{ fontWeight: 900, fontSize: 28 }}>{totalRejected}</div>
         </div>
       </div>
 
-      
-
       {/* Clearance Status Section */}
-      <div>
-        <ClearanceStatusPage />
+      <div >
+      <ClearanceStatusPage/>
       </div>
 
     </div>
+
+    
   );
 };
 
@@ -67,7 +100,6 @@ const styles = {
     boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
     padding: '2rem 2.5rem',
     minWidth: 260,
-    maxWidth: 350,
     flex: '1 1 300px',
     textAlign: 'center',
   },

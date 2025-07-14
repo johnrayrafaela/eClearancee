@@ -93,7 +93,16 @@ exports.precheckClearance = async (req, res) => {
     };
     if (semester) where.semester = semester;
 
-    const subjects = await Subject.findAll({ where });
+    const subjects = await Subject.findAll({
+      where,
+      include: [
+        {
+          model: Teacher,
+          as: 'teacher',
+          attributes: ['teacher_id', 'firstname', 'lastname', 'email']
+        }
+      ]
+    });
 
     res.json({
       student: {
