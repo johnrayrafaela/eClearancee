@@ -26,6 +26,7 @@ const TeacherManagement = () => {
   const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   // Fetch all teachers
   const fetchTeachers = async () => {
@@ -49,11 +50,16 @@ const TeacherManagement = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
+      let submitForm = { ...form };
+      if (editing && !showResetPassword) {
+        // Don't send password if not resetting
+        delete submitForm.password;
+      }
       if (editing) {
-        await axios.put(`${API_URL}/${editing.teacher_id}`, form);
+        await axios.put(`${API_URL}/${editing.teacher_id}`, submitForm);
         setMessage('Teacher updated!');
       } else {
-        await axios.post(`${API_URL}/register`, form);
+        await axios.post(`${API_URL}/register`, submitForm);
         setMessage('Teacher added!');
       }
       setShowSuccess(true);
@@ -65,6 +71,7 @@ const TeacherManagement = () => {
         password: '',
       });
       setEditing(null);
+      setShowResetPassword(false);
       fetchTeachers();
     } catch (err) {
       console.error(err);
@@ -81,6 +88,7 @@ const TeacherManagement = () => {
       email: teacher.email,
       password: '',
     });
+    setShowResetPassword(false);
   };
 
   // Delete teacher
@@ -283,6 +291,28 @@ const TeacherManagement = () => {
           <input name="email" placeholder="Email" value={form.email} onChange={handleChange} required style={styles.formInput} />
           {!editing && (
             <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required style={styles.formInput} />
+          )}
+          {editing && (
+            <>
+              <button
+                type="button"
+                style={{ ...styles.formBtn, background: showResetPassword ? '#b0bec5' : '#0288d1', color: showResetPassword ? '#263238' : '#fff', marginLeft: 8 }}
+                onClick={() => setShowResetPassword(v => !v)}
+              >
+                {showResetPassword ? 'Cancel Password Reset' : 'Reset Password'}
+              </button>
+              {showResetPassword && (
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="New Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  style={styles.formInput}
+                />
+              )}
+            </>
           )}
         </div>
         <div style={{ marginTop: 10 }}>

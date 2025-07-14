@@ -83,7 +83,11 @@ exports.getTeacherById = async (req, res) => {
 // Update teacher
 exports.updateTeacher = async (req, res) => {
   try {
-    const updated = await Teacher.update(req.body, {
+    const updateData = { ...req.body };
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+    const updated = await Teacher.update(updateData, {
       where: { teacher_id: req.params.id },
     });
     if (updated[0] === 0) return res.status(404).json({ message: 'Teacher not found or no changes' });

@@ -150,7 +150,14 @@ exports.getAllStatuses = async (req, res) => {
     const statuses = await require('../models/StudentSubjectStatus').findAll({
       attributes: ['status']
     });
-    res.json(statuses);
+    const counts = { Pending: 0, Requested: 0, Approved: 0, Rejected: 0 };
+    statuses.forEach(s => {
+      const status = (s.status || 'Pending').trim();
+      // Normalize: capitalize first letter, rest lowercase
+      const normalized = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      if (counts[normalized] !== undefined) counts[normalized]++;
+    });
+    res.json(counts);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching all subject statuses', error: err.message });
   }

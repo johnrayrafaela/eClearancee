@@ -83,7 +83,7 @@ exports.login = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   const { student_id } = req.params;
-  const { firstname, lastname, email, phone, course, year_level, block } = req.body;
+  const { firstname, lastname, email, phone, course, year_level, block, password } = req.body;
 
   try {
     const user = await User.findByPk(student_id);
@@ -97,7 +97,12 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
-    await user.update({ firstname, lastname, email, phone, course, year_level, block });
+    let updateFields = { firstname, lastname, email, phone, course, year_level, block };
+    if (password) {
+      updateFields.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.update(updateFields);
 
     res.json({
       message: 'Profile updated successfully',

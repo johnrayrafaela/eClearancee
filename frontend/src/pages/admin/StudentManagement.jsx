@@ -37,6 +37,7 @@ const UserManagement = () => {
   const [selectedBlock, setSelectedBlock] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   // Fetch all students
   const fetchStudents = async () => {
@@ -60,11 +61,16 @@ const UserManagement = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
+      let submitForm = { ...form };
+      if (editing && !showResetPassword) {
+        // Don't send password if not resetting
+        delete submitForm.password;
+      }
       if (editing) {
-        await axios.put(`${API_URL}/${editing.student_id}`, form);
+        await axios.put(`${API_URL}/${editing.student_id}`, submitForm);
         setMessage('Student updated!');
       } else {
-        await axios.post(`${API_URL}/register`, form);
+        await axios.post(`${API_URL}/register`, submitForm);
         setMessage('Student added!');
       }
       setShowSuccess(true);
@@ -80,6 +86,7 @@ const UserManagement = () => {
         password: '',
       });
       setEditing(null);
+      setShowResetPassword(false);
       fetchStudents();
     } catch (err) {
       console.error(err);
@@ -100,6 +107,7 @@ const UserManagement = () => {
       block: student.block,
       password: '',
     });
+    setShowResetPassword(false);
   };
 
   // Delete student
@@ -446,6 +454,28 @@ const UserManagement = () => {
 
           {!editing && (
             <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required style={styles.formInput} />
+          )}
+          {editing && (
+            <>
+              <button
+                type="button"
+                style={{ ...styles.formBtn, background: showResetPassword ? '#b0bec5' : '#0288d1', color: showResetPassword ? '#263238' : '#fff', marginLeft: 8 }}
+                onClick={() => setShowResetPassword(v => !v)}
+              >
+                {showResetPassword ? 'Cancel Password Reset' : 'Reset Password'}
+              </button>
+              {showResetPassword && (
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="New Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  style={styles.formInput}
+                />
+              )}
+            </>
           )}
         </div>
         <div style={{ marginTop: 10 }}>

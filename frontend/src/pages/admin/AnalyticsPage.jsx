@@ -47,12 +47,13 @@ const AnalyticsPage = () => {
 
     axios.get('http://localhost:5000/api/student-subject-status/all-statuses')
       .then(res => {
-        const counts = { Pending: 0, Requested: 0, Approved: 0, Rejected: 0 };
-        (res.data || []).forEach(s => {
-          const status = s.status || 'Pending';
-          if (counts[status] !== undefined) counts[status]++;
+        // Backend now returns an object with counts
+        setSubjectStatusCounts({
+          Pending: res.data.Pending || 0,
+          Requested: res.data.Requested || 0,
+          Approved: res.data.Approved || 0,
+          Rejected: res.data.Rejected || 0,
         });
-        setSubjectStatusCounts(counts);
       });
   }, []);
 
@@ -84,20 +85,16 @@ const AnalyticsPage = () => {
     ],
   };
 
-  
-
   const subjectStatusPie = {
-    labels: ['Pending', 'Requested', 'Approved', 'Rejected'],
+    labels: ['Requested', 'Approved', 'Rejected'],
     datasets: [
       {
         data: [
-          subjectStatusCounts.Pending,
           subjectStatusCounts.Requested,
           subjectStatusCounts.Approved,
           subjectStatusCounts.Rejected,
         ],
         backgroundColor: [
-          statusColors.Pending,
           statusColors.Requested,
           statusColors.Approved,
           statusColors.Rejected
@@ -182,10 +179,6 @@ const AnalyticsPage = () => {
             <h3>Students Subject Status Distribution</h3>
             <Pie data={subjectStatusPie} />
             <div className="analytics-stats">
-              <div className="analytics-stat-label">
-                <span className="analytics-stat-color" style={{ background: statusColors.Pending }}></span>
-                Pending: <span className="analytics-stat-value">{subjectStatusCounts.Pending}</span>
-              </div>
               <div className="analytics-stat-label">
                 <span className="analytics-stat-color" style={{ background: statusColors.Requested }}></span>
                 Requested: <span className="analytics-stat-value">{subjectStatusCounts.Requested}</span>
