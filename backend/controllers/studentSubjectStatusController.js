@@ -87,7 +87,6 @@ exports.serveUploadedFile = async (req, res) => {
 
 exports.getRequestsForTeacher = async (req, res) => {
   const { teacher_id, semester } = req.query;
-  console.log('teacher_id:', teacher_id); // Add this line
   const subjectWhere = { teacher_id };
   if (semester) subjectWhere.semester = semester;
 
