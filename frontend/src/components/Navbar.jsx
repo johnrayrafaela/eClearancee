@@ -59,6 +59,14 @@ const Navbar = () => {
               <Link to="/teacher/analytics" style={styles.link}>Analytics</Link>
             </>
           )}
+          {user && userType === 'staff' && (
+            <>
+              <Link to="/faculty/dashboard" style={styles.link}>Faculty Dashboard</Link>
+              <Link to="/faculty/department-requests" style={styles.link}>Department Requests</Link>
+              <Link to="/faculty/department-requirements" style={styles.link}>Department Requirements</Link>
+              <Link to="/faculty/profile" style={styles.link}>Profile</Link>
+            </>
+          )}
           {user ? (
             <div style={styles.avatarContainer}>
               <img

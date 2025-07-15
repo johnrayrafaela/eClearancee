@@ -16,6 +16,7 @@ router.get('/all', clearanceController.getAllClearanceRequests);
 router.patch('/:clearance_id/status', clearanceController.updateClearanceStatus);
 router.delete('/admin/delete', clearanceController.adminDeleteClearance);
 router.get('/analytics/status', clearanceController.getClearanceStatusAnalytics);
+router.post('/request-department', clearanceController.requestDepartmentApproval);
 
 router.get('/test', (req, res) => {
   res.send('Clearance test route is working!');

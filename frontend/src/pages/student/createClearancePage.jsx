@@ -122,6 +122,7 @@ const CreateClearancePage = () => {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     if (userType && !user) {
@@ -134,25 +135,30 @@ const CreateClearancePage = () => {
       setSubjects([]);
       setCreated(false);
       setShowConfirm(false);
+      setDepartments([]);
       setLoading(false);
       return;
     }
     setLoading(true);
-    axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`)
-      .then(res => {
-        if (res.data.clearance) {
-          setClearance(res.data.clearance);
-          setStudent(res.data.student);
-          setSubjects(res.data.subjects);
+    Promise.all([
+      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`),
+      axios.get('http://localhost:5000/api/departments')
+    ])
+      .then(([clearanceRes, deptRes]) => {
+        if (clearanceRes.data.clearance) {
+          setClearance(clearanceRes.data.clearance);
+          setStudent(clearanceRes.data.student);
+          setSubjects(clearanceRes.data.subjects);
           setCreated(true);
         }
+        setDepartments(deptRes.data || []);
       })
       .catch((err) => {
         if (err.response?.status === 404) {
           setClearance(null);
           setCreated(false);
         } else {
-          setError('Failed to fetch clearance.');
+          setError('Failed to fetch clearance or departments.');
         }
       })
       .finally(() => setLoading(false));
@@ -187,6 +193,7 @@ const CreateClearancePage = () => {
       setClearance(response.data.clearance);
       setStudent(response.data.student);
       setSubjects(response.data.subjects);
+      setDepartments(response.data.departments || []);
       setCreated(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong.');
@@ -282,6 +289,9 @@ const CreateClearancePage = () => {
               </tr>
             </tbody>
           </table>
+          
+
+          {/* Subjects Table */}
           <h4 style={{ marginTop: 20, color: '#2563eb' }}>📘 Subjects</h4>
           {subjects.length > 0 ? (
             <table style={styles.table}>
@@ -306,6 +316,29 @@ const CreateClearancePage = () => {
             </table>
           ) : (
             <p>No subjects found.</p>
+          )}
+
+          {/* Departments Table */}
+          <h4 style={{ marginTop: 20, color: '#2563eb' }}>🏢 Departments</h4>
+          {departments.length > 0 ? (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Department Name</th>
+                  <th style={styles.th}>Assigned Staff</th>
+                </tr>
+              </thead>
+              <tbody>
+                {departments.map((dept, idx) => (
+                  <tr key={dept.department_id || idx}>
+                    <td style={styles.td}>{dept.name}</td>
+                    <td style={styles.td}>{dept.staff ? `${dept.staff.firstname} ${dept.staff.lastname}` : 'N/A'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No departments found.</p>
           )}
         </div>
       )}
@@ -333,6 +366,7 @@ const CreateClearancePage = () => {
               <div><label style={styles.label}>Course:</label><input value={student.course} readOnly style={styles.input} /></div>
               <div><label style={styles.label}>Year Level:</label><input value={student.year_level} readOnly style={styles.input} /></div>
               <div><label style={styles.label}>Block:</label><input value={student.block} readOnly style={styles.input} /></div>
+              <div><label style={styles.label}>Department:</label><input value={student.department_name || student.department || ''} readOnly style={styles.input} /></div>
             </form>
           </div>
 
@@ -360,6 +394,29 @@ const CreateClearancePage = () => {
                 </tbody>
               </table>
             ) : <p>No subjects found.</p>}
+
+            {departments.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <h3 style={{ color: '#2563eb', marginBottom: 10 }}>🏢 Departments</h3>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Department Name</th>
+                      <th style={styles.th}>Assigned Staff</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {departments.map((dept, idx) => (
+                      <tr key={dept.department_id || idx}>
+                        <td style={styles.td}>{dept.name}</td>
+                        <td style={styles.td}>{dept.staff ? `${dept.staff.firstname} ${dept.staff.lastname}` : 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             <div style={{ marginTop: 20 }}>
               <button onClick={handleCreateClearance} disabled={loading} style={styles.button}>
                 {loading ? 'Submitting...' : 'Confirm & Submit'}

@@ -29,7 +29,7 @@ const LoginForm = () => {
         } else if (accountType === 'admin') {
           navigate('/admin/dashboard');
         } else if (accountType === 'staff') {
-          navigate('/staff/dashboard');
+          navigate('/faculty/dashboard');
         }
       }, 1200);
     } else {

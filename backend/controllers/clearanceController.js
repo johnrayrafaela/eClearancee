@@ -57,10 +57,45 @@ exports.createClearance = async (req, res) => {
     // Save semester in clearance (add semester column to Clearance model if needed)
     const clearance = await Clearance.create({ student_id, semester });
 
-    // Fetch subjects for the selected semester
+    // Fetch subjects for the selected semester (with department info)
     const subjects = await Subject.findAll({
-      where: { course: student.course, year_level: student.year_level, semester }
+      where: { course: student.course, year_level: student.year_level, semester },
+      include: [
+        {
+          model: require('../models/Department'),
+          as: 'department',
+          include: [
+            {
+              model: require('../models/Staff'),
+              as: 'staff',
+              attributes: ['staff_id', 'firstname', 'lastname', 'email']
+            }
+          ],
+          attributes: ['department_id', 'name']
+        }
+      ]
     });
+
+    // Get all unique departments with staff info
+    const departmentMap = {};
+    subjects.forEach(s => {
+      if (s.department) {
+        const deptId = s.department.department_id;
+        if (!departmentMap[deptId]) {
+          departmentMap[deptId] = {
+            department_id: deptId,
+            name: s.department.name,
+            staff: s.department.staff ? {
+              staff_id: s.department.staff.staff_id,
+              firstname: s.department.staff.firstname,
+              lastname: s.department.staff.lastname,
+              email: s.department.staff.email
+            } : null
+          };
+        }
+      }
+    });
+    const departments = Object.values(departmentMap);
 
     res.status(201).json({
       message: 'Clearance created',
@@ -73,6 +108,7 @@ exports.createClearance = async (req, res) => {
         block: student.block,
       },
       subjects,
+      departments,
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -100,9 +136,42 @@ exports.precheckClearance = async (req, res) => {
           model: Teacher,
           as: 'teacher',
           attributes: ['teacher_id', 'firstname', 'lastname', 'email']
+        },
+        {
+          model: require('../models/Department'),
+          as: 'department',
+          include: [
+            {
+              model: require('../models/Staff'),
+              as: 'staff',
+              attributes: ['staff_id', 'firstname', 'lastname', 'email']
+            }
+          ],
+          attributes: ['department_id', 'name']
         }
       ]
     });
+
+    // Get all unique departments with staff info
+    const departmentMap = {};
+    subjects.forEach(s => {
+      if (s.department) {
+        const deptId = s.department.department_id;
+        if (!departmentMap[deptId]) {
+          departmentMap[deptId] = {
+            department_id: deptId,
+            name: s.department.name,
+            staff: s.department.staff ? {
+              staff_id: s.department.staff.staff_id,
+              firstname: s.department.staff.firstname,
+              lastname: s.department.staff.lastname,
+              email: s.department.staff.email
+            } : null
+          };
+        }
+      }
+    });
+    const departments = Object.values(departmentMap);
 
     res.json({
       student: {
@@ -113,6 +182,7 @@ exports.precheckClearance = async (req, res) => {
         block: student.block,
       },
       subjects,
+      departments,
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -252,6 +322,17 @@ exports.getClearanceStatusAnalytics = async (req, res) => {
     });
 
     res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.requestDepartmentApproval = async (req, res) => {
+  try {
+    const { student_id, department_id, semester } = req.body;
+    // TODO: Implement logic to create a department approval request (e.g., create a DepartmentClearanceRequest model)
+    // For now, just return success for demo:
+    res.json({ message: 'Department approval request submitted.' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

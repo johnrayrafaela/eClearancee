@@ -101,6 +101,7 @@ const ClearanceStatusPage = () => {
   // Removed requirements state
   const [files, setFiles] = useState({}); // { [subject_id]: File[] | [] }
   const [selectedSemester, setSelectedSemester] = useState('');
+  const [departments, setDepartments] = useState([]);
 
   // Fetch clearance, subjects, and subject statuses
   useEffect(() => {
@@ -108,12 +109,14 @@ const ClearanceStatusPage = () => {
     setLoading(true);
     Promise.all([
       axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`),
-      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${selectedSemester}`)
+      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${selectedSemester}`),
+      axios.get('http://localhost:5000/api/departments')
     ])
-      .then(([clearanceRes, statusRes]) => {
+      .then(([clearanceRes, statusRes, deptRes]) => {
         setClearance(clearanceRes.data.clearance);
         setSubjects(clearanceRes.data.subjects);
         setSubjectStatuses(statusRes.data.statuses || []);
+        setDepartments(deptRes.data || []);
         setError('');
       })
       .catch(err => {
@@ -121,9 +124,10 @@ const ClearanceStatusPage = () => {
           setClearance(null);
           setSubjects([]);
           setSubjectStatuses([]);
+          setDepartments([]);
           setError('No clearance found. Please request clearance first.');
         } else {
-          setError('Failed to load clearance or subject statuses.');
+          setError('Failed to load clearance, subject statuses, or departments.');
         }
       })
       .finally(() => setLoading(false));
@@ -205,6 +209,9 @@ const ClearanceStatusPage = () => {
       )}
       {selectedSemester && (
         <>
+          
+
+          {/* Subjects Table */}
           <h3 style={{ color: '#2563eb' }}>📘 Subjects</h3>
           {subjects.length > 0 ? (
             <table style={styles.table}>
@@ -282,6 +289,31 @@ const ClearanceStatusPage = () => {
           ) : (
             selectedSemester && <p>No subjects found.</p>
           )}
+
+
+          {/* Departments Table */}
+          <h3 style={{ color: '#2563eb', marginTop: 32 }}>🏢 Departments</h3>
+          {departments.length > 0 ? (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Department Name</th>
+                  <th style={styles.th}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {departments.map((dept, idx) => (
+                  <tr key={dept.department_id || idx}>
+                    <td style={styles.td}>{dept.name}</td>
+                    <td style={styles.td}>{dept.status || 'Pending'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No departments found.</p>
+          )}
+          
         </>
       )}
     </div>

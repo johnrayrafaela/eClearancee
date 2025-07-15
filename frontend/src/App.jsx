@@ -5,6 +5,12 @@ import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
 
+
+import FacultyDepartmentRequests from './pages/faculty/FacultyDepartmentRequests';
+import FacultyDashboard from './pages/faculty/Facultydashboard';
+import FacultyDepartmentRequirements from './pages/faculty/FacultyDepartmentRequirements';
+
+
 import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage'; // Import Teacher Analytics Page
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import TeacherSubjectRequirements from './pages/teacher/TeacherSubjectRequirements'; // Import Teacher Subject Requirements
@@ -14,10 +20,11 @@ import TeacherSubjectRequests from './pages/teacher/TeacherSubjectRequests'; // 
 import ClearanceStatusPage from './pages/student/ClearanceStatusPage';
 import CreateStudentClearance from './pages/student/createClearancePage';
 import StudentDashboard from './pages/student/Studentdashboard';
-import StaffDashboard from './pages/staff/Staffdashboard'; // Import Staff Dashboard
 import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
 
+
+import DepartmentManagement from './pages/admin/DepartmentManagement';
 import AdminClearanceRequests from './pages/admin/AdminClearanceRequests';
 import SubjectManagement from './pages/admin/SubjectManagement';
 import StaffManagement from './pages/admin/StaffManagement';
@@ -37,8 +44,11 @@ function App() {
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/login" element={<LoginForm />} />
 
-          {/* Staff routes */}
-          <Route path="/staff/dashboard" element={<StaffDashboard />} />
+
+          {/* Faculty routes */}
+          <Route path="/faculty/department-requests" element={<FacultyDepartmentRequests />} />
+          <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/faculty/department-requirements" element={<FacultyDepartmentRequirements />} /> 
 
           {/* Student routes */}
           <Route path='/student/clearancestatus' element={<ClearanceStatusPage/>}/>
@@ -47,6 +57,7 @@ function App() {
           <Route path="/student/analytics" element={<StudentSubjectAnalytics />} />
 
           {/* Admin routes */}
+          <Route path="/admin/departmentmanagement" element={<DepartmentManagement />} />
           <Route path="/admin/clearancerequest" element={<AdminClearanceRequests />} />
           <Route path="/admin/subjectmanagement" element={<SubjectManagement />} />
           <Route path="/admin/teachermanagement" element={<TeacherManagement />} />
