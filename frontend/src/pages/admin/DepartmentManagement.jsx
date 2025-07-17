@@ -130,8 +130,7 @@ const DepartmentManagement = () => {
   const styles = {
     container: {
       padding: '2rem',
-      maxWidth: 900,
-      margin: '0 auto',
+        margin: '0 auto',
       background: '#f9fafd',
       borderRadius: 12,
       boxShadow: '0 2px 12px rgba(2,119,189,0.07)',

@@ -61,15 +61,19 @@ exports.updateSubject = async (req, res) => {
 };
 
 exports.deleteSubject = async (req, res) => {
+  const { id } = req.params;
   try {
-    const subject = await Subject.findByPk(req.params.id);
+    const subject = await Subject.findByPk(id);
     if (!subject) return res.status(404).json({ message: 'Subject not found' });
+
     await subject.destroy();
-    res.json({ message: 'Subject deleted' });
+    res.status(200).json({ message: 'Subject deleted' });
   } catch (err) {
-    res.status(500).json({ message: 'Error deleting subject', error: err.message });
+    console.error(err);  // Check terminal logs for the real cause
+    res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 exports.getSubjectsForStudent = async (req, res) => {
   const { course, year_level, semester } = req.query;

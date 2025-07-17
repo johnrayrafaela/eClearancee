@@ -121,7 +121,6 @@ const StaffManagement = () => {
   const styles = {
     container: {
       padding: '2rem',
-      maxWidth: 900,
       margin: '0 auto',
       background: '#f9fafd',
       borderRadius: 12,
