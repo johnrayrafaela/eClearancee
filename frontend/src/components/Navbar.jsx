@@ -61,10 +61,10 @@ const Navbar = () => {
           )}
           {user && userType === 'staff' && (
             <>
-              <Link to="/faculty/dashboard" style={styles.link}>Faculty Dashboard</Link>
-              <Link to="/faculty/department-requests" style={styles.link}>Department Requests</Link>
-              <Link to="/faculty/department-requirements" style={styles.link}>Department Requirements</Link>
-              <Link to="/faculty/profile" style={styles.link}>Profile</Link>
+              <Link to="/staff/dashboard" style={styles.link}>Faculty Dashboard</Link>
+              <Link to="/staff/department-requests" style={styles.link}>Department Requests</Link>
+              <Link to="/staff/department-requirements" style={styles.link}>Department Requirements</Link>
+              <Link to="/staff/profile" style={styles.link}>Profile</Link>
             </>
           )}
           {user ? (

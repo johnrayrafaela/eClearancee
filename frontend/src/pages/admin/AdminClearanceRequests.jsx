@@ -181,20 +181,28 @@ const AdminClearanceRequests = () => {
   const [modalAllApproved, setModalAllApproved] = useState(false);
 
   const openSubjectsModal = async (req) => {
-    // Fetch subjects for this student and semester
-    const res = await axios.get(`http://localhost:5000/api/clearance/status?student_id=${req.student?.student_id}&semester=${req.semester}`);
-    setModalSubjects(res.data.subjects || []);
-    setModalStudent(req.student);
-    setModalSemester(req.semester);
-    // Check if all subjects are approved
-    let allApproved = true;
-    (res.data.subjects || []).forEach(sub => {
-      if (!sub.StudentSubjectStatus || sub.StudentSubjectStatus.status !== 'Approved') {
-        allApproved = false;
-      }
-    });
-    setModalAllApproved(allApproved);
-    setModalOpen(true);
+    try {
+      const res = await axios.get(`http://localhost:5000/api/clearance/status?student_id=${req.student?.student_id}&semester=${req.semester}`);
+      const subjects = res.data.subjects || [];
+      setModalSubjects(subjects);
+      setModalStudent(req.student);
+      setModalSemester(req.semester);
+      // Check if all subjects are approved (if there are subjects)
+      let allApproved = subjects.length > 0;
+      subjects.forEach(sub => {
+        if (!sub.StudentSubjectStatus || sub.StudentSubjectStatus.status !== 'Approved') {
+          allApproved = false;
+        }
+      });
+      setModalAllApproved(allApproved);
+      setModalOpen(true);
+    } catch {
+      setModalSubjects([]);
+      setModalStudent(req.student);
+      setModalSemester(req.semester);
+      setModalAllApproved(false);
+      setModalOpen(true);
+    }
   };
 
   const closeModal = () => {
@@ -237,23 +245,22 @@ const AdminClearanceRequests = () => {
                 >
                   View Subjects
                 </button>
-                {req.status === 'Pending' ? (
+                {/* Remove Approve/Reject if auto-approved (all subjects approved) even if status is Pending */}
+                {req.status === 'Pending' && (!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester) ? (
                   <>
                     <button
                       style={{ ...styles.button, ...styles.approve }}
-                      onClick={() => handleStatus(req.clearance_id, 'Approved')}
-                      disabled={!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester}
+                      onClick={() => {
+                        if (!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester) {
+                          window.alert('Cannot approve: Not all subjects are cleared/approved for this student.');
+                          return;
+                        }
+                        handleStatus(req.clearance_id, 'Approved');
+                      }}
+                      // Approve button is always enabled now
                       title={!modalAllApproved && modalStudent?.student_id === req.student?.student_id && modalSemester === req.semester ? 'All subjects must be approved' : ''}
                     >
                       Approve
-                    </button>
-                    <button
-                      style={{ ...styles.button, ...styles.reject }}
-                      onClick={() => handleStatus(req.clearance_id, 'Rejected')}
-                      disabled={!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester}
-                      title={!modalAllApproved && modalStudent?.student_id === req.student?.student_id && modalSemester === req.semester ? 'All subjects must be approved' : ''}
-                    >
-                      Reject
                     </button>
                     <button
                       style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
@@ -267,6 +274,8 @@ const AdminClearanceRequests = () => {
                       Delete
                     </button>
                   </>
+                ) : req.status === 'Approved' || (req.status === 'Pending' && modalAllApproved && modalStudent?.student_id === req.student?.student_id && modalSemester === req.semester) ? (
+                  <span style={{ color: '#43a047', fontWeight: 600 }}>Auto-approved</span>
                 ) : (
                   <button
                     style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}

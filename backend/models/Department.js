@@ -30,5 +30,6 @@ const Department = sequelize.define('Department', {
   },
 });
 
+
 module.exports = Department;
 

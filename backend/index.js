@@ -9,7 +9,11 @@ const adminRoutes = require('./routes/adminRoutes');
 const staffRoutes = require('./routes/StaffRoutes');
 const clearanceRoutes = require('./routes/clearanceRoutes');
 const StudentSubjectStatusRoutes = require('./routes/studentSubjectStatusRoutes');
+
 const departmentRoutes = require('./routes/departmentRoutes');
+
+const departmentStatusRoutes = require('./routes/departmentStatusRoutes');
+const staffDepartmentRequestsRoutes = require('./routes/staffDepartmentRequestsRoutes');
 
 
 //associations
@@ -19,8 +23,16 @@ const Department = require('./models/Department');
 const User = require('./models/User');
 const Teacher = require('./models/Teacher');
 const Subject = require('./models/Subject');
+const DepartmentStatus = require('./models/DepartmentStatus');
 
+
+
+
+DepartmentStatus.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
+DepartmentStatus.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 Department.belongsTo(Staff, { foreignKey: 'staff_id', as: 'staff' });
+Department.hasMany(require('./models/DepartmentStatus'), { foreignKey: 'department_id', as: 'statuses' });
+Staff.hasMany(Department, { foreignKey: 'staff_id', as: 'departments' });
 Subject.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
 Department.hasMany(Subject, { foreignKey: 'department_id' });
 
@@ -45,6 +57,8 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/clearance', clearanceRoutes); 
 app.use('/api/student-subject-status', StudentSubjectStatusRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/department-status', departmentStatusRoutes);
+app.use('/api/department-status', staffDepartmentRequestsRoutes);
 app.use('/api/subject', require('./routes/subjectRoutes'));
 
 const PORT = process.env.PORT || 5000;

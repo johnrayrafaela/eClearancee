@@ -6,10 +6,9 @@ import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
 
 
-import FacultyDepartmentRequests from './pages/faculty/FacultyDepartmentRequests';
-import FacultyDashboard from './pages/faculty/Facultydashboard';
+import FacultyDepartmentRequests from './pages/staff/FacultyDepartmentRequests';
 import FacultyDepartmentRequirements from './pages/faculty/FacultyDepartmentRequirements';
-
+import StaffDashboard from './pages/staff/Staffdashboard';
 
 import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage'; // Import Teacher Analytics Page
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
@@ -46,8 +45,8 @@ function App() {
 
 
           {/* Faculty routes */}
-          <Route path="/faculty/department-requests" element={<FacultyDepartmentRequests />} />
-          <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/staff/dashboard" element={<StaffDashboard />} />
+          <Route path="/staff/department-requests" element={<FacultyDepartmentRequests />} />
           <Route path="/faculty/department-requirements" element={<FacultyDepartmentRequirements />} /> 
 
           {/* Student routes */}

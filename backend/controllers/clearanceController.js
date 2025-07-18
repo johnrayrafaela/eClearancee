@@ -206,6 +206,11 @@ exports.getClearanceStatus = async (req, res) => {
     };
     if (semester) whereSubject.semester = semester;
 
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    // Ensure association exists for include to work
+    if (!Subject.associations.StudentSubjectStatus) {
+      Subject.hasMany(StudentSubjectStatus, { as: 'StudentSubjectStatus', foreignKey: 'subject_id' });
+    }
     const subjects = await Subject.findAll({
       where: whereSubject,
       include: [
@@ -213,10 +218,47 @@ exports.getClearanceStatus = async (req, res) => {
           model: Teacher,
           as: 'teacher',
           attributes: ['teacher_id', 'firstname', 'lastname', 'email']
+        },
+        {
+          model: StudentSubjectStatus,
+          as: 'StudentSubjectStatus',
+          required: false,
+          where: { student_id: student.student_id },
+          attributes: ['status']
         }
       ]
     });
 
+    // Map to ensure only one status per subject (for frontend)
+    const subjectsWithStatus = subjects.map(sub => {
+      let statusObj = null;
+      if (Array.isArray(sub.StudentSubjectStatus) && sub.StudentSubjectStatus.length > 0) {
+        statusObj = sub.StudentSubjectStatus[0];
+      }
+      const plain = sub.toJSON();
+      plain.StudentSubjectStatus = statusObj;
+      return plain;
+    });
+
+    // If all subjects are approved, auto-approve clearance if not already
+    const allApproved = subjects.length > 0 && subjects.every(sub => {
+      if (Array.isArray(sub.StudentSubjectStatus)) {
+        // hasMany association returns array
+        return sub.StudentSubjectStatus.some(sss => sss.status === 'Approved');
+      } else if (sub.StudentSubjectStatus) {
+        // belongsTo or hasOne
+        return sub.StudentSubjectStatus.status === 'Approved';
+      }
+      return false;
+    });
+    if (allApproved && clearance.status !== 'Approved') {
+      clearance.status = 'Approved';
+      await clearance.save();
+      // Trigger notification (example: log, or integrate with notification system)
+      console.log(`Notification: Clearance for student ${student.firstname} ${student.lastname} (ID: ${student.student_id}) has been auto-approved.`);
+      // If you have a notification system, call it here, e.g.:
+      // await Notification.create({ user_id: student.student_id, message: 'Your clearance has been approved!' });
+    }
     res.json({
       clearance,
       student: {
@@ -226,7 +268,7 @@ exports.getClearanceStatus = async (req, res) => {
         year_level: student.year_level,
         block: student.block,
       },
-      subjects,
+      subjects: subjectsWithStatus,
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

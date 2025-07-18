@@ -22,6 +22,12 @@ const AnalyticsPage = () => {
     Approved: 0,
     Rejected: 0,
   });
+  const [departmentStatusCounts, setDepartmentStatusCounts] = useState({
+    Pending: 0,
+    Requested: 0,
+    Approved: 0,
+    Rejected: 0,
+  });
   const [tab, setTab] = useState('Clearance');
 
   useEffect(() => {
@@ -47,7 +53,6 @@ const AnalyticsPage = () => {
 
     axios.get('http://localhost:5000/api/student-subject-status/all-statuses')
       .then(res => {
-        // Backend now returns an object with counts
         setSubjectStatusCounts({
           Pending: res.data.Pending || 0,
           Requested: res.data.Requested || 0,
@@ -55,7 +60,38 @@ const AnalyticsPage = () => {
           Rejected: res.data.Rejected || 0,
         });
       });
+
+    // Fetch department status counts
+    axios.get('http://localhost:5000/api/department-status/all-statuses')
+      .then(res => {
+        setDepartmentStatusCounts({
+          Pending: res.data.Pending || 0,
+          Requested: res.data.Requested || 0,
+          Approved: res.data.Approved || 0,
+          Rejected: res.data.Rejected || 0,
+        });
+      });
   }, []);
+  const departmentStatusPie = {
+    labels: ['Pending', 'Requested', 'Approved', 'Rejected'],
+    datasets: [
+      {
+        data: [
+          departmentStatusCounts.Pending,
+          departmentStatusCounts.Requested,
+          departmentStatusCounts.Approved,
+          departmentStatusCounts.Rejected,
+        ],
+        backgroundColor: [
+          statusColors.Pending,
+          statusColors.Requested,
+          statusColors.Approved,
+          statusColors.Rejected
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
 
   const clearancePie = {
     labels: ['Pending', 'Approved', 'Rejected'],
@@ -120,12 +156,17 @@ const AnalyticsPage = () => {
         >
           User Analytics
         </button>
-        
         <button
           className={`analytics-tab-btn${tab === 'Subjects' ? ' active' : ''}`}
           onClick={() => setTab('Subjects')}
         >
           Students Subject Status
+        </button>
+        <button
+          className={`analytics-tab-btn${tab === 'Departments' ? ' active' : ''}`}
+          onClick={() => setTab('Departments')}
+        >
+          Department Status
         </button>
       </div>
       <div className="analytics-cards-row" style={{ display: 'flex', gap: 40, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -190,6 +231,30 @@ const AnalyticsPage = () => {
               <div className="analytics-stat-label">
                 <span className="analytics-stat-color" style={{ background: statusColors.Rejected }}></span>
                 Rejected: <span className="analytics-stat-value">{subjectStatusCounts.Rejected}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        {tab === 'Departments' && (
+          <div className="analytics-card">
+            <h3>Department Status Distribution</h3>
+            <Pie data={departmentStatusPie} />
+            <div className="analytics-stats">
+              <div className="analytics-stat-label">
+                <span className="analytics-stat-color" style={{ background: statusColors.Pending }}></span>
+                Pending: <span className="analytics-stat-value">{departmentStatusCounts.Pending}</span>
+              </div>
+              <div className="analytics-stat-label">
+                <span className="analytics-stat-color" style={{ background: statusColors.Requested }}></span>
+                Requested: <span className="analytics-stat-value">{departmentStatusCounts.Requested}</span>
+              </div>
+              <div className="analytics-stat-label">
+                <span className="analytics-stat-color" style={{ background: statusColors.Approved }}></span>
+                Approved: <span className="analytics-stat-value">{departmentStatusCounts.Approved}</span>
+              </div>
+              <div className="analytics-stat-label">
+                <span className="analytics-stat-color" style={{ background: statusColors.Rejected }}></span>
+                Rejected: <span className="analytics-stat-value">{departmentStatusCounts.Rejected}</span>
               </div>
             </div>
           </div>

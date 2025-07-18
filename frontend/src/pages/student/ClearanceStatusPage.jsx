@@ -1,6 +1,9 @@
+
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
+
+
 
 const styles = {
   container: {
@@ -90,6 +93,7 @@ const styles = {
 
 const semesters = ['1st', '2nd'];
 
+
 const ClearanceStatusPage = () => {
   const { user, userType } = useContext(AuthContext);
   const [clearance, setClearance] = useState(null);
@@ -102,6 +106,58 @@ const ClearanceStatusPage = () => {
   const [files, setFiles] = useState({}); // { [subject_id]: File[] | [] }
   const [selectedSemester, setSelectedSemester] = useState('');
   const [departments, setDepartments] = useState([]);
+
+  // Department file upload state and request (moved inside component)
+  const [deptFiles, setDeptFiles] = useState({}); // { [department_id]: File[] }
+  const [deptRequesting, setDeptRequesting] = useState({}); // { [department_id]: boolean }
+  const [departmentStatuses, setDepartmentStatuses] = useState([]); // [{ department_id, status, file_path }]
+
+  // Fetch department statuses
+  useEffect(() => {
+    if (!user || userType !== 'user' || !selectedSemester) return;
+    axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`)
+      .then(res => {
+        setDepartmentStatuses(res.data.statuses || []);
+      })
+      .catch(() => setDepartmentStatuses([]));
+  }, [user, userType, selectedSemester]);
+
+  // Helper to get department status
+  const getDeptStatus = (departmentId) => {
+    const found = departmentStatuses.find(s => s.department_id === departmentId);
+    return found ? found.status : 'Pending';
+  };
+  const getDeptFile = (departmentId) => {
+    const found = departmentStatuses.find(s => s.department_id === departmentId);
+    return found && found.file_path ? found.file_path : null;
+  };
+
+  // Request approval for a department
+  const requestDeptApproval = async (departmentId) => {
+    if (!window.confirm('Are you sure you want to request approval for this department? This will submit your uploaded file.')) {
+      return;
+    }
+    setDeptRequesting(prev => ({ ...prev, [departmentId]: true }));
+    try {
+      const formData = new FormData();
+      formData.append('student_id', user.student_id);
+      formData.append('department_id', departmentId);
+      formData.append('semester', selectedSemester);
+      if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
+        formData.append('file', deptFiles[departmentId][0]);
+      }
+      await axios.post('http://localhost:5000/api/department-status/request', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      // Refetch department statuses
+      const res = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`);
+      setDepartmentStatuses(res.data.statuses || []);
+      setDeptFiles(prev => ({ ...prev, [departmentId]: null }));
+    } catch {
+      setError('Failed to request department approval.');
+    }
+    setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
+  };
 
   // Fetch clearance, subjects, and subject statuses
   useEffect(() => {
@@ -291,6 +347,7 @@ const ClearanceStatusPage = () => {
           )}
 
 
+
           {/* Departments Table */}
           <h3 style={{ color: '#2563eb', marginTop: 32 }}>🏢 Departments</h3>
           {departments.length > 0 ? (
@@ -298,16 +355,83 @@ const ClearanceStatusPage = () => {
               <thead>
                 <tr>
                   <th style={styles.th}>Department Name</th>
+                  <th style={styles.th}>Assigned Staff</th>
                   <th style={styles.th}>Status</th>
+                  <th style={styles.th}>File Upload</th>
+                  <th style={styles.th}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {departments.map((dept, idx) => (
-                  <tr key={dept.department_id || idx}>
-                    <td style={styles.td}>{dept.name}</td>
-                    <td style={styles.td}>{dept.status || 'Pending'}</td>
-                  </tr>
-                ))}
+                {departments.map((dept, idx) => {
+                  const deptStatus = getDeptStatus(dept.department_id);
+                  const uploadedFile = getDeptFile(dept.department_id);
+                  // Show staff name if available
+                  let staffName = '-';
+                  if (dept.staff && (dept.staff.firstname || dept.staff.lastname)) {
+                    staffName = `${dept.staff.firstname || ''} ${dept.staff.lastname || ''}`.trim();
+                  }
+                  return (
+                    <tr key={dept.department_id || idx}>
+                      <td style={styles.td}>{dept.name}</td>
+                      <td style={styles.td}>{staffName}</td>
+                      <td style={styles.td}>
+                        {deptStatus === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Department</span>}
+                        {deptStatus === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
+                        {deptStatus === 'Rejected' && <span style={{ color: '#e11d48', fontWeight: 600 }}>Rejected</span>}
+                        {deptStatus === 'Pending' && 'Pending'}
+                      </td>
+                      <td style={styles.td}>
+                        {(deptStatus === 'Pending' || deptStatus === 'Rejected') && (
+                          <>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              style={styles.input}
+                              onChange={e => {
+                                const fileArr = Array.from(e.target.files);
+                                setDeptFiles(prev => ({ ...prev, [dept.department_id]: fileArr }));
+                              }}
+                            />
+                            {deptFiles[dept.department_id] && deptFiles[dept.department_id].length > 0 && (
+                              <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none', fontSize: 13 }}>
+                                {deptFiles[dept.department_id].map((file, idx) => (
+                                  <li key={idx}>{file.name}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </>
+                        )}
+                        {(deptStatus === 'Requested' || deptStatus === 'Approved') && uploadedFile && (
+                          <a
+                            href={`http://localhost:5000/api/department-status/file/${dept.department_id}?file=${uploadedFile}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View Uploaded File
+                          </a>
+                        )}
+                        {((deptStatus === 'Requested' || deptStatus === 'Approved') && !uploadedFile) && <span>-</span>}
+                      </td>
+                      <td style={styles.td}>
+                        {(deptStatus === 'Pending' || deptStatus === 'Rejected') && (
+                          <button
+                            style={styles.button}
+                            disabled={
+                              deptRequesting[dept.department_id] ||
+                              !deptFiles[dept.department_id] ||
+                              deptFiles[dept.department_id].length === 0
+                            }
+                            onClick={() => requestDeptApproval(dept.department_id)}
+                          >
+                            {deptRequesting[dept.department_id] ? 'Requesting...' : 'Request Approval'}
+                          </button>
+                        )}
+                        {deptStatus === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Department</span>}
+                        {deptStatus === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (
