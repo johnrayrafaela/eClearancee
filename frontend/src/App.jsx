@@ -47,7 +47,7 @@ function App() {
           {/* Faculty routes */}
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/staff/department-requests" element={<FacultyDepartmentRequests />} />
-          <Route path="/faculty/department-requirements" element={<FacultyDepartmentRequirements />} /> 
+          <Route path="/staff/department-requirements" element={<FacultyDepartmentRequirements />} /> 
 
           {/* Student routes */}
           <Route path='/student/clearancestatus' element={<ClearanceStatusPage/>}/>

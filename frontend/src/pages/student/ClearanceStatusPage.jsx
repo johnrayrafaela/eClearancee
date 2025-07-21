@@ -143,6 +143,10 @@ const ClearanceStatusPage = () => {
       formData.append('student_id', user.student_id);
       formData.append('department_id', departmentId);
       formData.append('semester', selectedSemester);
+      // Get requirements from department object
+      const deptObj = departments.find(d => d.department_id === departmentId);
+      const requirements = deptObj && deptObj.requirements ? deptObj.requirements : '';
+      formData.append('requirements', requirements);
       if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
         formData.append('file', deptFiles[departmentId][0]);
       }
@@ -260,7 +264,10 @@ const ClearanceStatusPage = () => {
       {error && !clearance && selectedSemester && <div style={styles.error}>{error}</div>}
       {clearance && selectedSemester && (
         <div style={styles.statusBox}>
-          <strong>Status:</strong> {clearance.status}
+          <strong>Status:</strong> <span style={{
+            color: clearance.status === 'Approved' ? '#43a047' : clearance.status === 'Rejected' ? '#e11d48' : clearance.status === 'Requested' ? '#0277bd' : '#f59e42',
+            fontWeight: 700
+          }}>{clearance.status}</span>
         </div>
       )}
       {selectedSemester && (
@@ -293,7 +300,12 @@ const ClearanceStatusPage = () => {
                           : 'N/A'}
                       </td>
                       <td style={styles.td}>{subject.requirements}</td>
-                      <td style={styles.td}>{status}</td>
+                      <td style={styles.td}>
+                        {status === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Requested</span>}
+                        {status === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
+                        {status === 'Rejected' && <span style={{ color: '#e11d48', fontWeight: 600 }}>Rejected</span>}
+                        {status === 'Pending' && <span style={{ color: '#f59e42', fontWeight: 600 }}>Pending</span>}
+                      </td>
                       <td style={styles.td}>
                         {(status === 'Pending' || status === 'Rejected') && subject.requirements && subject.requirements.trim() !== '' ? (
                           <>
@@ -316,6 +328,22 @@ const ClearanceStatusPage = () => {
                             )}
                           </>
                         ) : (status !== 'Pending' && status !== 'Rejected') ? <span>-</span> : null}
+                        {(status === 'Requested' || status === 'Approved') && (() => {
+                          // Find file_path from subjectStatuses for this subject
+                          const statusObj = subjectStatuses.find(s => s.subject_id === subject.subject_id);
+                          if (statusObj && statusObj.file_path) {
+                            return (
+                              <a
+                                href={`http://localhost:5000/api/student-subject-status/file/${subject.subject_id}?file=${encodeURIComponent(statusObj.file_path)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                View Uploaded File
+                              </a>
+                            );
+                          }
+                          return <span>-</span>;
+                        })()}
                       </td>
                       <td style={styles.td}>
                         {(status === 'Pending' || status === 'Rejected') && (
@@ -348,6 +376,7 @@ const ClearanceStatusPage = () => {
 
 
 
+
           {/* Departments Table */}
           <h3 style={{ color: '#2563eb', marginTop: 32 }}>🏢 Departments</h3>
           {departments.length > 0 ? (
@@ -356,6 +385,7 @@ const ClearanceStatusPage = () => {
                 <tr>
                   <th style={styles.th}>Department Name</th>
                   <th style={styles.th}>Assigned Staff</th>
+                  <th style={styles.th}>Requirements</th>
                   <th style={styles.th}>Status</th>
                   <th style={styles.th}>File Upload</th>
                   <th style={styles.th}>Action</th>
@@ -365,23 +395,25 @@ const ClearanceStatusPage = () => {
                 {departments.map((dept, idx) => {
                   const deptStatus = getDeptStatus(dept.department_id);
                   const uploadedFile = getDeptFile(dept.department_id);
-                  // Show staff name if available
                   let staffName = '-';
                   if (dept.staff && (dept.staff.firstname || dept.staff.lastname)) {
                     staffName = `${dept.staff.firstname || ''} ${dept.staff.lastname || ''}`.trim();
                   }
+                  // Get requirements from department object (persisted in Department model)
+                  const requirements = dept.requirements && dept.requirements.trim() !== '' ? dept.requirements : '-';
                   return (
                     <tr key={dept.department_id || idx}>
                       <td style={styles.td}>{dept.name}</td>
                       <td style={styles.td}>{staffName}</td>
+                      <td style={styles.td}>{requirements}</td>
                       <td style={styles.td}>
-                        {deptStatus === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Department</span>}
+                        {deptStatus === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Requested</span>}
                         {deptStatus === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
                         {deptStatus === 'Rejected' && <span style={{ color: '#e11d48', fontWeight: 600 }}>Rejected</span>}
-                        {deptStatus === 'Pending' && 'Pending'}
+                        {deptStatus === 'Pending' && <span style={{ color: '#f59e42', fontWeight: 600 }}>Pending</span>}
                       </td>
                       <td style={styles.td}>
-                        {(deptStatus === 'Pending' || deptStatus === 'Rejected') && (
+                        {(deptStatus === 'Pending' || deptStatus === 'Rejected') && requirements !== '-' ? (
                           <>
                             <input
                               type="file"
@@ -400,7 +432,7 @@ const ClearanceStatusPage = () => {
                               </ul>
                             )}
                           </>
-                        )}
+                        ) : <span>-</span>}
                         {(deptStatus === 'Requested' || deptStatus === 'Approved') && uploadedFile && (
                           <a
                             href={`http://localhost:5000/api/department-status/file/${dept.department_id}?file=${uploadedFile}`}
@@ -418,8 +450,7 @@ const ClearanceStatusPage = () => {
                             style={styles.button}
                             disabled={
                               deptRequesting[dept.department_id] ||
-                              !deptFiles[dept.department_id] ||
-                              deptFiles[dept.department_id].length === 0
+                              (requirements !== '-' && (!deptFiles[dept.department_id] || deptFiles[dept.department_id].length === 0))
                             }
                             onClick={() => requestDeptApproval(dept.department_id)}
                           >

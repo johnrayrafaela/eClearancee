@@ -20,6 +20,11 @@ const Department = sequelize.define('Department', {
     allowNull: false,
     defaultValue: 'Pending', // Pending, Requested, Approved, Rejected
   },
+  requirements: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    // You can use TEXT if requirements are long
+  },
   staff_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

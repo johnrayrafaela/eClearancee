@@ -17,5 +17,6 @@ router.get('/all-statuses', departmentStatusController.getAllDepartmentStatuses)
 router.post('/request', upload.single('file'), departmentStatusController.requestDepartmentApproval);
 router.get('/statuses', departmentStatusController.getDepartmentStatuses);
 router.get('/file/:id', departmentStatusController.serveUploadedFile);
+router.get('/analytics/student', departmentStatusController.getStudentDepartmentStatusAnalytics);
 
 module.exports = router;

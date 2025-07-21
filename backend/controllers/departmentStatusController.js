@@ -7,26 +7,35 @@ const fs = require('fs');
 // POST /api/department-status/request
 exports.requestDepartmentApproval = async (req, res) => {
   try {
-    const { student_id, department_id, semester } = req.body;
+    const { student_id, department_id, semester, requirements } = req.body;
     let file_path = null;
-    if (req.file) {
+    // Only one request per student per department per semester, unless previous is rejected
+    const existing = await DepartmentStatus.findOne({ where: { student_id, department_id, semester } });
+    if (existing) {
+      if (existing.status === 'Rejected') {
+        // Allow re-request: delete old rejected status
+        await existing.destroy();
+      } else {
+        return res.status(400).json({ message: 'Already requested' });
+      }
+    }
+
+    // Get requirements from Department model if not provided
+    let deptRequirements = requirements;
+    if (typeof deptRequirements !== 'string') deptRequirements = '';
+    if (deptRequirements.trim() === '') {
+      // If requirements are empty, file is optional
+      if (req.file) file_path = req.file.filename;
+    } else {
+      // If requirements are present, file is required
+      if (!req.file) {
+        return res.status(400).json({ message: 'File is required for departments with requirements.' });
+      }
       file_path = req.file.filename;
     }
-    let record = await DepartmentStatus.findOne({ where: { student_id, department_id, semester } });
-    if (!record) {
-      record = await DepartmentStatus.create({
-        student_id,
-        department_id,
-        semester,
-        status: 'Requested',
-        file_path,
-      });
-    } else {
-      record.status = 'Requested';
-      if (file_path) record.file_path = file_path;
-      await record.save();
-    }
-    res.json({ message: 'Department approval requested', record });
+    const status = 'Requested';
+    const newStatus = await DepartmentStatus.create({ student_id, department_id, semester, status, file_path, requirements: deptRequirements });
+    res.json(newStatus);
   } catch (err) {
     res.status(500).json({ message: 'Error requesting department approval', error: err.message });
   }
@@ -36,9 +45,22 @@ exports.requestDepartmentApproval = async (req, res) => {
 exports.getDepartmentStatuses = async (req, res) => {
   try {
     const { student_id, semester } = req.query;
-    const where = { student_id };
-    if (semester) where.semester = semester;
-    const statuses = await DepartmentStatus.findAll({ where });
+    const statuses = await DepartmentStatus.findAll({
+      where: { student_id, semester },
+      include: [
+        {
+          model: Department,
+          as: 'department',
+          include: [
+            {
+              model: require('../models/Staff'),
+              as: 'staff',
+              attributes: ['staff_id', 'firstname', 'lastname', 'email']
+            }
+          ]
+        }
+      ]
+    });
     res.json({ statuses });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching department statuses', error: err.message });
@@ -73,5 +95,29 @@ exports.serveUploadedFile = async (req, res) => {
     res.sendFile(filePath);
   } catch (err) {
     res.status(500).json({ message: 'Error serving file', error: err.message });
+  }
+};
+
+// GET /api/department-status/analytics/student?student_id=...
+exports.getStudentDepartmentStatusAnalytics = async (req, res) => {
+  const { student_id } = req.query;
+  if (!student_id) return res.status(400).json({ message: 'student_id is required' });
+  try {
+    const statuses = await require('../models/DepartmentStatus').findAll({
+      where: { student_id }
+    });
+    // Always include both semesters
+    const analytics = {
+      '1st': { Approved: 0, Requested: 0, Pending: 0, Rejected: 0, total: 0 },
+      '2nd': { Approved: 0, Requested: 0, Pending: 0, Rejected: 0, total: 0 }
+    };
+    statuses.forEach(s => {
+      const sem = s.semester === '2nd' ? '2nd' : '1st'; // default to '1st' if not set
+      if (analytics[sem][s.status] !== undefined) analytics[sem][s.status]++;
+      analytics[sem].total++;
+    });
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching department analytics', error: err.message });
   }
 };

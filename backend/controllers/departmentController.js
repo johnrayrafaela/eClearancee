@@ -98,3 +98,29 @@ exports.getDepartmentsForStaff = async (req, res) => {
     res.status(500).json({ message: 'Error fetching departments', error: err.message });
   }
 };
+
+exports.getDepartmentsByStaff = async (req, res) => {
+  try {
+    const { staff_id } = req.params;
+    const departments = await Department.findAll({ where: { staff_id } });
+    res.json(departments);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching departments for staff', error: err.message });
+  }
+};
+
+
+// PATCH /api/departments/:id/requirements
+exports.updateDepartmentRequirements = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { requirements } = req.body;
+    const department = await Department.findByPk(id);
+    if (!department) return res.status(404).json({ message: 'Department not found' });
+    department.requirements = requirements;
+    await department.save();
+    res.json({ message: 'Requirements updated', department });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating requirements', error: err.message });
+  }
+};

@@ -87,7 +87,7 @@ const FacultyDepartmentRequirements = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || userType !== 'Staff') return;
+    if (!user || userType !== 'staff') return;
     setLoading(true);
     axios.get(`http://localhost:5000/api/departments/staff/${user.staff_id}`)
       .then(res => {
@@ -125,12 +125,15 @@ const FacultyDepartmentRequirements = () => {
   };
 
   if (!user || userType !== 'staff') {
-    return <div style={{ color: '#e11d48', padding: 20 }}>❌ Access denied. Only faculty can view this page.</div>;
+    return <div style={{ color: '#e11d48', padding: 20 }}>❌ Access denied. Only staff can view this page.</div>;
   }
 
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>🏢 My Departments & Requirements</h2>
+      <p style={{ textAlign: 'center', marginBottom: 24, color: '#0277bd', fontWeight: 600 }}>
+        Add or update requirements for the departments you are assigned to. These requirements will be shown to students when requesting department approval.
+      </p>
       {loading ? (
         <div>Loading...</div>
       ) : (

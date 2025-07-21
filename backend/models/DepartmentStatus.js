@@ -38,6 +38,11 @@ const DepartmentStatus = sequelize.define('DepartmentStatus', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  requirements: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    // You can store a comma-separated string, or use TEXT if requirements are long
+  },
 });
 
 

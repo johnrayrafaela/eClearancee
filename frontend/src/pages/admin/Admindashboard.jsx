@@ -21,9 +21,7 @@ const quickLinks = [
   { to: "/staffmanagement", label: "Staff Management" },
   { to: "/admin/teachermanagement", label: "Teacher Management" },
   { to: "/admin/departmentmanagement", label: "Department Management" },
-  { to: "/admin/dashboard", label: "Admin Dashboard" },
   { to: "/admin/clearancerequest", label: "Pending Clearance Requests" },
-  { to: "/admin/notifications", label: "Notifications" },
   { to: "/admin/analytics", label: "Analytics" },
 ];
 

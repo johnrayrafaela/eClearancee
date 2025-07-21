@@ -173,9 +173,10 @@ const AdminClearanceRequests = () => {
   else if (tab === 'Approved') currentData = approved;
   else if (tab === 'Rejected') currentData = rejected;
 
-  // Modal state for viewing subjects
+  // Modal state for viewing subjects and departments
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSubjects, setModalSubjects] = useState([]);
+  const [modalDepartments, setModalDepartments] = useState([]);
   const [modalStudent, setModalStudent] = useState(null);
   const [modalSemester, setModalSemester] = useState('');
   const [modalAllApproved, setModalAllApproved] = useState(false);
@@ -184,22 +185,48 @@ const AdminClearanceRequests = () => {
     try {
       const res = await axios.get(`http://localhost:5000/api/clearance/status?student_id=${req.student?.student_id}&semester=${req.semester}`);
       const subjects = res.data.subjects || [];
+      // Fetch department statuses for this student and semester
+      const deptRes = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${req.student?.student_id}&semester=${req.semester}`);
+      const statusList = deptRes.data.statuses || [];
+      // Fetch all departments
+      const allDeptRes = await axios.get('http://localhost:5000/api/departments');
+      const allDepartments = allDeptRes.data || [];
+      // Merge: for each department, find status for this student/semester
+      const departments = allDepartments.map(dept => {
+        const foundStatus = statusList.find(s => s.department_id === dept.department_id);
+        return {
+          department_id: dept.department_id,
+          department: dept,
+          requirements: dept.requirements,
+          status: foundStatus ? foundStatus.status : 'Pending',
+        };
+      });
       setModalSubjects(subjects);
       setModalStudent(req.student);
       setModalSemester(req.semester);
-      // Check if all subjects are approved (if there are subjects)
+      // Check if all subjects and departments are approved
       let allApproved = subjects.length > 0;
       subjects.forEach(sub => {
         if (!sub.StudentSubjectStatus || sub.StudentSubjectStatus.status !== 'Approved') {
           allApproved = false;
         }
       });
+      // If there are departments, check their status
+      if (departments.length > 0) {
+        departments.forEach(dept => {
+          if (dept.status !== 'Approved') {
+            allApproved = false;
+          }
+        });
+      }
+      setModalDepartments(departments);
       setModalAllApproved(allApproved);
       setModalOpen(true);
     } catch {
       setModalSubjects([]);
       setModalStudent(req.student);
       setModalSemester(req.semester);
+      setModalDepartments([]);
       setModalAllApproved(false);
       setModalOpen(true);
     }
@@ -243,7 +270,7 @@ const AdminClearanceRequests = () => {
                   style={{ ...styles.button, background: '#90caf9', color: '#0277bd', marginBottom: 6 }}
                   onClick={() => openSubjectsModal(req)}
                 >
-                  View Subjects
+                  View Subjects & Dept
                 </button>
                 {/* Remove Approve/Reject if auto-approved (all subjects approved) even if status is Pending */}
                 {req.status === 'Pending' && (!modalAllApproved || modalStudent?.student_id !== req.student?.student_id || modalSemester !== req.semester) ? (
@@ -295,14 +322,14 @@ const AdminClearanceRequests = () => {
         </tbody>
       </table>
 
-      {/* Modal for viewing subjects */}
+      {/* Modal for viewing subjects and departments */}
       {modalOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000,
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 600, boxShadow: '0 4px 24px rgba(2,119,189,0.15)' }}>
-            <h3 style={{ color: '#0277bd', marginBottom: 16 }}>Subject Status for {modalStudent?.firstname} {modalStudent?.lastname} ({modalSemester} Semester)</h3>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 700, boxShadow: '0 4px 24px rgba(2,119,189,0.15)' }}>
+            <h3 style={{ color: '#0277bd', marginBottom: 16 }}>Status for {modalStudent?.firstname} {modalStudent?.lastname} ({modalSemester} Semester)</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
               <thead>
                 <tr>
@@ -317,6 +344,26 @@ const AdminClearanceRequests = () => {
                     <td style={styles.td}>{sub.name}</td>
                     <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
                     <td style={styles.td}>{sub.StudentSubjectStatus ? sub.StudentSubjectStatus.status : 'Pending'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Departments Table */}
+            <h4 style={{ color: '#2563eb', marginBottom: 8 }}>Departments</h4>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Department Name</th>
+                  <th style={styles.th}>Assigned Staff</th>
+                  <th style={styles.th}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modalDepartments.map(dept => (
+                  <tr key={dept.department_id}>
+                    <td style={styles.td}>{dept.department ? dept.department.name : '-'}</td>
+                    <td style={styles.td}>{dept.department && dept.department.staff ? `${dept.department.staff.firstname} ${dept.department.staff.lastname}` : '-'}</td>
+                    <td style={styles.td}>{dept.status}</td>
                   </tr>
                 ))}
               </tbody>
