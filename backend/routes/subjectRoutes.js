@@ -1,7 +1,13 @@
+// Add subject for teacher
 const express = require('express');
 const router = express.Router();
 const subjectController = require('../controllers/subjectController');
+// ...existing code...
 
+// POST /api/subjects/teacher-add
+
+module.exports = router;
+router.post('/teacher-add', subjectController.teacherAddSubject);
 router.post('/', subjectController.createSubject);
 router.get('/', subjectController.getSubjects);
 router.get('/student', subjectController.getSubjectsForStudent);

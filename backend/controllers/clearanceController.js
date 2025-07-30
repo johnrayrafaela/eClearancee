@@ -44,7 +44,7 @@ exports.getStudentClearanceInfo = async (req, res) => {
 
 exports.createClearance = async (req, res) => {
   try {
-    const { student_id, semester } = req.body;
+    const { student_id, semester, subject_ids } = req.body;
     const student = await User.findByPk(student_id);
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
@@ -57,9 +57,26 @@ exports.createClearance = async (req, res) => {
     // Save semester in clearance (add semester column to Clearance model if needed)
     const clearance = await Clearance.create({ student_id, semester });
 
-    // Fetch subjects for the selected semester (with department info)
-    const subjects = await Subject.findAll({
-      where: { course: student.course, year_level: student.year_level, semester },
+    // Only associate selected subjects
+    let subjects = [];
+    if (Array.isArray(subject_ids) && subject_ids.length > 0) {
+      subjects = await Subject.findAll({
+        where: { subject_id: subject_ids }
+      });
+      // Optionally, create StudentSubjectStatus records for each subject
+      const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+      for (const subj of subjects) {
+        await StudentSubjectStatus.create({
+          student_id,
+          subject_id: subj.subject_id,
+          status: 'Pending',
+        });
+      }
+    }
+
+    // Fetch department info for selected subjects
+    const subjectsWithDept = await Subject.findAll({
+      where: { subject_id: subject_ids },
       include: [
         {
           model: require('../models/Department'),
@@ -78,7 +95,7 @@ exports.createClearance = async (req, res) => {
 
     // Get all unique departments with staff info
     const departmentMap = {};
-    subjects.forEach(s => {
+    subjectsWithDept.forEach(s => {
       if (s.department) {
         const deptId = s.department.department_id;
         if (!departmentMap[deptId]) {
@@ -107,7 +124,7 @@ exports.createClearance = async (req, res) => {
         year_level: student.year_level,
         block: student.block,
       },
-      subjects,
+      subjects: subjectsWithDept,
       departments,
     });
   } catch (err) {
@@ -199,20 +216,22 @@ exports.getClearanceStatus = async (req, res) => {
 
     const student = await User.findByPk(student_id);
 
-    // Filter subjects by semester
-    const whereSubject = {
-      course: student.course,
-      year_level: student.year_level,
-    };
-    if (semester) whereSubject.semester = semester;
 
+    // Only show subjects the student selected for this clearance
     const StudentSubjectStatus = require('../models/StudentSubjectStatus');
     // Ensure association exists for include to work
     if (!Subject.associations.StudentSubjectStatus) {
       Subject.hasMany(StudentSubjectStatus, { as: 'StudentSubjectStatus', foreignKey: 'subject_id' });
     }
+    // Find all StudentSubjectStatus for this student and semester
+    const studentSubjectStatuses = await StudentSubjectStatus.findAll({
+      where: { student_id: student.student_id },
+      attributes: ['subject_id', 'status']
+    });
+    const selectedSubjectIds = studentSubjectStatuses.map(s => s.subject_id);
+    // Fetch only the selected subjects
     const subjects = await Subject.findAll({
-      where: whereSubject,
+      where: { subject_id: selectedSubjectIds },
       include: [
         {
           model: Teacher,

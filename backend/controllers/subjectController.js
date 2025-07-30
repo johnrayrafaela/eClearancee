@@ -1,5 +1,27 @@
+
 const Subject = require('../models/Subject');
 const Teacher = require('../models/Teacher'); // Add this at the top
+
+// POST /api/subjects/teacher-add
+exports.teacherAddSubject = async (req, res) => {
+  try {
+    const { name, semester, teacher_id, requirements, course, year_level } = req.body;
+    if (!name || !semester || !teacher_id || !course || !year_level) {
+      return res.status(400).json({ message: 'Missing required fields.' });
+    }
+    const subject = await Subject.create({
+      name,
+      semester,
+      teacher_id,
+      requirements: requirements || '',
+      course,
+      year_level
+    });
+    res.json(subject);
+  } catch (err) {
+    res.status(500).json({ message: 'Error adding subject', error: err.message });
+  }
+};
 
 exports.createSubject = async (req, res) => {
   try {

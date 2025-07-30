@@ -114,7 +114,7 @@ const CreateClearancePage = () => {
   const [loading, setLoading] = useState(true);
   const [clearance, setClearance] = useState(null);
   const [student, setStudent] = useState(null);
-  const [subjects, setSubjects] = useState([]);
+  const [subjects, setSubjects] = useState([]); // All available subjects for course/year/semester
   const [error, setError] = useState('');
   const [created, setCreated] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -123,6 +123,7 @@ const CreateClearancePage = () => {
   const [deleteError, setDeleteError] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
   const [departments, setDepartments] = useState([]);
+  const [selectedSubjects, setSelectedSubjects] = useState([]); // Subjects student picked for clearance
 
   useEffect(() => {
     if (userType && !user) {
@@ -173,6 +174,7 @@ const CreateClearancePage = () => {
       );
       setStudent(response.data.student);
       setSubjects(response.data.subjects);
+      setSelectedSubjects([]); // Reset selection
       setShowConfirm(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load student info.');
@@ -188,7 +190,8 @@ const CreateClearancePage = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/clearance/create', {
         student_id: user.student_id,
-        semester: selectedSemester
+        semester: selectedSemester,
+        subject_ids: selectedSubjects.map(s => s.subject_id)
       });
       setClearance(response.data.clearance);
       setStudent(response.data.student);
@@ -370,28 +373,60 @@ const CreateClearancePage = () => {
           </div>
 
           <div style={{ ...styles.form, flex: '2 1 320px', minWidth: 260 }}>
-            <h3 style={{ marginBottom: 12, color: '#2563eb' }}>📘 Subjects</h3>
+            <h3 style={{ marginBottom: 12, color: '#2563eb' }}>📘 Select Subjects</h3>
             {subjects.length > 0 ? (
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th style={styles.th}>Subject Name</th>
-                    <th style={styles.th}>Teacher</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjects.map(subject => (
-                    <tr key={subject.subject_id}>
-                      <td style={styles.td}>{subject.name}</td>
-                      <td style={styles.td}>
-                        {subject.teacher
-                          ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
-                          : 'N/A'}
-                      </td>
+              <>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Subject Name</th>
+                      <th style={styles.th}>Teacher</th>
+                      <th style={styles.th}>Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {subjects.map(subject => (
+                      <tr key={subject.subject_id}>
+                        <td style={styles.td}>{subject.name}</td>
+                        <td style={styles.td}>
+                          {subject.teacher
+                            ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
+                            : 'N/A'}
+                        </td>
+                        <td style={styles.td}>
+                          {selectedSubjects.some(s => s.subject_id === subject.subject_id) ? (
+                            <button
+                              style={{ ...styles.button, ...styles.buttonCancel, fontSize: 14, padding: '4px 10px' }}
+                              onClick={e => {
+                                e.preventDefault();
+                                setSelectedSubjects(selectedSubjects.filter(s => s.subject_id !== subject.subject_id));
+                              }}
+                            >Remove</button>
+                          ) : (
+                            <button
+                              style={{ ...styles.button, fontSize: 14, padding: '4px 10px' }}
+                              onClick={e => {
+                                e.preventDefault();
+                                setSelectedSubjects([...selectedSubjects, subject]);
+                              }}
+                            >Add</button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div style={{ marginTop: 18 }}>
+                  <h4 style={{ color: '#2563eb' }}>Selected Subjects</h4>
+                  {selectedSubjects.length === 0 ? <p style={{ color: '#888' }}>No subjects selected.</p> : (
+                    <ul style={{ paddingLeft: 18 }}>
+                      {selectedSubjects.map(s => (
+                        <li key={s.subject_id} style={{ color: '#0277bd', fontWeight: 600 }}>{s.name}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
             ) : <p>No subjects found.</p>}
 
             {departments.length > 0 && (
@@ -417,7 +452,7 @@ const CreateClearancePage = () => {
             )}
 
             <div style={{ marginTop: 20 }}>
-              <button onClick={handleCreateClearance} disabled={loading} style={styles.button}>
+              <button onClick={handleCreateClearance} disabled={loading || selectedSubjects.length === 0} style={styles.button}>
                 {loading ? 'Submitting...' : 'Confirm & Submit'}
               </button>
               <button onClick={() => setShowConfirm(false)} disabled={loading} style={{ ...styles.button, ...styles.buttonCancel }}>

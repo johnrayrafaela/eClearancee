@@ -289,6 +289,7 @@ const ClearanceStatusPage = () => {
                 </tr>
               </thead>
               <tbody>
+                {/* Only show subjects that are in the student's clearance (already filtered by backend) */}
                 {subjects.map(subject => {
                   const status = getStatus(subject.subject_id);
                   return (

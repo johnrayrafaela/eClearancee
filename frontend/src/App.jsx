@@ -15,6 +15,7 @@ import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
 import TeacherSubjectRequirements from './pages/teacher/TeacherSubjectRequirements'; // Import Teacher Subject Requirements
 import TeacherDashboard from './pages/teacher/Teacherdashboard';
 import TeacherSubjectRequests from './pages/teacher/TeacherSubjectRequests'; // Import Teacher Subject Requests
+import TeacherAddSubject from './pages/teacher/TeacherAddSubject';
 
 import ClearanceStatusPage from './pages/student/ClearanceStatusPage';
 import CreateStudentClearance from './pages/student/createClearancePage';
@@ -66,6 +67,7 @@ function App() {
           <Route path="/admin/analytics" element={<AnalyticsPage />} />
 
           {/* Teacher routes */}
+          <Route path="/teacher/add-subject" element={<TeacherAddSubject />} />
           <Route path="/teacher/analytics" element={<TeacherAnalyticsPage />} />
           <Route path="/teacher/profile" element={<TeacherProfilePage />} />
           <Route path="/teacher/subject-requirements" element={<TeacherSubjectRequirements />} />
