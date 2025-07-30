@@ -366,7 +366,6 @@ const CreateClearancePage = () => {
               <div><label style={styles.label}>Course:</label><input value={student.course} readOnly style={styles.input} /></div>
               <div><label style={styles.label}>Year Level:</label><input value={student.year_level} readOnly style={styles.input} /></div>
               <div><label style={styles.label}>Block:</label><input value={student.block} readOnly style={styles.input} /></div>
-              <div><label style={styles.label}>Department:</label><input value={student.department_name || student.department || ''} readOnly style={styles.input} /></div>
             </form>
           </div>
 
