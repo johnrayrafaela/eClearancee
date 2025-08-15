@@ -181,34 +181,71 @@ const TeacherSubjectRequests = () => {
             <td style={styles.td}>{req.subject?.name}</td>
             <td style={styles.td}>{req.subject?.semester || req.semester}</td>
             <td style={styles.td}>{req.status}</td>
-            <td style={styles.td}>{req.requirements || '-'}</td>
-            <td style={styles.td}>
-              {/* Always show file links if any file_paths exist and are not empty */}
-              {(() => {
-                let files = [];
-                if (Array.isArray(req.file_paths)) {
-                  files = req.file_paths.filter(f => f && f.trim() !== '');
-                } else if (typeof req.file_paths === 'string' && req.file_paths.trim() !== '') {
-                  files = req.file_paths.split(',').map(f => f.trim()).filter(f => f !== '');
+            <td style={styles.td}>{(() => {
+              if (req.requirements) {
+                console.log('Raw requirements:', req.requirements);
+                try {
+                  const parsedReq = JSON.parse(req.requirements);
+                  console.log('Parsed requirements:', parsedReq);
+                  if (parsedReq.type === 'Checklist') {
+                    return (
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 13 }}>
+                        {parsedReq.checklist?.map((item, idx) => (
+                          <li key={idx}>{item}</li>
+                        ))}
+                      </ul>
+                    );
+                  } else if (parsedReq.type === 'Link') {
+                    return <a href={parsedReq.value} target="_blank" rel="noopener noreferrer">View Link</a>;
+                  } else {
+                    return parsedReq.value;
+                  }
+                } catch (error) {
+                  console.error('Error parsing requirements:', error);
+                  return req.requirements;
                 }
-                if (files.length > 0) {
-                  return files.map((file, idx) => (
-                    <div key={idx}>
-                      <a
-                        href={`http://localhost:5000/api/student-subject-status/file/${req.id}?file=${encodeURIComponent(file)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#0277bd', textDecoration: 'underline' }}
-                      >
-                        View File {idx + 1}
-                      </a>
-                    </div>
-                  ));
-                } else {
+              }
+              return '-';
+            })()}</td>
+            <td style={styles.td}>{(() => {
+              let files = [];
+              if (Array.isArray(req.file_paths)) {
+                files = req.file_paths.filter(f => f && f.trim() !== '');
+              } else if (typeof req.file_paths === 'string' && req.file_paths.trim() !== '') {
+                files = req.file_paths.split(',').map(f => f.trim()).filter(f => f !== '');
+              }
+              if (files.length > 0) {
+                return files.map((file, idx) => (
+                  <div key={idx}>
+                    <a
+                      href={`http://localhost:5000/api/student-subject-status/file/${req.id}?file=${encodeURIComponent(file)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#0277bd', textDecoration: 'underline' }}
+                    >
+                      View File {idx + 1}
+                    </a>
+                  </div>
+                ));
+              } else if (req.requirements) {
+                try {
+                  const parsedReq = JSON.parse(req.requirements);
+                  if (parsedReq.type === 'Checklist') {
+                    return (
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 13 }}>
+                        {parsedReq.checklist?.map((item, idx) => (
+                          <li key={idx}>{item}</li>
+                        ))}
+                      </ul>
+                    );
+                  }
+                } catch {
                   return <span>-</span>;
                 }
-              })()}
-            </td>
+              } else {
+                return <span>-</span>;
+              }
+            })()}</td>
             <td style={styles.td}>
               {req.status === 'Requested' ? (
                 <>

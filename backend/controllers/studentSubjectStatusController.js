@@ -34,30 +34,45 @@ const User = require('../models/User');
 
 // Handle subject approval request with multiple file uploads
 exports.requestSubjectApproval = async (req, res) => {
-  const { student_id, subject_id, requirements } = req.body;
+  const { student_id, subject_id, requirements, checklist, link, semester } = req.body;
   let file_paths = [];
   if (req.files && req.files.length > 0) {
     file_paths = req.files.map(f => f.filename);
   }
   try {
-    let record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id } });
+    let record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id, semester } });
     if (!record) {
       record = await StudentSubjectStatus.create({
         student_id,
         subject_id,
+        semester,
         status: 'Requested',
         requirements: requirements || '',
-        file_paths: file_paths.length ? file_paths.join(',') : null
+        file_paths: file_paths.length ? file_paths.join(',') : null,
+        checklist: checklist ? JSON.stringify(checklist) : null,
+        link: link || null
       });
     } else {
       record.status = 'Requested';
       record.requirements = requirements || '';
       if (file_paths.length) record.file_paths = file_paths.join(',');
+      if (checklist) record.checklist = JSON.stringify(checklist);
+      if (link) record.link = link;
       await record.save();
     }
     // Always return file_paths as array for frontend compatibility
     const responseRecord = record.toJSON();
     responseRecord.file_paths = responseRecord.file_paths ? responseRecord.file_paths.split(',') : [];
+    // Parse checklist for frontend
+    if (responseRecord.checklist) {
+      try {
+        responseRecord.checklist = JSON.parse(responseRecord.checklist);
+      } catch {
+        responseRecord.checklist = [];
+      }
+    } else {
+      responseRecord.checklist = [];
+    }
     res.json({ message: 'Approval requested', record: responseRecord });
   } catch (err) {
     res.status(500).json({ message: 'Error requesting approval', error: err.message });
@@ -132,13 +147,36 @@ exports.respondToRequest = async (req, res) => {
 };
 
 exports.getRequestedStatuses = async (req, res) => {
-  const { student_id } = req.query;
+  const { student_id, semester } = req.query;
   try {
+    const where = { student_id };
+    if (semester) where.semester = semester;
     const statuses = await require('../models/StudentSubjectStatus').findAll({
-      where: { student_id },
-      attributes: ['subject_id', 'status']
+      where,
+      attributes: ['subject_id', 'status', 'file_path', 'file_paths', 'link', 'checklist', 'semester']
     });
-    res.json({ statuses });
+    // Parse checklist and file_paths for frontend compatibility
+    const parsedStatuses = statuses.map(s => {
+      const obj = s.toJSON();
+      // Parse checklist
+      if (obj.checklist) {
+        try {
+          obj.checklist = JSON.parse(obj.checklist);
+        } catch {
+          obj.checklist = [];
+        }
+      } else {
+        obj.checklist = [];
+      }
+      // Parse file_paths
+      if (obj.file_paths) {
+        obj.file_paths = obj.file_paths.split(',').filter(f => f);
+      } else {
+        obj.file_paths = [];
+      }
+      return obj;
+    });
+    res.json({ statuses: parsedStatuses });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching subject statuses', error: err.message });
   }

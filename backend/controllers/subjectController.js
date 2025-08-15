@@ -1,3 +1,36 @@
+// PATCH /api/subjects/:id/teacher-update
+exports.teacherUpdateSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { teacher_id, name, course, year_level, semester, requirements } = req.body;
+    const subject = await Subject.findByPk(id);
+    if (!subject) return res.status(404).json({ message: 'Subject not found' });
+    if (subject.teacher_id !== teacher_id) {
+      return res.status(403).json({ message: 'You can only update your own subjects.' });
+    }
+    await subject.update({ name, course, year_level, semester, requirements });
+    res.json(subject);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating subject', error: err.message });
+  }
+};
+
+// DELETE /api/subjects/:id/teacher-delete
+exports.teacherDeleteSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { teacher_id } = req.body;
+    const subject = await Subject.findByPk(id);
+    if (!subject) return res.status(404).json({ message: 'Subject not found' });
+    if (subject.teacher_id !== teacher_id) {
+      return res.status(403).json({ message: 'You can only delete your own subjects.' });
+    }
+    await subject.destroy();
+    res.json({ message: 'Subject deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting subject', error: err.message });
+  }
+};
 
 const Subject = require('../models/Subject');
 const Teacher = require('../models/Teacher'); // Add this at the top
@@ -13,7 +46,7 @@ exports.teacherAddSubject = async (req, res) => {
       name,
       semester,
       teacher_id,
-      requirements: requirements || '',
+      requirements: requirements ?? '',
       course,
       year_level
     });

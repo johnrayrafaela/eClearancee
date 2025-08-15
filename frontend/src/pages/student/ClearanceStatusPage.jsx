@@ -1,4 +1,3 @@
-
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
@@ -95,6 +94,10 @@ const semesters = ['1st', '2nd'];
 
 
 const ClearanceStatusPage = () => {
+  // Track checklist submissions per subject
+  const [submittedChecklists, setSubmittedChecklists] = useState({});
+  // Track submitted link per subject (for Link requirements)
+  const [submittedLinks, setSubmittedLinks] = useState({});
   const { user, userType } = useContext(AuthContext);
   const [clearance, setClearance] = useState(null);
   const [subjects, setSubjects] = useState([]);
@@ -292,6 +295,20 @@ const ClearanceStatusPage = () => {
                 {/* Only show subjects that are in the student's clearance (already filtered by backend) */}
                 {subjects.map(subject => {
                   const status = getStatus(subject.subject_id);
+                  // Parse requirements as JSON if possible
+                  let reqObj = { type: 'Text', value: '' };
+                  if (subject.requirements) {
+                    try {
+                      reqObj = JSON.parse(subject.requirements);
+                    } catch {
+                      reqObj = { type: 'Text', value: subject.requirements };
+                    }
+                  }
+                  // Find student's submitted link if any
+                  const statusObj = subjectStatuses.find(s => s.subject_id === subject.subject_id);
+                  let studentLink = statusObj && statusObj.link ? statusObj.link : '';
+                  // Find student's submitted checklist if any
+                  let studentChecklist = statusObj && statusObj.checklist ? statusObj.checklist : [];
                   return (
                     <tr key={subject.subject_id}>
                       <td style={styles.td}>{subject.name}</td>
@@ -300,7 +317,12 @@ const ClearanceStatusPage = () => {
                           ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
                           : 'N/A'}
                       </td>
-                      <td style={styles.td}>{subject.requirements}</td>
+                      <td style={styles.td}>{(() => {
+                        if (reqObj.type === 'Checklist') {
+                          return reqObj.checklist?.filter(Boolean).join(', ');
+                        }
+                        return reqObj.value;
+                      })()}</td>
                       <td style={styles.td}>
                         {status === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Requested</span>}
                         {status === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
@@ -308,7 +330,42 @@ const ClearanceStatusPage = () => {
                         {status === 'Pending' && <span style={{ color: '#f59e42', fontWeight: 600 }}>Pending</span>}
                       </td>
                       <td style={styles.td}>
-                        {(status === 'Pending' || status === 'Rejected') && subject.requirements && subject.requirements.trim() !== '' ? (
+                        {/* If requirement is Checklist, show checklist UI */}
+                        {(status === 'Pending' || status === 'Rejected') && reqObj.type === 'Checklist' ? (
+                          <div>
+                            {(reqObj.checklist || []).map((item, idx) => (
+                              <label key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={submittedChecklists[subject.subject_id]?.[idx] || false}
+                                  onChange={e => {
+                                    const newChecklist = [...(submittedChecklists[subject.subject_id] || [])];
+                                    newChecklist[idx] = e.target.checked;
+                                    setSubmittedChecklists(prev => ({ ...prev, [subject.subject_id]: newChecklist }));
+                                  }}
+                                />
+                                <span style={{ marginLeft: 8 }}>{item}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (status === 'Pending' || status === 'Rejected') && reqObj.type === 'Link' ? (
+                          <>
+                            <input
+                              type="url"
+                              style={styles.input}
+                              value={submittedLinks[subject.subject_id] || ''}
+                              placeholder="Paste your link here..."
+                              onChange={e => {
+                                setSubmittedLinks(prev => ({ ...prev, [subject.subject_id]: e.target.value }));
+                              }}
+                            />
+                            {studentLink && (
+                              <div style={{ fontSize: 13, marginTop: 6, color: '#666' }}>
+                                <b>Submitted:</b> <a href={studentLink} target="_blank" rel="noopener noreferrer">{studentLink}</a>
+                              </div>
+                            )}
+                          </>
+                        ) : (status === 'Pending' || status === 'Rejected') && (reqObj.type === 'File' || reqObj.type === 'Text') ? (
                           <>
                             <input
                               type="file"
@@ -327,12 +384,32 @@ const ClearanceStatusPage = () => {
                                 ))}
                               </ul>
                             )}
+                            <div style={{ fontSize: 13, marginTop: 6, color: '#666' }}>
+                              {reqObj.type === 'Text' && <div><b>Instructions:</b> {reqObj.value}</div>}
+                            </div>
                           </>
                         ) : (status !== 'Pending' && status !== 'Rejected') ? <span>-</span> : null}
+                        {/* Show submitted file, link, or checklist for Requested/Approved */}
                         {(status === 'Requested' || status === 'Approved') && (() => {
-                          // Find file_path from subjectStatuses for this subject
-                          const statusObj = subjectStatuses.find(s => s.subject_id === subject.subject_id);
-                          if (statusObj && statusObj.file_path) {
+                          if (reqObj.type === 'Checklist' && studentChecklist.length) {
+                            return (
+                              <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 13 }}>
+                                {(reqObj.checklist || []).map((item, idx) => (
+                                  <li key={idx}>
+                                    <span style={{ color: studentChecklist[idx] ? '#43a047' : '#e11d48', fontWeight: 600 }}>
+                                      {studentChecklist[idx] ? '✔️' : '❌'}
+                                    </span> {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            );
+                          }
+                          if (reqObj.type === 'Link' && studentLink) {
+                            return (
+                              <a href={studentLink} target="_blank" rel="noopener noreferrer">View Submitted Link</a>
+                            );
+                          }
+                          if (reqObj.type === 'File' && statusObj && statusObj.file_path) {
                             return (
                               <a
                                 href={`http://localhost:5000/api/student-subject-status/file/${subject.subject_id}?file=${encodeURIComponent(statusObj.file_path)}`}
@@ -352,9 +429,67 @@ const ClearanceStatusPage = () => {
                             style={styles.button}
                             disabled={
                               requesting[subject.subject_id] ||
-                              (subject.requirements && subject.requirements.trim() !== '' && !files[subject.subject_id])
+                              (reqObj.type === 'File' && (!files[subject.subject_id] || files[subject.subject_id].length === 0)) ||
+                              (reqObj.type === 'Link' && (!submittedLinks[subject.subject_id] || !/^https?:\/\//.test(submittedLinks[subject.subject_id]))) ||
+                              (reqObj.type === 'Checklist' && !(submittedChecklists[subject.subject_id] && submittedChecklists[subject.subject_id].some(Boolean)))
                             }
-                            onClick={() => requestApproval(subject.subject_id)}
+                            onClick={async () => {
+                              if (reqObj.type === 'Link') {
+                                setRequesting(prev => ({ ...prev, [subject.subject_id]: true }));
+                                try {
+                                  await axios.post('http://localhost:5000/api/student-subject-status/request', {
+                                    student_id: user.student_id,
+                                    subject_id: subject.subject_id,
+                                    semester: selectedSemester,
+                                    link: submittedLinks[subject.subject_id]
+                                  });
+                                  setSubjectStatuses(prev =>
+                                    prev.map(s =>
+                                      s.subject_id === subject.subject_id
+                                        ? { ...s, status: 'Requested', link: submittedLinks[subject.subject_id] }
+                                        : s
+                                    ).concat(
+                                      prev.some(s => s.subject_id === subject.subject_id)
+                                        ? []
+                                        : [{ subject_id: subject.subject_id, status: 'Requested', link: submittedLinks[subject.subject_id] }]
+                                    )
+                                  );
+                                  setSubmittedLinks(prev => ({ ...prev, [subject.subject_id]: '' }));
+                                } catch (err) {
+                                  console.error('Error requesting approval:', err);
+                                  setError('Failed to request approval.');
+                                }
+                                setRequesting(prev => ({ ...prev, [subject.subject_id]: false }));
+                              } else if (reqObj.type === 'Checklist') {
+                                setRequesting(prev => ({ ...prev, [subject.subject_id]: true }));
+                                try {
+                                  await axios.post('http://localhost:5000/api/student-subject-status/request', {
+                                    student_id: user.student_id,
+                                    subject_id: subject.subject_id,
+                                    semester: selectedSemester,
+                                    checklist: submittedChecklists[subject.subject_id]
+                                  });
+                                  setSubjectStatuses(prev =>
+                                    prev.map(s =>
+                                      s.subject_id === subject.subject_id
+                                        ? { ...s, status: 'Requested', checklist: submittedChecklists[subject.subject_id] }
+                                        : s
+                                    ).concat(
+                                      prev.some(s => s.subject_id === subject.subject_id)
+                                        ? []
+                                        : [{ subject_id: subject.subject_id, status: 'Requested', checklist: submittedChecklists[subject.subject_id] }]
+                                    )
+                                  );
+                                  setSubmittedChecklists(prev => ({ ...prev, [subject.subject_id]: [] }));
+                                } catch (err) {
+                                  console.error('Error requesting approval:', err);
+                                  setError('Failed to request approval.');
+                                }
+                                setRequesting(prev => ({ ...prev, [subject.subject_id]: false }));
+                              } else {
+                                requestApproval(subject.subject_id);
+                              }
+                            }}
                           >
                             {requesting[subject.subject_id] ? 'Requesting...' : 'Request Approval'}
                           </button>

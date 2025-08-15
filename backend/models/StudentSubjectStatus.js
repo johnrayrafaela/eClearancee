@@ -9,6 +9,9 @@ const StudentSubjectStatus = sequelize.define('StudentSubjectStatus', {
   requirements: { type: DataTypes.TEXT },
   file_path: { type: DataTypes.STRING },
   file_paths: { type: DataTypes.TEXT }, // Comma-separated list of files for multiple upload
+  checklist: { type: DataTypes.TEXT, allowNull: true }, // JSON stringified array of booleans
+  semester: { type: DataTypes.STRING, allowNull: true },
+  link: { type: DataTypes.TEXT, allowNull: true },
   // Optionally: request_date, response_date, remarks, etc.
 });
 

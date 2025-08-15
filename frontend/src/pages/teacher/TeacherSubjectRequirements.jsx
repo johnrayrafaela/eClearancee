@@ -81,7 +81,10 @@ const styles = {
 const TeacherSubjectRequirements = () => {
   const { user, userType } = useContext(AuthContext);
   const [subjects, setSubjects] = useState([]);
+  // requirements: { [subject_id]: { type, value, checklist: [] } }
   const [requirements, setRequirements] = useState({});
+  // For file upload per subject
+  const [files, setFiles] = useState({});
   const [saving, setSaving] = useState({});
   const [success, setSuccess] = useState({});
   const [loading, setLoading] = useState(true);
@@ -101,7 +104,18 @@ const TeacherSubjectRequirements = () => {
         setSubjects(res.data);
         // Initialize requirements state
         const reqs = {};
-        res.data.forEach(sub => { reqs[sub.subject_id] = sub.requirements || ''; });
+        res.data.forEach(sub => {
+          // Try to parse requirements as JSON, fallback to text
+          let reqObj = { type: 'Text', value: '' };
+          if (sub.requirements) {
+            try {
+              reqObj = JSON.parse(sub.requirements);
+            } catch {
+              reqObj = { type: 'Text', value: sub.requirements };
+            }
+          }
+          reqs[sub.subject_id] = reqObj;
+        });
         setRequirements(reqs);
       })
       .catch(() => setSubjects([]))
@@ -112,18 +126,30 @@ const TeacherSubjectRequirements = () => {
     setSaving(prev => ({ ...prev, [subject_id]: true }));
     setSuccess(prev => ({ ...prev, [subject_id]: false }));
     try {
+      // If file upload, upload file first and get URL
+      let reqObj = requirements[subject_id];
+      if (reqObj.type === 'File' && files[subject_id] && files[subject_id][0]) {
+        const formData = new FormData();
+        formData.append('file', files[subject_id][0]);
+        // You may need to adjust endpoint for file upload
+        const res = await axios.post(`http://localhost:5000/api/subject/${subject_id}/upload-requirement`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        reqObj = { ...reqObj, value: res.data.fileUrl || res.data.filePath };
+      }
       await axios.patch(`http://localhost:5000/api/subject/${subject_id}/requirements`, {
-        requirements: requirements[subject_id]
+        requirements: JSON.stringify(reqObj)
       });
       setSuccess(prev => ({ ...prev, [subject_id]: true }));
       // Update the requirements in the subjects array so UI reflects the change
       setSubjects(prev =>
         prev.map(sub =>
           sub.subject_id === subject_id
-            ? { ...sub, requirements: requirements[subject_id] }
+            ? { ...sub, requirements: JSON.stringify(reqObj) }
             : sub
         )
       );
+      setFiles(prev => ({ ...prev, [subject_id]: null }));
     } catch (err) {
       console.error('Error saving requirements:', err);
       alert('Failed to save requirements.');
@@ -216,49 +242,188 @@ const TeacherSubjectRequirements = () => {
               <th style={styles.th}>Course</th>
               <th style={styles.th}>Year</th>
               <th style={styles.th}>Semester</th>
-              <th style={styles.th}>Requirements</th>
+              <th style={styles.th}>Requirement Type</th>
+              <th style={styles.th}>Requirement Value</th>
               <th style={styles.th}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {filteredSubjects.map(sub => (
-              <tr key={sub.subject_id}>
-                <td style={styles.td}>{sub.name}</td>
-                <td style={styles.td}>{sub.course}</td>
-                <td style={styles.td}>{sub.year_level}</td>
-                <td style={styles.td}>{sub.semester}</td>
-                <td style={styles.td}>
-                  {sub.requirements && sub.requirements.trim() !== '' ? (
-                    <div>
-                      <div style={{ marginBottom: 8, whiteSpace: 'pre-line' }}><b>Current:</b> {sub.requirements}</div>
+            {filteredSubjects.map(sub => {
+              const reqObj = requirements[sub.subject_id] || { type: 'Text', value: '' };
+              return (
+                <tr key={sub.subject_id}>
+                  <td style={styles.td}>{sub.name}</td>
+                  <td style={styles.td}>{sub.course}</td>
+                  <td style={styles.td}>{sub.year_level}</td>
+                  <td style={styles.td}>{sub.semester}</td>
+                  <td style={styles.td}>
+                    <select
+                      style={{ ...styles.input, maxWidth: 140 }}
+                      value={reqObj.type}
+                      onChange={e => {
+                        const type = e.target.value;
+                        setRequirements(prev => ({
+                          ...prev,
+                          [sub.subject_id]: {
+                            type,
+                            value: '',
+                            checklist: type === 'Checklist' ? [''] : undefined
+                          }
+                        }));
+                        setFiles(prev => ({ ...prev, [sub.subject_id]: null }));
+                      }}
+                    >
+                      <option value="Text">Text</option>
+                      <option value="Link">Link</option>
+                      <option value="File">File Upload</option>
+                      <option value="Checklist">Checklist</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </td>
+                  <td style={styles.td}>
+                    {/* Show input based on type */}
+                    {reqObj.type === 'Text' && (
                       <textarea
                         style={styles.input}
-                        value={requirements[sub.subject_id] || ''}
-                        placeholder="Update requirements..."
-                        onChange={e => setRequirements(prev => ({ ...prev, [sub.subject_id]: e.target.value }))}
+                        value={reqObj.value}
+                        placeholder="Enter instructions..."
+                        onChange={e => setRequirements(prev => ({
+                          ...prev,
+                          [sub.subject_id]: { ...reqObj, value: e.target.value }
+                        }))}
                       />
-                    </div>
-                  ) : (
-                    <textarea
-                      style={styles.input}
-                      value={requirements[sub.subject_id] || ''}
-                      placeholder="Add requirements..."
-                      onChange={e => setRequirements(prev => ({ ...prev, [sub.subject_id]: e.target.value }))}
-                    />
-                  )}
-                </td>
-                <td style={styles.td}>
-                  <button
-                    style={styles.button}
-                    disabled={saving[sub.subject_id] || !requirements[sub.subject_id] || requirements[sub.subject_id].trim() === sub.requirements}
-                    onClick={() => handleSave(sub.subject_id)}
-                  >
-                    {sub.requirements && sub.requirements.trim() !== '' ? (saving[sub.subject_id] ? 'Updating...' : 'Update') : (saving[sub.subject_id] ? 'Adding...' : 'Add')}
-                  </button>
-                  {success[sub.subject_id] && <span style={styles.success}>Saved!</span>}
-                </td>
-              </tr>
-            ))}
+                    )}
+                    {reqObj.type === 'Link' && (
+                      <input
+                        type="url"
+                        style={styles.input}
+                        value={reqObj.value}
+                        placeholder="Paste link (e.g. Google Form)"
+                        onChange={e => setRequirements(prev => ({
+                          ...prev,
+                          [sub.subject_id]: { ...reqObj, value: e.target.value }
+                        }))}
+                      />
+                    )}
+                    {reqObj.type === 'File' && (
+                      <div>
+                        <input
+                          type="file"
+                          style={styles.input}
+                          onChange={e => {
+                            const fileArr = Array.from(e.target.files);
+                            setFiles(prev => ({ ...prev, [sub.subject_id]: fileArr }));
+                            // Save file name as value for display
+                            setRequirements(prev => ({
+                              ...prev,
+                              [sub.subject_id]: { ...reqObj, value: fileArr[0]?.name || '' }
+                            }));
+                          }}
+                        />
+                        {files[sub.subject_id] && files[sub.subject_id][0] && (
+                          <div style={{ fontSize: 13, marginTop: 6 }}>
+                            Selected: {files[sub.subject_id][0].name}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {reqObj.type === 'Checklist' && (
+                      <div>
+                        {(reqObj.checklist || ['']).map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                            <input
+                              type="text"
+                              style={{ ...styles.input, maxWidth: 180 }}
+                              value={item}
+                              placeholder={`Checklist item ${idx + 1}`}
+                              onChange={e => {
+                                const newList = [...(reqObj.checklist || [])];
+                                newList[idx] = e.target.value;
+                                setRequirements(prev => ({
+                                  ...prev,
+                                  [sub.subject_id]: { ...reqObj, checklist: newList }
+                                }));
+                              }}
+                            />
+                            <button
+                              style={{ ...styles.button, background: '#e11d48', marginLeft: 4 }}
+                              onClick={() => {
+                                const newList = (reqObj.checklist || []).filter((_, i) => i !== idx);
+                                setRequirements(prev => ({
+                                  ...prev,
+                                  [sub.subject_id]: { ...reqObj, checklist: newList.length ? newList : [''] }
+                                }));
+                              }}
+                              disabled={(reqObj.checklist || []).length === 1}
+                            >Remove</button>
+                          </div>
+                        ))}
+                        <button
+                          style={{ ...styles.button, marginTop: 4, background: '#43a047' }}
+                          onClick={() => {
+                            setRequirements(prev => ({
+                              ...prev,
+                              [sub.subject_id]: {
+                                ...reqObj,
+                                checklist: [...(reqObj.checklist || []), '']
+                              }
+                            }));
+                          }}
+                        >Add Item</button>
+                      </div>
+                    )}
+                    {reqObj.type === 'Other' && (
+                      <textarea
+                        style={styles.input}
+                        value={reqObj.value}
+                        placeholder="Describe other requirements..."
+                        onChange={e => setRequirements(prev => ({
+                          ...prev,
+                          [sub.subject_id]: { ...reqObj, value: e.target.value }
+                        }))}
+                      />
+                    )}
+                    {/* Show current value if exists */}
+                    {sub.requirements && (
+                      <div style={{ fontSize: 13, marginTop: 6, color: '#666' }}>
+                        <b>Current:</b> {(() => {
+                          try {
+                            const parsed = JSON.parse(sub.requirements);
+                            if (parsed.type === 'Checklist') {
+                              return parsed.checklist?.filter(Boolean).join(', ');
+                            }
+                            if (parsed.type === 'File') {
+                              return parsed.value ? `File: ${parsed.value}` : '';
+                            }
+                            if (parsed.type === 'Link') {
+                              return parsed.value ? `Link: ${parsed.value}` : '';
+                            }
+                            return parsed.value;
+                          } catch {
+                            return sub.requirements;
+                          }
+                        })()}
+                      </div>
+                    )}
+                  </td>
+                  <td style={styles.td}>
+                    <button
+                      style={styles.button}
+                      disabled={saving[sub.subject_id] ||
+                        (reqObj.type === 'File' ? !files[sub.subject_id] || !files[sub.subject_id][0] :
+                          reqObj.type === 'Checklist' ? !(reqObj.checklist && reqObj.checklist.some(i => i.trim())) :
+                          reqObj.type === 'Link' ? !reqObj.value || !/^https?:\/\//.test(reqObj.value) :
+                          !reqObj.value || reqObj.value.trim() === '')
+                      }
+                      onClick={() => handleSave(sub.subject_id)}
+                    >
+                      {saving[sub.subject_id] ? 'Saving...' : 'Save'}
+                    </button>
+                    {success[sub.subject_id] && <span style={styles.success}>Saved!</span>}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}

@@ -46,8 +46,8 @@ const StudentDashboard = () => {
           <div style={{ fontWeight: 700, fontSize: 18 }}>Total Subjects</div>
           <div style={{ fontWeight: 900, fontSize: 28 }}>{totalSubjects}</div>
         </div>
-        <div style={{ ...styles.card, background: '#0277bd', color: '#fff', alignItems: 'center', minWidth: 220 }}>
-          <div style={{ fontWeight: 700, fontSize: 18 }}>Requested Subjects</div>
+        <div style={{ ...styles.card, background: '#b9bb66ff', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Pending Subjects</div>
           <div style={{ fontWeight: 900, fontSize: 28 }}>{totalPending}</div>
         </div>
         <div style={{ ...styles.card, background: '#66bb6a', color: '#fff', alignItems: 'center', minWidth: 220 }}>
