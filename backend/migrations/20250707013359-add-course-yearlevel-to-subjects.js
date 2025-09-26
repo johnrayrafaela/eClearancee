@@ -2,16 +2,21 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('Subjects', 'course', {
-      type: Sequelize.STRING,
-      allowNull: false,
-      defaultValue: 'BSIT', // or any default for existing rows
-    });
-    await queryInterface.addColumn('Subjects', 'year_level', {
-      type: Sequelize.STRING,
-      allowNull: false,
-      defaultValue: '1st Year', // or any default for existing rows
-    });
+    const table = await queryInterface.describeTable('Subjects');
+    if (!table.course) {
+      await queryInterface.addColumn('Subjects', 'course', {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 'BSIT',
+      });
+    }
+    if (!table.year_level) {
+      await queryInterface.addColumn('Subjects', 'year_level', {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: '1st Year',
+      });
+    }
   },
 
   down: async (queryInterface, Sequelize) => {

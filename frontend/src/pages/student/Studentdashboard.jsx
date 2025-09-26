@@ -9,28 +9,60 @@ import ClearanceStatusPage from './ClearanceStatusPage';
 const StudentDashboard = () => {
   const { user, userType } = useContext(AuthContext);
   const [subjectAnalytics, setSubjectAnalytics] = useState({});
+  const [liveStatuses, setLiveStatuses] = useState([]); // latest raw statuses
+  const [subjectsCache, setSubjectsCache] = useState([]); // subjects list for pending derivation if needed
+  const [refreshToken, setRefreshToken] = useState(0); // increments when a subject status changes
 
   useEffect(() => {
     if (!user || userType !== 'user') return;
-    // setLoading(true); (removed unused loading)
-    // Subject analytics
     axios.get(`http://localhost:5000/api/student-subject-status/analytics/student?student_id=${user.student_id}`)
       .then(res => setSubjectAnalytics(res.data || {}))
-      .catch(() => setSubjectAnalytics({}))
-      .finally(() => {}); // removed unused loading
-    // Clearance analytics
-    
+      .catch(() => setSubjectAnalytics({}));
+  }, [user, userType, refreshToken]);
+
+  // Real-time listener: update analytics when global event fires
+  useEffect(() => {
+    if (!user || userType !== 'user') return;
+    const handler = () => {
+      // Optimistically increment refresh token triggering refetch
+      setRefreshToken(t => t + 1);
+    };
+    window.addEventListener('student-subject-status-changed', handler);
+    return () => window.removeEventListener('student-subject-status-changed', handler);
   }, [user, userType]);
 
   // Calculate subject totals
-  let totalSubjects = 0, totalApproved = 0, totalRejected = 0;
+  let totalSubjects = 0, totalApproved = 0, totalRejected = 0, totalRequested = 0, totalPending = 0;
   Object.values(subjectAnalytics).forEach(sem => {
     totalSubjects += sem.total || 0;
     totalApproved += sem.Approved || 0;
     totalRejected += sem.Rejected || 0;
+    totalRequested += sem.Requested || 0;
+    totalPending += sem.Pending || 0;
   });
-  // Pending = totalSubjects - (Approved + Rejected)
-  let totalPending = totalSubjects - (totalApproved + totalRejected);
+
+  // If liveStatuses is newer than analytics (optimistic), overlay counts
+  if (liveStatuses.length) {
+    // Build a map per subject latest status
+    const map = new Map();
+    liveStatuses.forEach(s => map.set(s.subject_id, s.status));
+    // Recompute from subjectsCache length (fallback to current totalSubjects if cache empty)
+    const uniqueSubjects = subjectsCache.length ? subjectsCache.length : totalSubjects;
+    let a=0,r=0,req=0,p=0;
+    map.forEach(st => {
+      if (st === 'Approved') a++;
+      else if (st === 'Rejected') r++;
+      else if (st === 'Requested') req++;
+      else p++;
+    });
+    // Pending subjects without status entries yet
+    const accounted = a + r + req + p;
+    if (accounted < uniqueSubjects) {
+      p += (uniqueSubjects - accounted);
+    }
+    totalSubjects = uniqueSubjects;
+    totalApproved = a; totalRejected = r; totalRequested = req; totalPending = p;
+  }
 
   return (
     <div style={styles.container}>
@@ -50,6 +82,10 @@ const StudentDashboard = () => {
           <div style={{ fontWeight: 700, fontSize: 18 }}>Pending Subjects</div>
           <div style={{ fontWeight: 900, fontSize: 28 }}>{totalPending}</div>
         </div>
+        <div style={{ ...styles.card, background: '#0277bd', color: '#fff', alignItems: 'center', minWidth: 220 }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Requested</div>
+          <div style={{ fontWeight: 900, fontSize: 28 }}>{totalRequested}</div>
+        </div>
         <div style={{ ...styles.card, background: '#66bb6a', color: '#fff', alignItems: 'center', minWidth: 220 }}>
           <div style={{ fontWeight: 700, fontSize: 18 }}>Approved Subjects</div>
           <div style={{ fontWeight: 900, fontSize: 28 }}>{totalApproved}</div>
@@ -61,8 +97,14 @@ const StudentDashboard = () => {
       </div>
 
       {/* Clearance Status Section */}
-      <div >
-      <ClearanceStatusPage/>
+      <div>
+        <ClearanceStatusPage
+          onStatusChange={() => setRefreshToken(t => t + 1)}
+          onStatusesUpdate={({ subjects, statuses }) => {
+            setSubjectsCache(subjects || []);
+            setLiveStatuses(statuses || []);
+          }}
+        />
       </div>
 
     </div>

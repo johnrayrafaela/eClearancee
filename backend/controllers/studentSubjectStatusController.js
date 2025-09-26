@@ -35,17 +35,37 @@ const User = require('../models/User');
 // Handle subject approval request with multiple file uploads
 exports.requestSubjectApproval = async (req, res) => {
   const { student_id, subject_id, requirements, checklist, link, semester } = req.body;
+  // Allow missing semester: derive from Subject if not provided
+  let effectiveSemester = semester;
+  if (!effectiveSemester) {
+    try {
+      const subj = await Subject.findByPk(subject_id);
+      if (subj && subj.semester) effectiveSemester = subj.semester;
+    } catch (e) {
+      // swallow, will fallback
+    }
+  }
+  if (!effectiveSemester) effectiveSemester = '1st';
   let file_paths = [];
   if (req.files && req.files.length > 0) {
     file_paths = req.files.map(f => f.filename);
   }
   try {
-    let record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id, semester } });
+    // First try exact semester match
+    let record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id, semester: effectiveSemester } });
+    // If not found, try any row without semester (legacy row) for this subject
     if (!record) {
+      record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id, semester: null } });
+      if (record) {
+        record.semester = effectiveSemester; // normalize legacy row
+      }
+    }
+    if (!record) {
+      // Create fresh record
       record = await StudentSubjectStatus.create({
         student_id,
         subject_id,
-        semester,
+        semester: effectiveSemester,
         status: 'Requested',
         requirements: requirements || '',
         file_paths: file_paths.length ? file_paths.join(',') : null,
@@ -53,6 +73,7 @@ exports.requestSubjectApproval = async (req, res) => {
         link: link || null
       });
     } else {
+      // Update existing record to Requested
       record.status = 'Requested';
       record.requirements = requirements || '';
       if (file_paths.length) record.file_paths = file_paths.join(',');
@@ -210,16 +231,25 @@ exports.getStudentSubjectStatusAnalytics = async (req, res) => {
       where: { student_id },
       include: [
         { model: require('../models/Subject'), as: 'subject', attributes: ['semester'] }
-      ]
+      ],
+      order: [['id', 'ASC']] // ensure older Pending processed first, newer Requested last
     });
-    // Build analytics: { '1st': { Approved: n, Requested: n, Pending: n, Rejected: n, total: n }, '2nd': {...} }
-    const analytics = {};
+    // Dedupe by (subject_id, semester) so duplicate rows (historical bugs) don't inflate counts
+    const uniqueMap = new Map();
     statuses.forEach(s => {
-      const sem = s.subject?.semester || '1st';
-      if (!analytics[sem]) analytics[sem] = { Approved: 0, Requested: 0, Pending: 0, Rejected: 0, total: 0 };
-      if (analytics[sem][s.status] !== undefined) analytics[sem][s.status]++;
-      analytics[sem].total++;
+      const sem = s.subject?.semester || s.semester || '1st';
+      const key = `${s.subject_id}:${sem}`;
+      // Because we ordered ASC by id, later (newer) rows will overwrite older ones so final status is latest
+      uniqueMap.set(key, { status: s.status, semester: sem });
     });
+
+    // Build analytics from deduped set: { '1st': { Approved, Requested, Pending, Rejected, total } }
+    const analytics = {};
+    for (const { status, semester } of uniqueMap.values()) {
+      if (!analytics[semester]) analytics[semester] = { Approved: 0, Requested: 0, Pending: 0, Rejected: 0, total: 0 };
+      if (analytics[semester][status] !== undefined) analytics[semester][status]++;
+      analytics[semester].total++;
+    }
     res.json(analytics);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching student analytics', error: err.message });

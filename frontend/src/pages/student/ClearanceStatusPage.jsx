@@ -138,7 +138,7 @@ const styles = {
 const semesters = ['1st', '2nd'];
 
 
-const ClearanceStatusPage = () => {
+const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
   // Track checklist submissions per subject
   const [submittedChecklists, setSubmittedChecklists] = useState({});
   // Track submitted link per subject (for Link requirements)
@@ -147,12 +147,14 @@ const ClearanceStatusPage = () => {
   const [clearance, setClearance] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [subjectStatuses, setSubjectStatuses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Loading state removed (no longer showing loader)
+  // const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [requesting, setRequesting] = useState({}); // { [subject_id]: boolean }
   // Removed requirements state
   const [files, setFiles] = useState({}); // { [subject_id]: File[] | [] }
-  const [selectedSemester, setSelectedSemester] = useState('');
+  // Default semester auto-selected so user can request without manual selection
+  const [selectedSemester, setSelectedSemester] = useState('1st');
   const [departments, setDepartments] = useState([]);
   const [instructionModal, setInstructionModal] = useState(null); // { subjectId, name, type, instructions }
 
@@ -160,6 +162,33 @@ const ClearanceStatusPage = () => {
   const [deptFiles, setDeptFiles] = useState({}); // { [department_id]: File[] }
   const [deptRequesting, setDeptRequesting] = useState({}); // { [department_id]: boolean }
   const [departmentStatuses, setDepartmentStatuses] = useState([]); // [{ department_id, status, file_path }]
+
+  // ---- Helpers: Subject Status Upsert & Dedup (prevents duplicate counting) ----
+  const upsertSubjectStatus = React.useCallback((prev, newEntry) => {
+    const map = new Map();
+    // Build map from existing (last one wins) to keep latest data
+    prev.forEach(s => {
+      map.set(s.subject_id, s);
+    });
+    const existing = map.get(newEntry.subject_id) || {};
+    map.set(newEntry.subject_id, { ...existing, ...newEntry });
+    return Array.from(map.values());
+  }, []);
+
+  // One-time dedupe after initial load of subject statuses (in case historical duplicates exist)
+  useEffect(() => {
+    setSubjectStatuses(prev => {
+      const seen = new Set();
+      const cleaned = [];
+      for (const s of prev) {
+        if (!seen.has(s.subject_id)) {
+          seen.add(s.subject_id);
+          cleaned.push(s);
+        }
+      }
+      return cleaned;
+    });
+  }, [selectedSemester]);
 
   // Fetch department statuses
   useEffect(() => {
@@ -169,7 +198,7 @@ const ClearanceStatusPage = () => {
         setDepartmentStatuses(res.data.statuses || []);
       })
       .catch(() => setDepartmentStatuses([]));
-  }, [user, userType, selectedSemester]);
+  }, [user, userType, selectedSemester, onStatusesUpdate]);
 
   // Helper to get department status
   const getDeptStatus = (departmentId) => {
@@ -191,7 +220,9 @@ const ClearanceStatusPage = () => {
       const formData = new FormData();
       formData.append('student_id', user.student_id);
       formData.append('department_id', departmentId);
-      formData.append('semester', selectedSemester);
+      // Use selected semester or fallback default
+      const effectiveSemester = selectedSemester || '1st';
+      formData.append('semester', effectiveSemester);
       // Get requirements from department object
       const deptObj = departments.find(d => d.department_id === departmentId);
       const requirements = deptObj && deptObj.requirements ? deptObj.requirements : '';
@@ -206,6 +237,7 @@ const ClearanceStatusPage = () => {
       const res = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`);
       setDepartmentStatuses(res.data.statuses || []);
       setDeptFiles(prev => ({ ...prev, [departmentId]: null }));
+      onStatusChange && onStatusChange();
     } catch {
       setError('Failed to request department approval.');
     }
@@ -214,11 +246,12 @@ const ClearanceStatusPage = () => {
 
   // Fetch clearance, subjects, and subject statuses
   useEffect(() => {
-    if (!user || userType !== 'user' || !selectedSemester) return;
-    setLoading(true);
+    if (!user || userType !== 'user') return;
+    const effectiveSemester = selectedSemester || '1st';
+  // loading removed
     Promise.all([
-      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`),
-      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${selectedSemester}`),
+      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${effectiveSemester}`),
+      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`),
       axios.get('http://localhost:5000/api/departments')
     ])
       .then(([clearanceRes, statusRes, deptRes]) => {
@@ -227,6 +260,7 @@ const ClearanceStatusPage = () => {
         setSubjectStatuses(statusRes.data.statuses || []);
         setDepartments(deptRes.data || []);
         setError('');
+        onStatusesUpdate && onStatusesUpdate({ subjects: clearanceRes.data.subjects, statuses: statusRes.data.statuses || [] });
       })
       .catch(err => {
         if (err.response && err.response.status === 404) {
@@ -239,8 +273,8 @@ const ClearanceStatusPage = () => {
           setError('Failed to load clearance, subject statuses, or departments.');
         }
       })
-      .finally(() => setLoading(false));
-  }, [user, userType, selectedSemester]);
+  .finally(() => {/* loading removed */});
+  }, [user, userType, selectedSemester, onStatusesUpdate]);
 
   // Request approval for a subject
   const requestApproval = async (subjectId) => {
@@ -252,7 +286,11 @@ const ClearanceStatusPage = () => {
       const formData = new FormData();
       formData.append('student_id', user.student_id);
       formData.append('subject_id', subjectId);
-      formData.append('semester', selectedSemester);
+      // Allow requesting even if user did not manually select a semester.
+      // Fallback order: user selection -> subject's own semester -> '1st'
+      const subjectObj = subjects.find(s => s.subject_id === subjectId);
+      const effectiveSemester = selectedSemester || (subjectObj && subjectObj.semester) || '1st';
+      formData.append('semester', effectiveSemester);
       // No requirements field
       if (files[subjectId] && files[subjectId].length > 0) {
         files[subjectId].forEach((file) => {
@@ -262,18 +300,17 @@ const ClearanceStatusPage = () => {
       await axios.post('http://localhost:5000/api/student-subject-status/request', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      // Update status locally
-      setSubjectStatuses(prev =>
-        prev.map(s =>
-          s.subject_id === subjectId
-            ? { ...s, status: 'Requested' }
-            : s
-        ).concat(
-          prev.some(s => s.subject_id === subjectId)
-            ? []
-            : [{ subject_id: subjectId, status: 'Requested' }]
-        )
-      );
+      // Upsert status locally (no duplicates)
+      setSubjectStatuses(prev => {
+        const updated = upsertSubjectStatus(prev, { subject_id: subjectId, status: 'Requested' });
+        onStatusesUpdate && onStatusesUpdate({ subjects, statuses: updated });
+        // Dispatch global event for dashboards/analytics listeners
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('student-subject-status-changed', { detail: { subject_id: subjectId, status: 'Requested' } }));
+        }
+        return updated;
+      });
+  onStatusChange && onStatusChange();
       // No requirements reset
       setFiles(prev => ({ ...prev, [subjectId]: null }));
     } catch (err) {
@@ -293,11 +330,14 @@ const ClearanceStatusPage = () => {
     return <div style={styles.error}>❌ Access denied. Only students can view clearance status.</div>;
   }
 
+  // Derive helper flags
+  // (Removed unused derived flag needToRequest)
+
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>📝 My Clearance Status</h2>
       <div style={{ marginBottom: 18 }}>
-        <label style={styles.label}>Semester:</label>
+        <label style={styles.label}>Semester (optional)</label>
         <select
           style={styles.input}
           value={selectedSemester}
@@ -308,15 +348,24 @@ const ClearanceStatusPage = () => {
           onFocus={e => e.stopPropagation()}
           onBlur={e => e.stopPropagation()}
         >
-          <option value="">Select Semester</option>
+          <option value="">(Auto) Default: 1st</option>
           {semesters.map(sem => (
             <option key={sem} value={sem}>{sem} Semester</option>
           ))}
         </select>
       </div>
-      {loading && selectedSemester && <div>Loading...</div>}
-      {error && !clearance && selectedSemester && <div style={styles.error}>{error}</div>}
-      {clearance && selectedSemester && (
+  {/* Loading text removed to prevent persistent display */}
+      {error && !clearance && (
+        <div style={styles.error}>
+          {error}
+          { /No clearance for this semester/i.test(error) && (
+            <div style={{ marginTop: 8, fontSize: 13 }}>
+              👉 You have not created a clearance for this semester yet. Go to the Clearance creation page to start.
+            </div>
+          )}
+        </div>
+      )}
+      {clearance && (
         <div style={styles.statusBox}>
           <strong>Status:</strong> <span style={{
             color: clearance.status === 'Approved' ? '#43a047' : clearance.status === 'Rejected' ? '#e11d48' : clearance.status === 'Requested' ? '#0277bd' : '#f59e42',
@@ -324,8 +373,8 @@ const ClearanceStatusPage = () => {
           }}>{clearance.status}</span>
         </div>
       )}
-      {selectedSemester && (
-        <>
+      {/* Always render subjects/department sections; semester auto-fallback handled internally */}
+      <>
           
 
           {/* Subjects Table */}
@@ -616,18 +665,20 @@ const ClearanceStatusPage = () => {
                                     link: submittedLinks[subject.subject_id]
                                   });
                                   const record = resp?.data?.record;
-                                  setSubjectStatuses(prev =>
-                                    prev.map(s =>
-                                      s.subject_id === subject.subject_id
-                                        ? { ...s, status: 'Requested', link: record?.link || submittedLinks[subject.subject_id] || '' }
-                                        : s
-                                    ).concat(
-                                      prev.some(s => s.subject_id === subject.subject_id)
-                                        ? []
-                                        : [{ subject_id: subject.subject_id, status: 'Requested', link: record?.link || submittedLinks[subject.subject_id] || '' }]
-                                    )
-                                  );
+                                  setSubjectStatuses(prev => {
+                                    const updated = upsertSubjectStatus(prev, {
+                                      subject_id: subject.subject_id,
+                                      status: 'Requested',
+                                      link: record?.link || submittedLinks[subject.subject_id] || ''
+                                    });
+                                    onStatusesUpdate && onStatusesUpdate({ subjects, statuses: updated });
+                                    if (typeof window !== 'undefined') {
+                                      window.dispatchEvent(new CustomEvent('student-subject-status-changed', { detail: { subject_id: subject.subject_id, status: 'Requested' } }));
+                                    }
+                                    return updated;
+                                  });
                                   setSubmittedLinks(prev => ({ ...prev, [subject.subject_id]: '' }));
+                                  onStatusChange && onStatusChange();
                                 } catch (err) {
                                   console.error('Error requesting approval:', err);
                                   setError('Failed to request approval.');
@@ -642,18 +693,20 @@ const ClearanceStatusPage = () => {
                                     semester: selectedSemester,
                                     checklist: submittedChecklists[subject.subject_id]
                                   });
-                                  setSubjectStatuses(prev =>
-                                    prev.map(s =>
-                                      s.subject_id === subject.subject_id
-                                        ? { ...s, status: 'Requested', checklist: submittedChecklists[subject.subject_id] }
-                                        : s
-                                    ).concat(
-                                      prev.some(s => s.subject_id === subject.subject_id)
-                                        ? []
-                                        : [{ subject_id: subject.subject_id, status: 'Requested', checklist: submittedChecklists[subject.subject_id] }]
-                                    )
-                                  );
+                                  setSubjectStatuses(prev => {
+                                    const updated = upsertSubjectStatus(prev, {
+                                      subject_id: subject.subject_id,
+                                      status: 'Requested',
+                                      checklist: submittedChecklists[subject.subject_id]
+                                    });
+                                    onStatusesUpdate && onStatusesUpdate({ subjects, statuses: updated });
+                                    if (typeof window !== 'undefined') {
+                                      window.dispatchEvent(new CustomEvent('student-subject-status-changed', { detail: { subject_id: subject.subject_id, status: 'Requested' } }));
+                                    }
+                                    return updated;
+                                  });
                                   setSubmittedChecklists(prev => ({ ...prev, [subject.subject_id]: [] }));
+                                  onStatusChange && onStatusChange();
                                 } catch (err) {
                                   console.error('Error requesting approval:', err);
                                   setError('Failed to request approval.');
@@ -917,7 +970,6 @@ const ClearanceStatusPage = () => {
           )}
           
         </>
-      )}
     </div>
   );
 };

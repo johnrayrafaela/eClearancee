@@ -3,11 +3,14 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('Subjects', 'requirements', {
-      type: Sequelize.TEXT,
-      allowNull: true,
-      defaultValue: ''
-    });
+    const table = await queryInterface.describeTable('Subjects');
+    if (!table.requirements) {
+      await queryInterface.addColumn('Subjects', 'requirements', {
+        type: Sequelize.TEXT,
+        allowNull: true,
+        defaultValue: ''
+      });
+    }
   },
 
   down: async (queryInterface, Sequelize) => {

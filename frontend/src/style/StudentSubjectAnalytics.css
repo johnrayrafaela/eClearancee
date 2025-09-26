@@ -45,6 +45,16 @@
   align-items: center;
   margin-top: 32px;
   margin-bottom: 32px;
+  width: 100%;
+  max-width: 540px; /* allow a bit more horizontal room so legend doesn't squeeze chart */
+  height: 340px; /* fixed height so responsive resizing doesn't collapse the canvas */
+  position: relative; /* needed for Chart.js when maintainAspectRatio is false */
+}
+
+/* Ensure the canvas fills the container (Chart.js v4 respects parent size when maintainAspectRatio=false) */
+.student-analytics-pie-container canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 .student-analytics-nodata {
   color: #e11d48;

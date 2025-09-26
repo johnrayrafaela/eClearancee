@@ -209,12 +209,26 @@ exports.precheckClearance = async (req, res) => {
 exports.getClearanceStatus = async (req, res) => {
   try {
     const { student_id, semester } = req.query;
+    const student = await User.findByPk(student_id);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
     const whereClearance = { student_id };
     if (semester) whereClearance.semester = semester;
     const clearance = await Clearance.findOne({ where: whereClearance });
-    if (!clearance) return res.status(404).json({ message: 'No clearance found for this student.' });
-
-    const student = await User.findByPk(student_id);
+    if (!clearance) {
+      return res.json({
+        clearance: null,
+        needToRequest: !!semester, // if user explicitly asked for a semester clearance
+        message: semester ? 'No clearance for this semester. Please request one first.' : 'No clearance found.',
+        student: {
+          firstname: student.firstname,
+          lastname: student.lastname,
+          course: student.course,
+          year_level: student.year_level,
+          block: student.block,
+        },
+        subjects: []
+      });
+    }
 
 
     // Only show subjects the student selected for this clearance
