@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Teacher  = require('../models/Teacher');
+const Subject = require('../models/Subject');
+const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 
 exports.registerTeacher = async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
@@ -98,8 +100,6 @@ exports.updateTeacher = async (req, res) => {
 };
 
 // Delete teacher (with cascade for related subjects and subject statuses)
-const Subject = require('../models/Subject');
-const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 exports.deleteTeacher = async (req, res) => {
   try {
     const teacher = await Teacher.findByPk(req.params.id);
@@ -122,5 +122,40 @@ exports.deleteTeacher = async (req, res) => {
     res.status(200).json({ message: 'Teacher deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.teacherDeleteSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { teacher_id } = req.body;
+
+    console.log('Delete request received for subject ID:', id, 'by teacher ID:', teacher_id);
+
+    // Validate input
+    if (!id || !teacher_id) {
+      console.error('Invalid request: Missing subject ID or teacher ID');
+      return res.status(400).json({ message: 'Invalid request: Missing subject ID or teacher ID' });
+    }
+
+    const subject = await Subject.findByPk(id);
+    if (!subject) {
+      console.error('Subject not found for ID:', id);
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    console.log('Subject found:', subject);
+
+    if (subject.teacher_id !== teacher_id) {
+      console.error('Unauthorized delete attempt by teacher ID:', teacher_id, 'for subject:', subject);
+      return res.status(403).json({ message: 'You can only delete your own subjects.' });
+    }
+
+    await subject.destroy();
+    console.log('Subject deleted successfully for ID:', id);
+    res.json({ message: 'Subject deleted' });
+  } catch (err) {
+    console.error('Error deleting subject:', err);
+    res.status(500).json({ message: 'Error deleting subject', error: err.message });
   }
 };

@@ -1,6 +1,20 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
+import { 
+  gradients, 
+  buttonStyles, 
+  fadeInUp, 
+  keyframes 
+} from '../../style/CommonStyles';
+
+// Inject keyframes
+if (typeof document !== 'undefined' && !document.querySelector('#common-keyframes')) {
+  const style = document.createElement('style');
+  style.id = 'common-keyframes';
+  style.textContent = keyframes;
+  document.head.appendChild(style);
+}
 
 
 
@@ -8,85 +22,116 @@ const styles = {
   container: {
     padding: '2rem',
     margin: '0 auto',
-    background: '#f9fafd',
-    borderRadius: 12,
-    boxShadow: '0 2px 12px rgba(2,119,189,0.07)',
-    fontFamily: 'Segoe UI, Arial, sans-serif'
+    background: gradients.light,
+    borderRadius: 20,
+    boxShadow: '0 10px 30px rgba(2,119,189,0.1)',
+    fontFamily: 'Segoe UI, Arial, sans-serif',
+    maxWidth: '1400px',
+    ...fadeInUp
   },
   heading: {
     color: '#0277bd',
     fontWeight: 900,
-    fontSize: '2rem',
-    marginBottom: 0,
-    letterSpacing: '1px',
-    textAlign: 'center'
+    fontSize: '1.8rem',
+    marginBottom: 15,
+    letterSpacing: '0.5px',
+    textAlign: 'center',
+    background: gradients.primary,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
   },
   statusBox: {
-    marginBottom: 24,
-    background: '#f7fafc',
-    borderRadius: 8,
-    padding: 16,
-    boxShadow: '0 1px 4px rgba(2,119,189,0.05)',
-    fontSize: 18,
-    color: '#2563eb'
+    marginBottom: 20,
+    background: gradients.card,
+    borderRadius: 12,
+    padding: 15,
+    boxShadow: '0 4px 15px rgba(2,119,189,0.08)',
+    fontSize: 16,
+    color: '#2563eb',
+    border: '1px solid #e1f5fe'
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     background: '#fff',
-    borderRadius: 8,
+    borderRadius: 15,
     overflow: 'hidden',
-    boxShadow: '0 1px 4px rgba(2,119,189,0.05)',
-    marginTop: 12,
+    boxShadow: '0 5px 20px rgba(2,119,189,0.08)',
+    marginTop: 20,
+    border: '1px solid #e1f5fe'
   },
   th: {
-    background: '#e1f5fe',
-    border: '1px solid #d1d5db',
-    padding: 8,
-    fontWeight: 700,
-    color: '#0277bd',
-    textAlign: 'left'
+    background: gradients.primary,
+    color: '#fff',
+    border: 'none',
+    padding: 10,
+    fontWeight: 600,
+    textAlign: 'left',
+    fontSize: '0.8rem',
+    letterSpacing: '0.3px'
   },
   td: {
-    border: '1px solid #e0e0e0',
-    padding: 8,
-    color: '#333'
+    border: '1px solid #f0f0f0',
+    padding: 10,
+    color: '#333',
+    verticalAlign: 'top',
+    fontSize: '0.85rem'
   },
   error: {
-    color: '#e11d48',
-    background: '#fef2f2',
-    border: '1px solid #fecaca',
-    padding: 10,
-    borderRadius: 6,
+    color: '#d32f2f',
+    background: gradients.light,
+    border: '2px solid #ffcdd2',
+    padding: 15,
+    borderRadius: 10,
     marginTop: 16,
-    textAlign: 'center'
+    textAlign: 'center',
+    fontWeight: 600
   },
   button: {
-    padding: '6px 14px',
+    ...buttonStyles.primary,
+    padding: '6px 12px',
+    fontSize: '0.75rem',
     borderRadius: 6,
-    border: 'none',
-    fontWeight: 700,
-    cursor: 'pointer',
-    fontSize: 15,
-    marginRight: 8,
-    background: '#0277bd',
-    color: '#fff',
-    transition: 'background 0.2s'
+    marginRight: 6,
+    boxShadow: '0 3px 10px rgba(2,119,189,0.2)'
   },
   label: {
     display: 'block',
-    marginBottom: 8,
+    marginBottom: 6,
     fontWeight: 600,
-    color: '#333'
+    color: '#0277bd',
+    fontSize: '0.9rem'
   },
   input: {
-    padding: 10,
-    borderRadius: 6,
-    border: '1px solid #d1d5db',
+    padding: 8,
+    borderRadius: 8,
+    border: '2px solid #e1f5fe',
     width: '100%',
-    maxWidth: 300,
-    fontSize: 16,
-    color: '#333'
+    maxWidth: 250,
+    fontSize: 14,
+    color: '#333',
+    background: '#f8fafc',
+    transition: 'all 0.3s ease',
+    outline: 'none'
+  },
+  checklistItem: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: 6,
+    padding: 6,
+    borderRadius: 6,
+    background: '#f8fafc',
+    border: '1px solid #e1f5fe'
+  },
+  instructionBox: {
+    fontSize: 12,
+    marginTop: 6,
+    padding: 8,
+    background: '#e3f2fd',
+    borderRadius: 6,
+    color: '#1976d2',
+    border: '1px solid #bbdefb'
   }
 };
 
@@ -109,6 +154,7 @@ const ClearanceStatusPage = () => {
   const [files, setFiles] = useState({}); // { [subject_id]: File[] | [] }
   const [selectedSemester, setSelectedSemester] = useState('');
   const [departments, setDepartments] = useState([]);
+  const [instructionModal, setInstructionModal] = useState(null); // { subjectId, name, type, instructions }
 
   // Department file upload state and request (moved inside component)
   const [deptFiles, setDeptFiles] = useState({}); // { [department_id]: File[] }
@@ -255,7 +301,12 @@ const ClearanceStatusPage = () => {
         <select
           style={styles.input}
           value={selectedSemester}
-          onChange={e => setSelectedSemester(e.target.value)}
+          onChange={e => {
+            e.stopPropagation();
+            setSelectedSemester(e.target.value);
+          }}
+          onFocus={e => e.stopPropagation()}
+          onBlur={e => e.stopPropagation()}
         >
           <option value="">Select Semester</option>
           {semesters.map(sem => (
@@ -278,14 +329,26 @@ const ClearanceStatusPage = () => {
           
 
           {/* Subjects Table */}
-          <h3 style={{ color: '#2563eb' }}>📘 Subjects</h3>
+          <h3 style={{ 
+            color: '#0277bd', 
+            fontSize: '1.2rem',
+            fontWeight: 700,
+            marginTop: 25,
+            marginBottom: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            📘 Subjects
+          </h3>
           {subjects.length > 0 ? (
             <table style={styles.table}>
               <thead>
                 <tr>
                   <th style={styles.th}>Subject Name</th>
                   <th style={styles.th}>Teacher</th>
-                  <th style={styles.th}>Requirements</th>
+                  <th style={styles.th}>Requirement Type</th>
+                  <th style={styles.th}>Instructions</th>
                   <th style={styles.th}>Status</th>
                   <th style={styles.th}>File Upload</th>
                   <th style={styles.th}>Action</th>
@@ -296,12 +359,16 @@ const ClearanceStatusPage = () => {
                 {subjects.map(subject => {
                   const status = getStatus(subject.subject_id);
                   // Parse requirements as JSON if possible
-                  let reqObj = { type: 'Text', value: '' };
+                  let reqObj = { type: 'Text', instructions: '', checklist: [] };
                   if (subject.requirements) {
                     try {
                       reqObj = JSON.parse(subject.requirements);
+                      // Ensure instructions field exists (backward compatibility)
+                      if (!reqObj.instructions) {
+                        reqObj.instructions = reqObj.value || '';
+                      }
                     } catch {
-                      reqObj = { type: 'Text', value: subject.requirements };
+                      reqObj = { type: 'Text', instructions: subject.requirements, checklist: [] };
                     }
                   }
                   // Find student's submitted link if any
@@ -317,36 +384,127 @@ const ClearanceStatusPage = () => {
                           ? `${subject.teacher.firstname} ${subject.teacher.lastname}`
                           : 'N/A'}
                       </td>
-                      <td style={styles.td}>{(() => {
-                        if (reqObj.type === 'Checklist') {
-                          return reqObj.checklist?.filter(Boolean).join(', ');
-                        }
-                        return reqObj.value;
-                      })()}</td>
+                      {/* Requirement Type */}
                       <td style={styles.td}>
-                        {status === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Requested</span>}
-                        {status === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
-                        {status === 'Rejected' && <span style={{ color: '#e11d48', fontWeight: 600 }}>Rejected</span>}
-                        {status === 'Pending' && <span style={{ color: '#f59e42', fontWeight: 600 }}>Pending</span>}
+                        {(() => {
+                          const type = reqObj.type || 'Text';
+                          switch(type){
+                            case 'Checklist': return '✅ Checklist';
+                            case 'Link': return '🔗 Link/URL';
+                            case 'File': return '📁 File Upload';
+                            case 'Text': return '📝 Text';
+                            case 'Other': return '🔧 Other';
+                            default: return type;
+                          }
+                        })()}
+                      </td>
+                      {/* Instructions Column */}
+                      <td style={styles.td}>
+                        {(() => {
+                          const raw = (reqObj.instructions || '').trim();
+                          if (!raw) {
+                            return <span style={{ fontSize: '0.7rem', fontStyle: 'italic', color: '#666' }}>No instructions</span>;
+                          }
+                          const LONG_THRESHOLD = 70;
+                          if (raw.length > LONG_THRESHOLD) {
+                            return (
+                              <button
+                                style={{ ...buttonStyles.secondary, padding: '6px 10px', fontSize: '0.6rem', borderRadius: 6, lineHeight: 1.2 }}
+                                onClick={() => setInstructionModal({ subjectId: subject.subject_id, name: subject.name, type: reqObj.type, instructions: raw })}
+                              >
+                                View Instructions ({raw.length} chars)
+                              </button>
+                            );
+                          }
+                          return <span style={{ fontSize: '0.7rem', color: '#1976d2' }}>{raw}</span>;
+                        })()}
+                      </td>
+                      <td style={styles.td}>
+                        {status === 'Requested' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.info,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            🔄 Requested
+                          </span>
+                        )}
+                        {status === 'Approved' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.success,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            ✅ Approved
+                          </span>
+                        )}
+                        {status === 'Rejected' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.danger,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            ❌ Rejected
+                          </span>
+                        )}
+                        {status === 'Pending' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.warning,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            ⏳ Pending
+                          </span>
+                        )}
                       </td>
                       <td style={styles.td}>
                         {/* If requirement is Checklist, show checklist UI */}
                         {(status === 'Pending' || status === 'Rejected') && reqObj.type === 'Checklist' ? (
                           <div>
-                            {(reqObj.checklist || []).map((item, idx) => (
-                              <label key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
-                                <input
-                                  type="checkbox"
-                                  checked={submittedChecklists[subject.subject_id]?.[idx] || false}
-                                  onChange={e => {
-                                    const newChecklist = [...(submittedChecklists[subject.subject_id] || [])];
-                                    newChecklist[idx] = e.target.checked;
-                                    setSubmittedChecklists(prev => ({ ...prev, [subject.subject_id]: newChecklist }));
-                                  }}
-                                />
-                                <span style={{ marginLeft: 8 }}>{item}</span>
-                              </label>
-                            ))}
+                            {reqObj.checklist && reqObj.checklist.length > 0 ? (
+                              reqObj.checklist.map((item, idx) => (
+                                <label key={idx} style={styles.checklistItem}>
+                                  <input
+                                    type="checkbox"
+                                    checked={submittedChecklists[subject.subject_id]?.[idx] || false}
+                                    onChange={e => {
+                                      e.stopPropagation();
+                                      const newChecklist = [...(submittedChecklists[subject.subject_id] || [])];
+                                      newChecklist[idx] = e.target.checked;
+                                      setSubmittedChecklists(prev => ({ ...prev, [subject.subject_id]: newChecklist }));
+                                    }}
+                                    onFocus={e => e.stopPropagation()}
+                                    onBlur={e => e.stopPropagation()}
+                                    style={{ marginRight: 8 }}
+                                  />
+                                  <span style={{ fontSize: '0.8rem', color: '#333' }}>{item}</span>
+                                </label>
+                              ))
+                            ) : (
+                              <div style={{ 
+                                fontStyle: 'italic', 
+                                color: '#666',
+                                padding: 8,
+                                background: '#fff3e0',
+                                borderRadius: 6,
+                                border: '1px solid #ffcc02',
+                                fontSize: '0.8rem'
+                              }}>
+                                💡 No checklist items available. Please contact your teacher.
+                              </div>
+                            )}
                           </div>
                         ) : (status === 'Pending' || status === 'Rejected') && reqObj.type === 'Link' ? (
                           <>
@@ -356,11 +514,16 @@ const ClearanceStatusPage = () => {
                               value={submittedLinks[subject.subject_id] || ''}
                               placeholder="Paste your link here..."
                               onChange={e => {
+                                e.stopPropagation();
                                 setSubmittedLinks(prev => ({ ...prev, [subject.subject_id]: e.target.value }));
                               }}
+                              onFocus={e => e.stopPropagation()}
+                              onBlur={e => e.stopPropagation()}
+                              onKeyDown={e => e.stopPropagation()}
+                              onKeyUp={e => e.stopPropagation()}
                             />
                             {studentLink && (
-                              <div style={{ fontSize: 13, marginTop: 6, color: '#666' }}>
+                              <div style={{ fontSize: 12, marginTop: 4, color: '#666' }}>
                                 <b>Submitted:</b> <a href={studentLink} target="_blank" rel="noopener noreferrer">{studentLink}</a>
                               </div>
                             )}
@@ -373,27 +536,27 @@ const ClearanceStatusPage = () => {
                               style={styles.input}
                               multiple
                               onChange={e => {
+                                e.stopPropagation();
                                 const fileArr = Array.from(e.target.files);
                                 setFiles(prev => ({ ...prev, [subject.subject_id]: fileArr }));
                               }}
+                              onFocus={e => e.stopPropagation()}
+                              onBlur={e => e.stopPropagation()}
                             />
                             {files[subject.subject_id] && files[subject.subject_id].length > 0 && (
-                              <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none', fontSize: 13 }}>
+                              <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none', fontSize: 12 }}>
                                 {files[subject.subject_id].map((file, idx) => (
                                   <li key={idx}>{file.name}</li>
                                 ))}
                               </ul>
                             )}
-                            <div style={{ fontSize: 13, marginTop: 6, color: '#666' }}>
-                              {reqObj.type === 'Text' && <div><b>Instructions:</b> {reqObj.value}</div>}
-                            </div>
                           </>
                         ) : (status !== 'Pending' && status !== 'Rejected') ? <span>-</span> : null}
-                        {/* Show submitted file, link, or checklist for Requested/Approved */}
+                        {/* Show submitted link or checklist for Requested/Approved */}
                         {(status === 'Requested' || status === 'Approved') && (() => {
                           if (reqObj.type === 'Checklist' && studentChecklist.length) {
                             return (
-                              <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 13 }}>
+                              <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 12 }}>
                                 {(reqObj.checklist || []).map((item, idx) => (
                                   <li key={idx}>
                                     <span style={{ color: studentChecklist[idx] ? '#43a047' : '#e11d48', fontWeight: 600 }}>
@@ -409,15 +572,24 @@ const ClearanceStatusPage = () => {
                               <a href={studentLink} target="_blank" rel="noopener noreferrer">View Submitted Link</a>
                             );
                           }
-                          if (reqObj.type === 'File' && statusObj && statusObj.file_path) {
+                          if (reqObj.type === 'File' && statusObj && (statusObj.file_paths?.length || statusObj.file_path)) {
+                            const fileList = statusObj.file_paths && statusObj.file_paths.length
+                              ? statusObj.file_paths
+                              : (statusObj.file_path ? [statusObj.file_path] : []);
                             return (
-                              <a
-                                href={`http://localhost:5000/api/student-subject-status/file/${subject.subject_id}?file=${encodeURIComponent(statusObj.file_path)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                View Uploaded File
-                              </a>
+                              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                {fileList.map((fp, i) => (
+                                  <li key={i}>
+                                    <a
+                                      href={`http://localhost:5000/api/student-subject-status/file/${subject.subject_id}?file=${encodeURIComponent(fp)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      View Uploaded File {fileList.length > 1 ? i + 1 : ''}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
                             );
                           }
                           return <span>-</span>;
@@ -437,21 +609,22 @@ const ClearanceStatusPage = () => {
                               if (reqObj.type === 'Link') {
                                 setRequesting(prev => ({ ...prev, [subject.subject_id]: true }));
                                 try {
-                                  await axios.post('http://localhost:5000/api/student-subject-status/request', {
+                                  const resp = await axios.post('http://localhost:5000/api/student-subject-status/request', {
                                     student_id: user.student_id,
                                     subject_id: subject.subject_id,
                                     semester: selectedSemester,
                                     link: submittedLinks[subject.subject_id]
                                   });
+                                  const record = resp?.data?.record;
                                   setSubjectStatuses(prev =>
                                     prev.map(s =>
                                       s.subject_id === subject.subject_id
-                                        ? { ...s, status: 'Requested', link: submittedLinks[subject.subject_id] }
+                                        ? { ...s, status: 'Requested', link: record?.link || submittedLinks[subject.subject_id] || '' }
                                         : s
                                     ).concat(
                                       prev.some(s => s.subject_id === subject.subject_id)
                                         ? []
-                                        : [{ subject_id: subject.subject_id, status: 'Requested', link: submittedLinks[subject.subject_id] }]
+                                        : [{ subject_id: subject.subject_id, status: 'Requested', link: record?.link || submittedLinks[subject.subject_id] || '' }]
                                     )
                                   );
                                   setSubmittedLinks(prev => ({ ...prev, [subject.subject_id]: '' }));
@@ -495,10 +668,22 @@ const ClearanceStatusPage = () => {
                           </button>
                         )}
                         {status === 'Requested' && (
-                          <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Teacher</span>
+                          <span style={{ 
+                            color: '#0277bd', 
+                            fontWeight: 600,
+                            fontStyle: 'italic'
+                          }}>
+                            ⏳ Waiting for Teacher
+                          </span>
                         )}
                         {status === 'Approved' && (
-                          <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>
+                          <span style={{ 
+                            color: '#43a047', 
+                            fontWeight: 600,
+                            fontStyle: 'italic'
+                          }}>
+                            ✅ Approved
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -510,11 +695,74 @@ const ClearanceStatusPage = () => {
             selectedSemester && <p>No subjects found.</p>
           )}
 
+          {/* Instruction Modal */}
+          {instructionModal && (
+            <div
+              onClick={(e)=>{ if(e.target===e.currentTarget) setInstructionModal(null); }}
+              style={{
+                position:'fixed', top:0,left:0,width:'100vw',height:'100vh',
+                background:'rgba(0,0,0,0.55)', display:'flex',alignItems:'center',justifyContent:'center',
+                zIndex:10000, backdropFilter:'blur(4px)'
+              }}
+            >
+              <div style={{ background:'#ffffff', borderRadius:18, padding:0, width:'92%', maxWidth:620, boxShadow:'0 18px 50px rgba(0,0,0,0.3)', display:'flex', flexDirection:'column', maxHeight:'80vh' }}>
+                {/* Header */}
+                <div style={{ padding:'16px 20px', borderBottom:'1px solid #e1f5fe', display:'flex', alignItems:'center', gap:12, background:'linear-gradient(135deg,#0277bd 0%, #01579b 100%)' }}>
+                  <div style={{ fontSize:'1.6rem' }}>📋</div>
+                  <div style={{ flex:1 }}>
+                    <h4 style={{ margin:0, color:'#fff', fontSize:'1.05rem', fontWeight:700 }}>{instructionModal.name}</h4>
+                    <div style={{ fontSize:'0.65rem', color:'#e1f5fe', letterSpacing:'0.5px', textTransform:'uppercase', fontWeight:600 }}>
+                      {instructionModal.type} Requirement
+                    </div>
+                  </div>
+                  <button
+                    onClick={()=>setInstructionModal(null)}
+                    style={{ background:'rgba(255,255,255,0.2)', border:'none', color:'#fff', padding:'6px 10px', borderRadius:8, cursor:'pointer', fontSize:'0.7rem', fontWeight:600 }}
+                  >Close ✕</button>
+                </div>
+                {/* Content */}
+                <div style={{ padding:'18px 22px', overflowY:'auto', lineHeight:1.55 }}>
+                  <div style={{
+                    fontSize:'0.8rem', background:'#f8fafc', border:'1px solid #e1f5fe', borderRadius:10,
+                    padding:'14px 16px', color:'#0d47a1', whiteSpace:'pre-wrap'
+                  }}>
+                    {instructionModal.instructions}
+                  </div>
+                </div>
+                {/* Footer */}
+                <div style={{ padding:'10px 16px', borderTop:'1px solid #e1f5fe', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa' }}>
+                  <span style={{ fontSize:'0.6rem', color:'#607d8b' }}>Scroll vertically to read full instructions</span>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button
+                      onClick={() => { navigator.clipboard && navigator.clipboard.writeText(instructionModal.instructions); }}
+                      style={{ ...buttonStyles.secondary, padding:'6px 12px', fontSize:'0.6rem', borderRadius:6 }}
+                    >Copy</button>
+                    <button
+                      onClick={()=>setInstructionModal(null)}
+                      style={{ ...buttonStyles.primary, padding:'6px 12px', fontSize:'0.6rem', borderRadius:6 }}
+                    >Done</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
 
 
 
           {/* Departments Table */}
-          <h3 style={{ color: '#2563eb', marginTop: 32 }}>🏢 Departments</h3>
+          <h3 style={{ 
+            color: '#0277bd', 
+            fontSize: '1.2rem',
+            fontWeight: 700,
+            marginTop: 30,
+            marginBottom: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            🏢 Departments
+          </h3>
           {departments.length > 0 ? (
             <table style={styles.table}>
               <thead>
@@ -543,10 +791,54 @@ const ClearanceStatusPage = () => {
                       <td style={styles.td}>{staffName}</td>
                       <td style={styles.td}>{requirements}</td>
                       <td style={styles.td}>
-                        {deptStatus === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Requested</span>}
-                        {deptStatus === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
-                        {deptStatus === 'Rejected' && <span style={{ color: '#e11d48', fontWeight: 600 }}>Rejected</span>}
-                        {deptStatus === 'Pending' && <span style={{ color: '#f59e42', fontWeight: 600 }}>Pending</span>}
+                        {deptStatus === 'Requested' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.info,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            🔄 Requested
+                          </span>
+                        )}
+                        {deptStatus === 'Approved' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.success,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            ✅ Approved
+                          </span>
+                        )}
+                        {deptStatus === 'Rejected' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.danger,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            ❌ Rejected
+                          </span>
+                        )}
+                        {deptStatus === 'Pending' && (
+                          <span style={{ 
+                            color: '#fff', 
+                            background: gradients.warning,
+                            padding: '3px 8px',
+                            borderRadius: 12,
+                            fontSize: '0.7rem',
+                            fontWeight: 600
+                          }}>
+                            ⏳ Pending
+                          </span>
+                        )}
                       </td>
                       <td style={styles.td}>
                         {(deptStatus === 'Pending' || deptStatus === 'Rejected') && requirements !== '-' ? (
@@ -556,12 +848,15 @@ const ClearanceStatusPage = () => {
                               accept="image/*,application/pdf"
                               style={styles.input}
                               onChange={e => {
+                                e.stopPropagation();
                                 const fileArr = Array.from(e.target.files);
                                 setDeptFiles(prev => ({ ...prev, [dept.department_id]: fileArr }));
                               }}
+                              onFocus={e => e.stopPropagation()}
+                              onBlur={e => e.stopPropagation()}
                             />
                             {deptFiles[dept.department_id] && deptFiles[dept.department_id].length > 0 && (
-                              <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none', fontSize: 13 }}>
+                              <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none', fontSize: 12 }}>
                                 {deptFiles[dept.department_id].map((file, idx) => (
                                   <li key={idx}>{file.name}</li>
                                 ))}
@@ -593,8 +888,24 @@ const ClearanceStatusPage = () => {
                             {deptRequesting[dept.department_id] ? 'Requesting...' : 'Request Approval'}
                           </button>
                         )}
-                        {deptStatus === 'Requested' && <span style={{ color: '#0277bd', fontWeight: 600 }}>Waiting for Department</span>}
-                        {deptStatus === 'Approved' && <span style={{ color: '#43a047', fontWeight: 600 }}>Approved</span>}
+                        {deptStatus === 'Requested' && (
+                          <span style={{ 
+                            color: '#0277bd', 
+                            fontWeight: 600,
+                            fontStyle: 'italic'
+                          }}>
+                            ⏳ Waiting for Department
+                          </span>
+                        )}
+                        {deptStatus === 'Approved' && (
+                          <span style={{ 
+                            color: '#43a047', 
+                            fontWeight: 600,
+                            fontStyle: 'italic'
+                          }}>
+                            ✅ Approved
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

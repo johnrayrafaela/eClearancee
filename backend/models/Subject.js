@@ -29,7 +29,7 @@ const Subject = sequelize.define('Subject', {
   },
   teacher_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true, // Allow null so admin can create subjects without assigning teachers
     references: {
       model: 'teachers',
       key: 'teacher_id'

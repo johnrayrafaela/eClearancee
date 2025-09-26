@@ -393,7 +393,19 @@ const SubjectManagement = () => {
                 {subject.teacher ? `${subject.teacher.firstname} ${subject.teacher.lastname}` : 'N/A'}
               </td>
               <td style={styles.td}>
-                <button onClick={() => { setEditing(subject); setShowModal(true); }} style={styles.actionBtn}>
+                <button onClick={() => { 
+                  setEditing(subject); 
+                  setForm({
+                    name: subject.name,
+                    description: subject.description || '',
+                    course: subject.course,
+                    year_level: subject.year_level,
+                    semester: subject.semester,
+                    teacher_id: subject.teacher_id || ''
+                  });
+                  setShowModal(true); 
+                  setErrorMsg('');
+                }} style={styles.actionBtn}>
                   Edit
                 </button>
                 <button onClick={() => handleDelete(subject.subject_id)} style={styles.deleteBtn}>

@@ -20,14 +20,43 @@ exports.teacherDeleteSubject = async (req, res) => {
   try {
     const { id } = req.params;
     const { teacher_id } = req.body;
+
+    console.log('Delete request received for subject ID:', id, 'by teacher ID:', teacher_id);
+
+    // Validate input
+    if (!id || !teacher_id) {
+      console.error('Invalid request: Missing subject ID or teacher ID');
+      return res.status(400).json({ message: 'Invalid request: Missing subject ID or teacher ID' });
+    }
+
     const subject = await Subject.findByPk(id);
-    if (!subject) return res.status(404).json({ message: 'Subject not found' });
-    if (subject.teacher_id !== teacher_id) {
+    if (!subject) {
+      console.error('Subject not found for ID:', id);
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    console.log('Subject found:', subject.toJSON());
+    console.log('Comparing teacher IDs - Subject teacher_id:', subject.teacher_id, 'Request teacher_id:', teacher_id);
+
+    // Convert both to numbers for comparison
+    if (parseInt(subject.teacher_id) !== parseInt(teacher_id)) {
+      console.error('Unauthorized delete attempt by teacher ID:', teacher_id, 'for subject owned by:', subject.teacher_id);
       return res.status(403).json({ message: 'You can only delete your own subjects.' });
     }
+
+    // First, delete related StudentSubjectStatus records to avoid foreign key constraint violation
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    const deletedStatuses = await StudentSubjectStatus.destroy({ 
+      where: { subject_id: id } 
+    });
+    console.log(`Deleted ${deletedStatuses} StudentSubjectStatus records for subject ID: ${id}`);
+
+    // Now delete the subject
     await subject.destroy();
-    res.json({ message: 'Subject deleted' });
+    console.log('Subject deleted successfully for ID:', id);
+    res.json({ message: 'Subject deleted successfully' });
   } catch (err) {
+    console.error('Error deleting subject:', err);
     res.status(500).json({ message: 'Error deleting subject', error: err.message });
   }
 };
@@ -59,12 +88,23 @@ exports.teacherAddSubject = async (req, res) => {
 exports.createSubject = async (req, res) => {
   try {
     const { name, description, course, year_level, semester, teacher_id } = req.body;
-    // Check if teacher exists
-    const teacher = await Teacher.findByPk(teacher_id);
-    if (!teacher) {
-      return res.status(400).json({ message: 'Teacher not found' });
+    
+    // If teacher_id is provided, check if teacher exists
+    if (teacher_id) {
+      const teacher = await Teacher.findByPk(teacher_id);
+      if (!teacher) {
+        return res.status(400).json({ message: 'Teacher not found' });
+      }
     }
-    const subject = await Subject.create({ name, description, course, year_level, semester, teacher_id });
+    
+    const subject = await Subject.create({ 
+      name, 
+      description, 
+      course, 
+      year_level, 
+      semester, 
+      teacher_id: teacher_id || null // Allow null teacher_id for admin-created subjects
+    });
     res.status(201).json(subject);
   } catch (err) {
     res.status(500).json({ message: 'Error creating subject', error: err.message });
@@ -163,5 +203,142 @@ exports.updateSubjectRequirements = async (req, res) => {
     res.json({ message: 'Requirements updated', subject });
   } catch (err) {
     res.status(500).json({ message: 'Error updating requirements', error: err.message });
+  }
+};
+
+// Get unclaimed subjects (subjects without teacher_id)
+exports.getUnclaimedSubjects = async (req, res) => {
+  try {
+    const subjects = await Subject.findAll({
+      where: { teacher_id: null }
+    });
+    res.json(subjects);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching unclaimed subjects', error: err.message });
+  }
+};
+
+// Claim a subject by a teacher (creates a duplicate with teacher assigned)
+exports.claimSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { teacher_id } = req.body;
+
+    console.log('Claim request received for subject ID:', id, 'by teacher ID:', teacher_id);
+
+    // Validate input
+    if (!id || !teacher_id) {
+      return res.status(400).json({ message: 'Invalid request: Missing subject ID or teacher ID' });
+    }
+
+    // Check if teacher exists
+    const teacher = await Teacher.findByPk(teacher_id);
+    if (!teacher) {
+      return res.status(400).json({ message: 'Teacher not found' });
+    }
+
+    const originalSubject = await Subject.findByPk(id);
+    if (!originalSubject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    // Check if the original subject is admin-created (teacher_id is null)
+    if (originalSubject.teacher_id !== null) {
+      return res.status(400).json({ message: 'This subject is already claimed by a teacher. You can only claim admin-created subjects.' });
+    }
+
+    // Check if this teacher has already claimed this subject
+    const existingClaim = await Subject.findOne({
+      where: {
+        name: originalSubject.name,
+        course: originalSubject.course,
+        year_level: originalSubject.year_level,
+        semester: originalSubject.semester,
+        teacher_id: teacher_id
+      }
+    });
+
+    if (existingClaim) {
+      return res.status(400).json({ message: 'You have already claimed this subject.' });
+    }
+
+    // Create a duplicate subject for this teacher (keep original admin subject intact)
+    const claimedSubject = await Subject.create({
+      name: originalSubject.name,
+      description: originalSubject.description,
+      course: originalSubject.course,
+      year_level: originalSubject.year_level,
+      semester: originalSubject.semester,
+      teacher_id: teacher_id,
+      requirements: originalSubject.requirements || ''
+    });
+
+    console.log('Subject claimed successfully - Created duplicate with ID:', claimedSubject.subject_id, 'for teacher ID:', teacher_id);
+    console.log('Original admin subject remains available for other teachers');
+    
+    res.json({ 
+      message: 'Subject claimed successfully', 
+      subject: claimedSubject,
+      note: 'A copy of the subject has been created for you. Other teachers can still claim this subject.'
+    });
+  } catch (err) {
+    console.error('Error claiming subject:', err);
+    res.status(500).json({ message: 'Error claiming subject', error: err.message });
+  }
+};
+
+// Unclaim a subject by a teacher (delete teacher's claimed copy)
+exports.unclaimSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { teacher_id } = req.body;
+
+    console.log('Unclaim request received for subject ID:', id, 'by teacher ID:', teacher_id);
+
+    // Validate input
+    if (!id || !teacher_id) {
+      return res.status(400).json({ message: 'Invalid request: Missing subject ID or teacher ID' });
+    }
+
+    const subject = await Subject.findByPk(id);
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    console.log('Subject found:', subject.toJSON());
+
+    // Check if this is the teacher's claimed subject
+    if (parseInt(subject.teacher_id) !== parseInt(teacher_id)) {
+      return res.status(403).json({ message: 'You can only unclaim your own subjects.' });
+    }
+
+    // Check if this is an admin-created subject (shouldn't be unclaimed, only deleted)
+    if (subject.teacher_id === null) {
+      return res.status(400).json({ message: 'Cannot unclaim admin-created subjects. Use delete instead.' });
+    }
+
+    // Check if there are any student submissions for this subject
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    const studentSubmissions = await StudentSubjectStatus.findAll({ 
+      where: { subject_id: id } 
+    });
+
+    if (studentSubmissions.length > 0) {
+      // Delete related StudentSubjectStatus records first
+      await StudentSubjectStatus.destroy({ where: { subject_id: id } });
+      console.log(`Deleted ${studentSubmissions.length} student submissions for subject ID: ${id}`);
+    }
+
+    // Delete the teacher's claimed subject copy
+    await subject.destroy();
+    console.log('Subject unclaimed successfully - Teacher copy deleted for ID:', id);
+    
+    res.json({ 
+      message: 'Subject unclaimed successfully',
+      note: 'Your copy of the subject has been removed. The original subject remains available for other teachers to claim.'
+    });
+  } catch (err) {
+    console.error('Error unclaiming subject:', err);
+    res.status(500).json({ message: 'Error unclaiming subject', error: err.message });
   }
 };
