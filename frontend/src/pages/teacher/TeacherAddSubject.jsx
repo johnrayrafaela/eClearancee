@@ -185,51 +185,51 @@ const TeacherAddSubject = () => {
       }}>
         
         {/* Header Section */}
-        <div style={{ textAlign: 'center', marginBottom: 22, ...slideIn }}>
+        <div style={{ textAlign: 'center', marginBottom: 28, ...slideIn }}>
           <h1 style={{ 
             color: '#0277bd', 
             fontWeight: 700, 
-            fontSize: typeScale.xxl, 
-            marginBottom: 6, 
+            fontSize: '2rem', 
+            marginBottom: 10, 
             letterSpacing: '.5px'
           }}>
             📚 Subject Management
           </h1>
           <p style={{ 
             color: '#546e7a', 
-            fontSize: typeScale.lg, 
-            maxWidth: 520, 
+            fontSize: '.95rem', 
+            maxWidth: 620, 
             margin: '0 auto',
-            lineHeight: 1.35
+            lineHeight: 1.4
           }}>
-            Create new subjects, claim existing ones, or manage your current teaching assignments
+            Create or claim subjects and manage teaching assignments
           </p>
         </div>
 
         {/* Action Buttons */}
         <div style={{ 
           display: 'flex', 
-          gap: 12, 
+          gap: 14, 
           justifyContent: 'center', 
-          marginBottom: 20,
+          marginBottom: 26,
           flexWrap: 'wrap',
           ...bounceIn
         }}>
           <button 
             className="btn-hover"
             style={{ 
-              background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)', 
-              color: '#fff', 
-              padding: '8px 18px', 
-              borderRadius: 30, 
-              border: 'none', 
-              fontWeight: 600, 
-              fontSize: typeScale.xl,
+              background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)',
+              color: '#fff',
+              padding: '12px 26px',
+              borderRadius: 28,
+              border: 'none',
+              fontWeight: 600,
+              fontSize: '.85rem',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(25,118,210,0.25)',
+              boxShadow: '0 3px 9px rgba(25,118,210,0.20)',
               display: 'flex',
               alignItems: 'center',
-              gap: 6
+              gap: 4
             }} 
             onClick={() => { 
               setShowModal(true); 
@@ -239,25 +239,25 @@ const TeacherAddSubject = () => {
               setSuccess(''); 
             }}
           >
-            <span style={{ fontSize: typeScale.xl }}>➕</span>
-            New Subject
+            <span style={{ fontSize: '1rem' }}>➕</span>
+            Create Subject
           </button>
           
           <button 
             className="btn-hover"
             style={{ 
-              background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)', 
-              color: '#fff', 
-              padding: '8px 18px', 
-              borderRadius: 30, 
-              border: 'none', 
-              fontWeight: 600, 
-              fontSize: typeScale.xl,
+              background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
+              color: '#fff',
+              padding: '12px 26px',
+              borderRadius: 28,
+              border: 'none',
+              fontWeight: 600,
+              fontSize: '.85rem',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(76,175,80,0.25)',
+              boxShadow: '0 3px 9px rgba(76,175,80,0.25)',
               display: 'flex',
               alignItems: 'center',
-              gap: 6
+              gap: 4
             }} 
             onClick={() => {
               setShowAvailableModal(true);
@@ -265,8 +265,8 @@ const TeacherAddSubject = () => {
               setSuccess('');
             }}
           >
-            <span style={{ fontSize: typeScale.xl }}>🎯</span>
-            Available ({unclaimedSubjects.length})
+            <span style={{ fontSize: '1rem' }}>🎯</span>
+            Available Subjects ({unclaimedSubjects.length})
           </button>
         </div>
 
@@ -674,8 +674,8 @@ const TeacherAddSubject = () => {
                 {loading ? (
                   <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-                    gap: 20 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+                    gap: 14
                   }}>
                     {[1,2,3,4].map(i => (
                       <div key={i} style={{
@@ -711,19 +711,19 @@ const TeacherAddSubject = () => {
                 ) : (
                   <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-                    gap: 20 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                    gap: 22
                   }}>
                     {filteredUnclaimedSubjects.map((subj, index) => (
                       <div 
                         key={subj.subject_id} 
                         className="card-hover"
                         style={{ 
-                          background: 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)', 
-                          borderRadius: 15, 
-                          padding: 20, 
-                          border: '2px solid #e1f5fe',
-                          boxShadow: '0 8px 25px rgba(2,119,189,0.1)',
+                          background: 'linear-gradient(135deg,#fff 0%,#e3f2fd 100%)',
+                          borderRadius: 16,
+                          padding: 18,
+                          border: '1px solid #e1f5fe',
+                          boxShadow: '0 8px 20px rgba(2,119,189,0.12)',
                           position: 'relative',
                           overflow: 'hidden',
                           ...fadeInUp,
@@ -732,53 +732,43 @@ const TeacherAddSubject = () => {
                       >
                         <div style={{
                           position: 'absolute',
-                          top: -10,
-                          right: -10,
+                          top: -12,
+                          right: -12,
                           background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
                           color: 'white',
                           borderRadius: '50%',
-                          width: 30,
-                          height: 30,
+                          width: 40,
+                          height: 40,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '0.8rem',
+                          fontSize: '1rem',
                           fontWeight: 'bold'
                         }}>
                           ✨
                         </div>
                         
-                        <h4 style={{ 
-                          color: '#0277bd', 
-                          marginBottom: 12, 
-                          fontSize: '1rem',
-                          fontWeight: 700
-                        }}>
+                        <h4 style={{ color:'#0277bd', marginBottom:10, fontSize:'.95rem', fontWeight:700, letterSpacing:.4 }}>
                           📖 {subj.name}
                         </h4>
                         
-                        <div style={{ marginBottom: 12, color: '#546e7a' }}>
-                          <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span>🎓</span>
-                            <strong>Course:</strong> {subj.course}
+                        <div style={{ marginBottom:12, color:'#455a64', fontSize:'.75rem', lineHeight:1.35 }}>
+                          <div style={{ marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+                            <span style={{ fontSize:'.85rem' }}>🎓</span>
+                            <strong style={{ fontSize:'.7rem' }}>Course:</strong> {subj.course}
                           </div>
-                          <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span>📅</span>
-                            <strong>Year:</strong> {subj.year_level}
+                          <div style={{ marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+                            <span style={{ fontSize:'.85rem' }}>📅</span>
+                            <strong style={{ fontSize:'.7rem' }}>Year:</strong> {subj.year_level}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span>📆</span>
-                            <strong>Semester:</strong> {subj.semester}
+                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                            <span style={{ fontSize:'.85rem' }}>📆</span>
+                            <strong style={{ fontSize:'.7rem' }}>Semester:</strong> {subj.semester}
                           </div>
                         </div>
 
                         {subj.description && (
-                          <div style={{ 
-                            marginBottom: 12, 
-                            color: '#607d8b',
-                            fontSize: '0.85rem',
-                            fontStyle: 'italic'
-                          }}>
+                          <div style={{ marginBottom:12, color:'#607d8b', fontSize:'.7rem', fontStyle:'italic' }}>
                             "{subj.description}"
                           </div>
                         )}
@@ -786,16 +776,16 @@ const TeacherAddSubject = () => {
                         <button 
                           className="btn-hover"
                           style={{ 
-                            background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)', 
-                            color: '#fff', 
-                            border: 'none', 
-                            borderRadius: 25, 
-                            padding: '10px 20px', 
-                            fontWeight: 600,
+                            background: 'linear-gradient(135deg,#4caf50 0%,#2e7d32 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 22,
+                            padding: '10px 16px',
+                            fontWeight:600,
                             cursor: 'pointer',
                             width: '100%',
-                            fontSize: '0.9rem',
-                            boxShadow: '0 4px 15px rgba(76,175,80,0.3)'
+                            fontSize:'.8rem',
+                            boxShadow:'0 5px 14px rgba(76,175,80,0.30)'
                           }}
                           onClick={() => {
                             if (window.confirm(`Claim "${subj.name}" for ${subj.course} - ${subj.year_level}?`)) {
@@ -857,39 +847,19 @@ const TeacherAddSubject = () => {
         }}>
           
           {/* Section Header */}
-          <div style={{ 
-            background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', 
-            padding: 25, 
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 15
-          }}>
-            <div style={{ fontSize: '2rem' }}>📚</div>
+          <div style={{ background:'linear-gradient(135deg,#0277bd 0%,#015079 100%)', padding:24, color:'#fff', display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ fontSize:'1.8rem' }}>📚</div>
             <div>
-              <h3 style={{ 
-                margin: 0, 
-                fontWeight: 700, 
-                fontSize: '1.5rem',
-                letterSpacing: '0.5px'
-              }}>
-                My Subjects
-              </h3>
-              <p style={{ 
-                margin: '5px 0 0 0', 
-                opacity: 0.9,
-                fontSize: '0.9rem'
-              }}>
-                Manage your claimed subjects
-              </p>
+              <h3 style={{ margin:0, fontWeight:700, fontSize:'1.35rem', letterSpacing:'.4px' }}>My Subjects</h3>
+              <p style={{ margin:'6px 0 0', opacity:.9, fontSize:'.8rem', letterSpacing:.4 }}>Manage claimed subjects</p>
             </div>
-            <div style={{ marginLeft: 'auto', fontSize: '1rem', fontWeight: 'bold' }}>
-              {subjects.filter(subj => subj.teacher_id === user.teacher_id).length} Subject{subjects.filter(subj => subj.teacher_id === user.teacher_id).length !== 1 ? 's' : ''}
+            <div style={{ marginLeft:'auto', fontSize:'.75rem', fontWeight:700, background:'rgba(255,255,255,0.18)', padding:'6px 14px', borderRadius:24 }}>
+              {subjects.filter(subj => subj.teacher_id === user.teacher_id).length} total
             </div>
           </div>
 
           {/* Subjects Content */}
-          <div style={{ padding: 30 }}>
+          <div style={{ padding:18 }}>
             {loading ? (
               <div style={{ 
                 display: 'grid', 
@@ -940,115 +910,43 @@ const TeacherAddSubject = () => {
                 </button>
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-                gap: 25 
-              }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:24 }}>
                 {subjects.filter(subj => subj.teacher_id === user.teacher_id).map((subj, index) => (
                   <div 
                     key={subj.subject_id} 
                     className="card-hover"
-                    style={{ 
-                      background: 'linear-gradient(135deg, #fff 0%, #e8f5e8 100%)', 
-                      borderRadius: 15, 
-                      padding: 25, 
-                      border: '2px solid #e8f5e8',
-                      boxShadow: '0 8px 25px rgba(76,175,80,0.1)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      ...fadeInUp,
-                      animationDelay: `${index * 0.1}s`
-                    }}
+                    style={{ background:'linear-gradient(135deg,#ffffff 0%,#eef9ef 100%)', borderRadius:18, padding:20, border:'1px solid #d9ecd9', boxShadow:'0 8px 22px rgba(76,175,80,0.12)', position:'relative', overflow:'hidden', ...fadeInUp, animationDelay:`${index*0.08}s` }}
                   >
                     
                     {/* Claimed Badge */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 15,
-                      right: 15,
-                      background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
-                      color: 'white',
-                      borderRadius: 20,
-                      padding: '5px 12px',
-                      fontSize: '0.8rem',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5
-                    }}>
-                      ✅ Claimed
-                    </div>
+                    <div style={{ position:'absolute', top:12, right:12, background:'linear-gradient(135deg,#4caf50 0%,#2e7d32 100%)', color:'#fff', borderRadius:18, padding:'6px 12px', fontSize:'.65rem', fontWeight:700, letterSpacing:.5, boxShadow:'0 4px 10px rgba(76,175,80,0.25)' }}>CLAIMED</div>
                     
-                    <h4 style={{ 
-                      color: '#2e7d32', 
-                      marginBottom: 15, 
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-                      paddingRight: 100
-                    }}>
-                      📖 {subj.name}
-                    </h4>
+                    <h4 style={{ color:'#2e7d32', marginBottom:12, fontSize:'1.05rem', fontWeight:700, lineHeight:1.2, paddingRight:70 }}>📖 {subj.name}</h4>
                     
-                    <div style={{ marginBottom: 15, color: '#546e7a' }}>
-                      <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: '1rem' }}>🎓</span>
-                        <div>
-                          <strong>Course:</strong> {subj.course}
-                        </div>
+                    <div style={{ marginBottom:16, color:'#4b6354', fontSize:'.78rem', lineHeight:1.35 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                        <span><strong style={{ fontSize:'.7rem' }}>Course:</strong> {subj.course}</span>
+                        <span><strong style={{ fontSize:'.7rem' }}>Year:</strong> {subj.year_level}</span>
                       </div>
-                      <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: '1rem' }}>📅</span>
-                        <div>
-                          <strong>Year Level:</strong> {subj.year_level}
-                        </div>
-                      </div>
-                      <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: '1rem' }}>📆</span>
-                        <div>
-                          <strong>Semester:</strong> {subj.semester}
-                        </div>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                        <span><strong style={{ fontSize:'.7rem' }}>Semester:</strong> {subj.semester}</span>
+                        <span><strong style={{ fontSize:'.7rem' }}>ID:</strong> {subj.subject_id}</span>
                       </div>
                       {subj.requirements && (
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                          <span style={{ fontSize: '1rem', marginTop: 2 }}>📋</span>
-                          <div>
-                            <strong>Requirements:</strong>
-                            <div style={{ 
-                              marginTop: 5, 
-                              padding: 8, 
-                              background: '#f1f8e9', 
-                              borderRadius: 6,
-                              fontSize: '0.85rem'
-                            }}>
-                              {subj.requirements}
-                            </div>
+                        <div style={{ marginTop:6 }}>
+                          <strong style={{ fontSize:'.7rem' }}>Requirements:</strong>
+                          <div style={{ marginTop:4, padding:'6px 8px', background:'#f1f8e9', borderRadius:6, fontSize:'.65rem', maxHeight:60, overflow:'auto' }}>
+                            {subj.requirements}
                           </div>
                         </div>
                       )}
                     </div>
 
                     {/* Action Buttons */}
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: 12,
-                      flexWrap: 'wrap'
-                    }}>
+                    <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                       <button 
                         className="btn-hover"
-                        style={{ 
-                          background: 'linear-gradient(135deg, #2196f3 0%, #0277bd 100%)', 
-                          color: '#fff', 
-                          border: 'none', 
-                          borderRadius: 20, 
-                          padding: '10px 18px', 
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                          flex: 1,
-                          minWidth: 120,
-                          boxShadow: '0 4px 15px rgba(33,150,243,0.3)'
-                        }}
+                        style={{ background:'linear-gradient(135deg,#2196f3 0%,#0277bd 100%)', color:'#fff', border:'none', borderRadius:20, padding:'10px 16px', fontWeight:600, cursor:'pointer', fontSize:'.75rem', flex:1, minWidth:100, boxShadow:'0 4px 12px rgba(33,150,243,0.25)' }}
                         onClick={() => {
                           setEditing(subj);
                           setForm({
@@ -1068,19 +966,7 @@ const TeacherAddSubject = () => {
                       
                       <button 
                         className="btn-hover"
-                        style={{ 
-                          background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', 
-                          color: '#fff', 
-                          border: 'none', 
-                          borderRadius: 20, 
-                          padding: '10px 18px', 
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                          flex: 1,
-                          minWidth: 120,
-                          boxShadow: '0 4px 15px rgba(255,152,0,0.3)'
-                        }}
+                        style={{ background:'linear-gradient(135deg,#ff9800 0%,#f57c00 100%)', color:'#fff', border:'none', borderRadius:20, padding:'10px 16px', fontWeight:600, cursor:'pointer', fontSize:'.75rem', flex:1, minWidth:100, boxShadow:'0 4px 12px rgba(255,152,0,0.30)' }}
                         onClick={() => {
                           if (window.confirm(`Release "${subj.name}"? This will remove it from your subjects and make it available for other teachers.`)) {
                             unclaimSubject(subj.subject_id);
@@ -1088,24 +974,12 @@ const TeacherAddSubject = () => {
                         }}
                         disabled={loading}
                       >
-                        {loading ? '⏳ Releasing...' : '🔄 Release'}
+                        {loading ? '⏳' : '🔄 Release'}
                       </button>
                       
                       <button 
                         className="btn-hover"
-                        style={{ 
-                          background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', 
-                          color: '#fff', 
-                          border: 'none', 
-                          borderRadius: 20, 
-                          padding: '10px 18px', 
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                          flex: 1,
-                          minWidth: 120,
-                          boxShadow: '0 4px 15px rgba(244,67,54,0.3)'
-                        }}
+                        style={{ background:'linear-gradient(135deg,#f44336 0%,#d32f2f 100%)', color:'#fff', border:'none', borderRadius:20, padding:'10px 16px', fontWeight:600, cursor:'pointer', fontSize:'.75rem', flex:1, minWidth:100, boxShadow:'0 4px 12px rgba(244,67,54,0.30)' }}
                         onClick={() => {
                           if (window.confirm(`Delete "${subj.name}"? This action cannot be undone.`)) {
                             deleteSubject(subj.subject_id);
@@ -1113,7 +987,7 @@ const TeacherAddSubject = () => {
                         }}
                         disabled={loading}
                       >
-                        {loading ? '⏳ Deleting...' : '🗑️ Delete'}
+                        {loading ? '⏳' : '🗑️ Delete'}
                       </button>
                     </div>
                   </div>

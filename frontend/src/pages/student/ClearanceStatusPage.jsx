@@ -20,116 +20,24 @@ if (typeof document !== 'undefined' && !document.querySelector('#common-keyframe
 
 
 const styles = {
-  container: {
-    padding: '18px 16px',
-    margin: '0 auto',
-    background: gradients.light,
-    borderRadius: 16,
-    boxShadow: '0 6px 18px rgba(2,119,189,0.08)',
-    fontFamily: 'Segoe UI, Arial, sans-serif',
-    maxWidth: '1400px',
-    ...fadeInUp
-  },
-  heading: {
-    color: '#0277bd',
-    fontWeight: 700,
-    fontSize: typeScale.xxl,
-    marginBottom: 10,
-    letterSpacing: '.5px',
-    textAlign: 'center'
-  },
-  statusBox: {
-    marginBottom: 14,
-    background: gradients.card,
-    borderRadius: 10,
-    padding: '10px 12px',
-    boxShadow: '0 3px 10px rgba(2,119,189,0.06)',
-    fontSize: typeScale.xl,
-    color: '#2563eb',
-    border: '1px solid #e1f5fe'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    background: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    boxShadow: '0 4px 14px rgba(2,119,189,0.06)',
-    marginTop: 14,
-    border: '1px solid #e1f5fe'
-  },
-  th: {
-    background: gradients.primary,
-    color: '#fff',
-    border: 'none',
-    padding: '6px 8px',
-    fontWeight: 600,
-    textAlign: 'left',
-    fontSize: typeScale.lg,
-    letterSpacing: '.3px'
-  },
-  td: {
-    border: '1px solid #f0f0f0',
-    padding: '6px 8px',
-    color: '#333',
-    verticalAlign: 'top',
-    fontSize: typeScale.base
-  },
-  error: {
-    color: '#d32f2f',
-    background: gradients.light,
-    border: '2px solid #ffcdd2',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 16,
-    textAlign: 'center',
-    fontWeight: 600
-  },
-  button: {
-    ...buttonStyles.primary,
-    padding: '4px 10px',
-    fontSize: typeScale.base,
-    borderRadius: 6,
-    marginRight: 4,
-    boxShadow: '0 3px 8px rgba(2,119,189,0.18)'
-  },
-  label: {
-    display: 'block',
-    marginBottom: 4,
-    fontWeight: 600,
-    color: '#0277bd',
-    fontSize: typeScale.xl
-  },
-  input: {
-    padding: '6px 10px',
-    borderRadius: 8,
-    border: '2px solid #e1f5fe',
-    width: '100%',
-    maxWidth: 220,
-    fontSize: typeScale.lg,
-    color: '#333',
-    background: '#f8fafc',
-    transition: 'all 0.3s ease',
-    outline: 'none'
-  },
-  checklistItem: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: 4,
-    padding: '4px 6px',
-    borderRadius: 6,
-    background: '#f8fafc',
-    border: '1px solid #e1f5fe'
-  },
-  instructionBox: {
-    fontSize: typeScale.xs,
-    marginTop: 4,
-    padding: '6px 8px',
-    background: '#e3f2fd',
-    borderRadius: 6,
-    color: '#1976d2',
-    border: '1px solid #bbdefb'
-  }
+  container: { padding: '24px 20px', margin: '0 auto 60px', background: gradients.light, borderRadius: 24, boxShadow: '0 10px 30px -6px rgba(2,119,189,0.15)', fontFamily: 'Segoe UI, Arial, sans-serif', maxWidth: '1600px', ...fadeInUp },
+  hero: { background: 'linear-gradient(135deg,#0277bd 0%,#01579b 60%,#013e63 100%)', padding: '28px 26px', borderRadius: 18, position: 'relative', color: '#fff', overflow: 'hidden', marginBottom: 22, boxShadow: '0 12px 28px -8px rgba(2,119,189,0.35)' },
+  heroTitle: { margin: 0, fontSize: '2rem', fontWeight: 800, letterSpacing: '.75px', textShadow: '0 3px 8px rgba(0,0,0,0.25)' },
+  heroSubtitle: { margin: '6px 0 0', fontSize: typeScale.md, opacity: .92, fontWeight: 500, letterSpacing: '.25px' },
+  summaryGrid: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:14, marginBottom: 20 },
+  summaryCard: { background:'#fff', border:'1px solid #e1f5fe', borderRadius:16, padding:'14px 16px', boxShadow:'0 6px 14px rgba(2,119,189,0.08)', display:'flex', flexDirection:'column', gap:6, position:'relative', overflow:'hidden' },
+  progressBar: { display:'flex', width:'100%', height:10, borderRadius:6, overflow:'hidden', background:'#e3f2fd', boxShadow:'inset 0 1px 2px rgba(0,0,0,0.08)' },
+  table: { width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: '#fff', borderRadius: 18, overflow: 'hidden', boxShadow: '0 8px 22px -6px rgba(2,119,189,0.18)', marginTop: 14, border: '1px solid #e1f5fe' },
+  th: { background: 'linear-gradient(120deg,#0277bd 0%,#016aa9 50%,#015079 100%)', color: '#fff', border: 'none', padding: '10px 10px', fontWeight: 700, textAlign: 'left', fontSize: typeScale.base, letterSpacing: '.5px', position:'relative' },
+  td: { borderBottom: '1px solid #edf6fb', padding: '10px 10px', color: '#2d3e50', verticalAlign: 'top', fontSize: '0.78rem', lineHeight: 1.35, background:'#fff' },
+  error: { color: '#d32f2f', background: gradients.light, border: '2px solid #ffcdd2', padding: 15, borderRadius: 10, marginTop: 16, textAlign: 'center', fontWeight: 600 },
+  button: { ...buttonStyles.primary, padding: '6px 14px', fontSize: '0.65rem', borderRadius: 14, marginRight: 4, fontWeight: 700, letterSpacing: '.5px', boxShadow: '0 4px 12px rgba(2,119,189,0.25)' },
+  label: { display: 'block', marginBottom: 4, fontWeight: 600, color: '#0277bd', fontSize: typeScale.xl },
+  input: { padding: '8px 12px', borderRadius: 14, border: '2px solid #cae9f9', width: '100%', maxWidth: 240, fontSize: '0.75rem', color: '#1e3a5f', background: '#f5fbff', transition: 'all 0.25s ease', outline: 'none', fontWeight: 600 },
+  checklistItem: { display: 'flex', alignItems: 'center', marginBottom: 4, padding: '6px 8px', borderRadius: 10, background: 'linear-gradient(135deg,#ffffff 0%,#f2faff 100%)', border: '1px solid #d9eefb', boxShadow:'0 2px 4px rgba(2,119,189,0.06)' },
+  instructionBox: { fontSize: typeScale.xs, marginTop: 4, padding: '6px 8px', background: '#e3f2fd', borderRadius: 6, color: '#1976d2', border: '1px solid #bbdefb' },
+  badge: { display:'inline-flex', alignItems:'center', gap:4, color:'#fff', padding:'4px 10px', fontSize:'0.63rem', fontWeight:700, letterSpacing:'.5px', borderRadius:24, boxShadow:'0 2px 4px rgba(0,0,0,0.2)' }
+  ,checklistScroll: { maxHeight: 110, overflowY: 'auto', paddingRight: 4, scrollbarWidth: 'thin' }
 };
 
 const semesters = ['1st', '2nd'];
@@ -412,10 +320,71 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
 
   // Derive helper flags
   // (Removed unused derived flag needToRequest)
+  // Aggregated summary data
+  const subjectAgg = subjectStatuses.reduce((acc,s)=>{ acc[s.status]=(acc[s.status]||0)+1; return acc; },{});
+  const departmentAgg = departmentStatuses.reduce((acc,s)=>{ acc[s.status]=(acc[s.status]||0)+1; return acc; },{});
+  const totalSubjects = subjects.length;
+  const totalDepartments = departments.length;
+  const segBar = (approved, requested, pending, rejected) => {
+    const sum = (approved+requested+pending+rejected)||1;
+    const w = v => (v/sum)*100;
+    return (
+      <div style={styles.progressBar}>
+        <div style={{ width:w(approved)+'%', background:'linear-gradient(90deg,#4caf50,#2e7d32)', transition:'width .4s' }} />
+        <div style={{ width:w(requested)+'%', background:'linear-gradient(90deg,#ffb300,#ff9800)', transition:'width .4s' }} />
+        <div style={{ width:w(pending)+'%', background:'linear-gradient(90deg,#0288d1,#0277bd)', transition:'width .4s' }} />
+        <div style={{ width:w(rejected)+'%', background:'linear-gradient(90deg,#e53935,#c62828)', transition:'width .4s' }} />
+      </div>
+    );
+  };
+  const badge = (status) => {
+    if(!status) return <span style={{ ...styles.badge, background:'#90a4ae' }}>—</span>;
+    const map = {
+      Approved: { bg:'linear-gradient(135deg,#43a047,#1b5e20)', icon:'✅' },
+      Requested: { bg:'linear-gradient(135deg,#ff9800,#ef6c00)', icon:'🔄' },
+      Pending: { bg:'linear-gradient(135deg,#0277bd,#01579b)', icon:'⏳' },
+      Rejected: { bg:'linear-gradient(135deg,#e53935,#b71c1c)', icon:'❌' }
+    };
+    const cfg = map[status] || { bg:'linear-gradient(135deg,#607d8b,#455a64)', icon:'?' };
+    return <span style={{ ...styles.badge, background: cfg.bg }}>{cfg.icon} {status}</span>;
+  };
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>📝 My Clearance Status</h2>
+      <div style={styles.hero}>
+        <h1 style={styles.heroTitle}>📝 Clearance Status</h1>
+        <p style={styles.heroSubtitle}>Monitor progress for subjects and departments this semester.</p>
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(circle at 85% 25%, rgba(255,255,255,0.18), transparent 60%)', pointerEvents:'none' }} />
+      </div>
+      {clearance && (
+        <div style={styles.summaryGrid}>
+          <div style={styles.summaryCard}>
+            <div style={{ fontSize:'0.6rem', fontWeight:700, letterSpacing:'.75px', color:'#0277bd', textTransform:'uppercase' }}>Subjects Progress</div>
+            {segBar(subjectAgg.Approved||0, subjectAgg.Requested||0, (totalSubjects - ((subjectAgg.Approved||0)+(subjectAgg.Requested||0)+(subjectAgg.Rejected||0))), subjectAgg.Rejected||0)}
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.6rem', marginTop:6, fontWeight:600 }}>
+              <span>Approved {subjectAgg.Approved||0}</span>
+              <span>Requested {subjectAgg.Requested||0}</span>
+              <span>Rejected {subjectAgg.Rejected||0}</span>
+              <span>Total {totalSubjects}</span>
+            </div>
+          </div>
+          <div style={styles.summaryCard}>
+            <div style={{ fontSize:'0.6rem', fontWeight:700, letterSpacing:'.75px', color:'#0277bd', textTransform:'uppercase' }}>Departments Progress</div>
+            {segBar(departmentAgg.Approved||0, departmentAgg.Requested||0, (totalDepartments - ((departmentAgg.Approved||0)+(departmentAgg.Requested||0)+(departmentAgg.Rejected||0))), departmentAgg.Rejected||0)}
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.6rem', marginTop:6, fontWeight:600 }}>
+              <span>Approved {departmentAgg.Approved||0}</span>
+              <span>Requested {departmentAgg.Requested||0}</span>
+              <span>Rejected {departmentAgg.Rejected||0}</span>
+              <span>Total {totalDepartments}</span>
+            </div>
+          </div>
+          <div style={styles.summaryCard}>
+            <div style={{ fontSize:'0.6rem', fontWeight:700, letterSpacing:'.75px', color:'#0277bd', textTransform:'uppercase' }}>Clearance Status</div>
+            <div style={{ marginTop:6 }}>{badge(clearance?.status)}</div>
+            <div style={{ fontSize:'0.6rem', marginTop:6, fontWeight:600, color:'#455a64' }}>Semester: {selectedSemester || '1st'}</div>
+          </div>
+        </div>
+      )}
       <div style={{ marginBottom: 18 }}>
         <label style={styles.label}>Semester (optional)</label>
         <select
@@ -445,14 +414,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           )}
         </div>
       )}
-      {clearance && (
-        <div style={styles.statusBox}>
-          <strong>Status:</strong> <span style={{
-            color: clearance.status === 'Approved' ? '#43a047' : clearance.status === 'Rejected' ? '#e11d48' : clearance.status === 'Requested' ? '#0277bd' : '#f59e42',
-            fontWeight: 700
-          }}>{clearance.status}</span>
-        </div>
-      )}
+      {/* Individual clearance status box replaced by summary above */}
       {/* If no clearance for selected semester, show instruction and hide subjects/departments */}
       {!clearance && (
         <div style={{
@@ -500,7 +462,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                   <th style={styles.th}>Instructions</th>
                   <th style={styles.th}>Status</th>
                   <th style={styles.th}>Remarks</th>
-                  <th style={styles.th}>File Upload</th>
+                  <th style={styles.th}>Submission</th>
                   <th style={styles.th}>Action</th>
                 </tr>
               </thead>
@@ -569,56 +531,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                           return <span style={{ fontSize: '0.7rem', color: '#1976d2' }}>{raw}</span>;
                         })()}
                       </td>
-                      <td style={styles.td}>
-                        {status === 'Requested' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.info,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            🔄 Requested
-                          </span>
-                        )}
-                        {status === 'Approved' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.success,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            ✅ Approved
-                          </span>
-                        )}
-                        {status === 'Rejected' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.danger,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            ❌ Rejected
-                          </span>
-                        )}
-                        {status === 'Pending' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.warning,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            ⏳ Pending
-                          </span>
-                        )}
-                      </td>
+                      <td style={styles.td}>{badge(status)}</td>
                       <td style={styles.td}>
                         {(() => {
                           const statusObjLocal = subjectStatuses.find(s => s.subject_id === subject.subject_id);
@@ -641,7 +554,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                       <td style={styles.td}>
                         {/* If requirement is Checklist, show checklist UI */}
                         {(status === 'Pending' || status === 'Rejected') && reqObj.type === 'Checklist' ? (
-                          <div>
+                          <div style={reqObj.checklist && reqObj.checklist.length > 2 ? styles.checklistScroll : undefined}>
                             {reqObj.checklist && reqObj.checklist.length > 0 ? (
                               reqObj.checklist.map((item, idx) => (
                                 <label key={idx} style={styles.checklistItem}>
@@ -1065,56 +978,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                           return <span style={{ fontSize: '0.7rem', color: '#1976d2' }}>{raw}</span>;
                         })()}
                       </td>
-                      <td style={styles.td}>
-                        {deptStatus === 'Requested' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.info,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            🔄 Requested
-                          </span>
-                        )}
-                        {deptStatus === 'Approved' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.success,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            ✅ Approved
-                          </span>
-                        )}
-                        {deptStatus === 'Rejected' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.danger,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            ❌ Rejected
-                          </span>
-                        )}
-                        {deptStatus === 'Pending' && (
-                          <span style={{ 
-                            color: '#fff', 
-                            background: gradients.warning,
-                            padding: '3px 8px',
-                            borderRadius: 12,
-                            fontSize: '0.7rem',
-                            fontWeight: 600
-                          }}>
-                            ⏳ Pending
-                          </span>
-                        )}
-                      </td>
+                      <td style={styles.td}>{badge(deptStatus)}</td>
                       <td style={styles.td}>
                         {deptStatus === 'Rejected' && deptRemarks ? (
                           <button
@@ -1167,7 +1031,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                             )}
                           </div>
                         ) : (deptStatus === 'Pending' || deptStatus === 'Rejected') && deptReqObj.type === 'Checklist' ? (
-                          <div>
+                          <div style={deptReqObj.checklist && deptReqObj.checklist.length > 2 ? styles.checklistScroll : undefined}>
                             {(deptReqObj.checklist && deptReqObj.checklist.length > 0) ? (
                               (deptReqObj.checklist).map((item, cIdx) => (
                                 <label key={cIdx} style={styles.checklistItem}>

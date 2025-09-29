@@ -193,7 +193,8 @@ export const cardStyles = {
     borderRadius: 20,
     boxShadow: '0 10px 30px rgba(2,119,189,0.1)',
     overflow: 'hidden',
-    border: '2px solid #e1f5fe'
+    border: '2px solid #e1f5fe',
+    padding: 18
   },
   success: {
     background: gradients.cardSuccess,
@@ -214,6 +215,10 @@ export const cardStyles = {
     overflow: 'hidden'
   }
 };
+
+// Optional tighter / looser variants if needed elsewhere
+cardStyles.compact = { ...cardStyles.default, padding: 12 };
+cardStyles.roomy = { ...cardStyles.default, padding: 28 };
 
 // Common header styles
 export const headerStyles = {

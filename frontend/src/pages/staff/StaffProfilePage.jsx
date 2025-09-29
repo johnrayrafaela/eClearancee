@@ -5,7 +5,7 @@ import UnifiedProfileCard from '../../components/profiles/UnifiedProfileCard';
 import ProfileEditModal from '../../components/profiles/ProfileEditModal';
 import { pageStyles, fadeInUp, typeScale } from '../../style/CommonStyles';
 
-const TeacherProfilePage = () => {
+const StaffProfilePage = () => {
   const { user, userType, setUser } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -13,48 +13,49 @@ const TeacherProfilePage = () => {
   const [error, setError] = useState('');
 
   const hasFetchedRef = useRef(false);
-  const teacherId = user?.teacher_id;
+  const staffId = user?.staff_id;
   useEffect(()=> {
-    if (userType !== 'teacher' || !teacherId) return;
-    if (hasFetchedRef.current) return; // prevent redundant refetch flicker
+    if (userType !== 'staff' || !staffId) return;
+    if (hasFetchedRef.current) return; // avoid repeated fetch & flicker
     hasFetchedRef.current = true;
     let active = true;
     (async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/teachers/${teacherId}`);
+        const res = await axios.get(`http://localhost:5000/api/staff/${staffId}`);
         if(!active) return;
         setUser(prev => {
-          const merged = { ...prev, ...res.data };
-          const changed = Object.keys(res.data).some(k => res.data[k] !== prev?.[k]);
-          return changed ? merged : prev;
+          // Only update if data actually changed to prevent unnecessary re-renders
+            const merged = { ...prev, ...res.data };
+            const changed = Object.keys(res.data).some(k => res.data[k] !== prev?.[k]);
+            return changed ? merged : prev;
         });
       } catch { /* silent */ } finally { if(active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [userType, teacherId, setUser]);
+  }, [userType, staffId, setUser]);
 
   const submit = async (form) => {
-    if(!user?.teacher_id) return false;
+    if(!user?.staff_id) return false;
     setSaving(true); setError('');
     try {
       const payload = { firstname:form.firstname, lastname:form.lastname, email:form.email };
-      if(form.password) payload.password = form.password;
-      await axios.put(`http://localhost:5000/api/teachers/${user.teacher_id}`, payload);
-      setUser(prev => ({ ...prev, ...payload }));
-      localStorage.setItem('user', JSON.stringify({ ...user, ...payload }));
+      if(form.password) payload.password = form.password; // optional password change
+      const res = await axios.put(`http://localhost:5000/api/staff/${user.staff_id}`, payload);
+      setUser({ ...user, ...res.data });
+      localStorage.setItem('user', JSON.stringify({ ...user, ...res.data }));
       return true;
     } catch(err){ setError(err.response?.data?.message || 'Update failed'); return false; }
     finally { setSaving(false); }
   };
 
-  if(userType !== 'teacher') return <div style={{ padding:40, textAlign:'center', color:'#c62828' }}>Access denied.</div>;
+  if(userType !== 'staff') return <div style={{ padding:40, textAlign:'center', color:'#c62828' }}>Access denied.</div>;
   if(!user) return <div style={{ padding:40, textAlign:'center' }}>Loading profile...</div>;
 
   return (
     <div style={{ ...pageStyles.container, minHeight:'calc(100vh - 70px)', paddingTop:30 }}>
       <div style={{ ...pageStyles.content, ...fadeInUp }}>
-        <UnifiedProfileCard role='teacher' user={user} editable onEdit={()=> setEditOpen(true)} />
+        <UnifiedProfileCard role='staff' user={user} editable onEdit={()=> setEditOpen(true)} />
   {loading && <div style={{ marginTop:18, textAlign:'center', fontSize:typeScale.base, color:'#0277bd', fontWeight:600 }}>Loading profile...</div>}
       </div>
       <ProfileEditModal
@@ -76,4 +77,4 @@ const TeacherProfilePage = () => {
   );
 };
 
-export default TeacherProfilePage;
+export default StaffProfilePage;

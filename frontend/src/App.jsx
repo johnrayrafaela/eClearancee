@@ -9,6 +9,7 @@ import AdminDashboard from './pages/admin/Admindashboard';
 import FacultyDepartmentRequests from './pages/staff/FacultyDepartmentRequests';
 import FacultyDepartmentRequirements from './pages/staff/FacultyDepartmentRequirements';
 import StaffDashboard from './pages/staff/Staffdashboard';
+import StaffProfilePage from './pages/staff/StaffProfilePage';
 
 import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage'; // Import Teacher Analytics Page
 import TeacherProfilePage from './pages/teacher/TeacherProfilePage';
@@ -51,6 +52,7 @@ function App() {
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/staff/department-requests" element={<FacultyDepartmentRequests />} />
           <Route path="staff/department-requirements" element={<FacultyDepartmentRequirements />} /> 
+          <Route path="/staff/profile" element={<StaffProfilePage />} />
 
           {/* Student routes */}
           <Route path='/student/clearancestatus' element={<ClearanceStatusPage/>}/>

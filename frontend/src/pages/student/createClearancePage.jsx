@@ -1,12 +1,18 @@
 import React, { useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
-import { injectKeyframes, headerStyles, gradients, cardStyles, modalStyles, composeButton, colors, badgeStyles } from '../../style/theme';
+import { injectKeyframes, gradients, cardStyles, modalStyles, composeButton, colors, badgeStyles } from '../../style/theme';
 
 // Themed style helpers
 const styles = {
-  container: { padding: '50px 30px 60px', maxWidth: 1400, margin: '0 auto', fontFamily: 'Segoe UI, system-ui, Arial', position: 'relative' },
-  headingWrap: { textAlign: 'center', marginBottom: 34 },
+  container: { padding: '36px 30px 60px', maxWidth: 1400, margin: '0 auto', fontFamily: 'Segoe UI, system-ui, Arial', position: 'relative' },
+  hero: { background: gradients.hero, padding: '38px 44px', borderRadius: 28, position: 'relative', overflow: 'hidden', marginBottom: 34, boxShadow: '0 18px 50px -12px rgba(2,119,189,0.45)', color: '#fff' },
+  heroTitle: { margin: 0, fontWeight: 900, fontSize: '2.3rem', letterSpacing: 1.2, textShadow: '0 3px 10px rgba(0,0,0,0.35)' },
+  heroSubtitle: { margin: '10px 0 0', fontSize: '1.05rem', fontWeight: 500, opacity: .92, letterSpacing: .4 },
+  summaryBar: { display: 'flex', flexWrap: 'wrap', gap: 16, margin: '-18px 0 26px', position: 'relative', zIndex: 2 },
+  metricCard: { flex: '1 1 180px', minWidth: 160, background: 'linear-gradient(135deg,#ffffff 0%,#f1f9ff 100%)', border: '1px solid #e1f5fe', borderRadius: 20, padding: '14px 18px', boxShadow: '0 6px 16px rgba(2,119,189,0.12)', display: 'flex', flexDirection: 'column', gap: 4 },
+  metricLabel: { fontSize: 12, fontWeight: 700, letterSpacing: .65, textTransform: 'uppercase', color: colors.primary },
+  metricValue: { fontSize: 20, fontWeight: 800, letterSpacing: .6, color: '#0f3757' },
   panel: cardStyles.panel,
   section: cardStyles.section,
   error: { color: colors.danger, background: '#fef2f2', border: '1px solid #fecaca', padding: 14, borderRadius: 14, marginTop: 20, textAlign: 'center', fontWeight: 600, letterSpacing: .3 },
@@ -201,9 +207,36 @@ const CreateClearancePage = () => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.headingWrap}>
-        <h1 style={headerStyles.pageTitle}>📄 Clearance Request</h1>
-        <p style={headerStyles.subtitle}>Create and manage your semester clearance request with selected subjects.</p>
+      {/* Hero Header */}
+      <div style={styles.hero}>
+        <h1 style={styles.heroTitle}>📄 Create Clearance</h1>
+        <p style={styles.heroSubtitle}>Start or manage your clearance request by choosing a semester and selecting subjects you are enrolled in.</p>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .18, background: 'radial-gradient(circle at 70% 30%,rgba(255,255,255,0.8),transparent 60%)' }} />
+      </div>
+      {/* Summary Metrics */}
+      <div style={styles.summaryBar}>
+        <div style={styles.metricCard}>
+          <span style={styles.metricLabel}>Current Step</span>
+          <span style={styles.metricValue}>{currentStep} / 3</span>
+        </div>
+        <div style={styles.metricCard}>
+          <span style={styles.metricLabel}>Semester</span>
+          <span style={styles.metricValue}>{selectedSemester || '—'}</span>
+        </div>
+        <div style={styles.metricCard}>
+          <span style={styles.metricLabel}>Subjects Found</span>
+          <span style={styles.metricValue}>{subjects.length || 0}</span>
+        </div>
+        <div style={styles.metricCard}>
+          <span style={styles.metricLabel}>Selected</span>
+          <span style={styles.metricValue}>{selectedSubjects.length}</span>
+        </div>
+        {clearance && (
+          <div style={styles.metricCard}>
+            <span style={styles.metricLabel}>Clearance Status</span>
+            <span style={{ ...styles.metricValue, fontSize:18 }}>{clearance.status}</span>
+          </div>
+        )}
       </div>
 
       {/* Steps Progress */}
@@ -343,23 +376,36 @@ const CreateClearancePage = () => {
                         </button>
                         <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} SELECTED</div>
                       </div>
+                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>Click a row to select / deselect. Use the search and sort controls to narrow down subjects.</p>
                       <div style={{ maxHeight:260, overflow:'auto', border:'2px solid #e1f5fe', borderRadius:16 }}>
                         <table style={{ ...styles.table, marginTop:0 }}>
-                          <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Teacher</th><th style={styles.th}>Action</th></tr></thead>
+                          <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Teacher</th><th style={styles.th}>Selected</th></tr></thead>
                           <tbody>
-                            {filteredSubjects.map(sub => (
-                              <tr key={sub.subject_id} style={{ transition:'background .25s' }}>
-                                <td style={styles.td}>{sub.name}</td>
-                                <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
-                                <td style={styles.td}>
-                                  {selectedSubjects.some(s=>s.subject_id===sub.subject_id) ? (
-                                    <button style={{ ...composeButton('warning'), padding:'6px 14px', borderRadius:14, fontSize:11 }} onClick={e=>{e.preventDefault(); setSelectedSubjects(selectedSubjects.filter(s=> s.subject_id!==sub.subject_id));}}>Remove</button>
-                                  ) : (
-                                    <button style={{ ...composeButton('success'), padding:'6px 14px', borderRadius:14, fontSize:11 }} onClick={e=>{e.preventDefault(); setSelectedSubjects([...selectedSubjects, sub]);}}>Add</button>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
+                            {filteredSubjects.map(sub => {
+                              const isSelected = selectedSubjects.some(s=> s.subject_id === sub.subject_id);
+                              return (
+                                <tr
+                                  key={sub.subject_id}
+                                  onClick={() => {
+                                    setSelectedSubjects(prev => {
+                                      if (isSelected) return prev.filter(p => p.subject_id !== sub.subject_id);
+                                      return [...prev, sub];
+                                    });
+                                  }}
+                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : undefined }}
+                                >
+                                  <td style={styles.td}>{sub.name}</td>
+                                  <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
+                                  <td style={styles.td}>
+                                    {isSelected ? (
+                                      <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:'#e8f5e9', color:'#2e7d32', fontWeight:700, fontSize:11, padding:'4px 10px', borderRadius:20 }}>✓ Selected</span>
+                                    ) : (
+                                      <span style={{ display:'inline-flex', alignItems:'center', gap:4, background:'#fff3e0', color:'#ef6c00', fontWeight:700, fontSize:11, padding:'4px 10px', borderRadius:20 }}>⬤ Not Selected</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
                             {!filteredSubjects.length && (
                               <tr><td style={styles.td} colSpan={3}>(No matches)</td></tr>
                             )}
