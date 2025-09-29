@@ -31,6 +31,7 @@ exports.getTeacherSubjectStatusAnalytics = async (req, res) => {
 const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 const Subject = require('../models/Subject');
 const User = require('../models/User');
+const { Sequelize } = require('sequelize');
 
 // Handle subject approval request with multiple file uploads
 exports.requestSubjectApproval = async (req, res) => {
@@ -61,17 +62,36 @@ exports.requestSubjectApproval = async (req, res) => {
       }
     }
     if (!record) {
-      // Create fresh record
-      record = await StudentSubjectStatus.create({
-        student_id,
-        subject_id,
-        semester: effectiveSemester,
-        status: 'Requested',
-        requirements: requirements || '',
-        file_paths: file_paths.length ? file_paths.join(',') : null,
-        checklist: checklist ? JSON.stringify(checklist) : null,
-        link: link || null
-      });
+      // Create fresh record (handle race condition with unique constraint)
+      try {
+        record = await StudentSubjectStatus.create({
+          student_id,
+          subject_id,
+          semester: effectiveSemester,
+          status: 'Requested',
+          requirements: requirements || '',
+          file_paths: file_paths.length ? file_paths.join(',') : null,
+          checklist: checklist ? JSON.stringify(checklist) : null,
+          link: link || null
+        });
+      } catch (errCreate) {
+        // If another request slipped in and created the row first, update that instead
+        if (errCreate.name === 'SequelizeUniqueConstraintError') {
+          record = await StudentSubjectStatus.findOne({ where: { student_id, subject_id, semester: effectiveSemester } });
+          if (record) {
+            record.status = 'Requested';
+            record.requirements = requirements || '';
+            if (file_paths.length) record.file_paths = file_paths.join(',');
+            if (checklist) record.checklist = JSON.stringify(checklist);
+            if (link) record.link = link;
+            await record.save();
+          } else {
+            throw errCreate; // unexpected: rethrow
+          }
+        } else {
+          throw errCreate;
+        }
+      }
     } else {
       // Update existing record to Requested
       record.status = 'Requested';
@@ -159,10 +179,16 @@ exports.getRequestsForTeacher = async (req, res) => {
 
 exports.respondToRequest = async (req, res) => {
   const { id } = req.params; // StudentSubjectStatus id
-  const { status } = req.body; // 'Approved' or 'Rejected'
+  const { status, remarks } = req.body; // status + optional remarks (on rejection)
   const record = await StudentSubjectStatus.findByPk(id);
   if (!record) return res.status(404).json({ message: 'Request not found' });
   record.status = status;
+  if (status === 'Rejected') {
+    record.remarks = remarks || null; // store teacher feedback
+  } else if (status === 'Approved') {
+    // Clear old remarks on approval to avoid confusion
+    record.remarks = null;
+  }
   await record.save();
   res.json({ message: `Request ${status.toLowerCase()}.`, record });
 };
@@ -174,7 +200,7 @@ exports.getRequestedStatuses = async (req, res) => {
     if (semester) where.semester = semester;
     const statuses = await require('../models/StudentSubjectStatus').findAll({
       where,
-      attributes: ['subject_id', 'status', 'file_path', 'file_paths', 'link', 'checklist', 'semester']
+      attributes: ['subject_id', 'status', 'file_path', 'file_paths', 'link', 'checklist', 'semester','remarks']
     });
     // Parse checklist and file_paths for frontend compatibility
     const parsedStatuses = statuses.map(s => {

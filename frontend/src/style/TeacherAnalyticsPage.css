@@ -1,41 +1,9 @@
-.teacher-analytics-root {
-  padding: 2rem;
-  margin: 0 auto;
-  background: #f9fafd;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(2,119,189,0.07);
-  font-family: 'Segoe UI', Arial, sans-serif;
-  Width: 400px;
-}
-.teacher-analytics-heading {
-  color: #0277bd;
-  font-weight: 900;
-  font-size: 2rem;
-  margin-bottom: 0;
-  letter-spacing: 1px;
-  text-align: center;
-}
-.teacher-analytics-semester-select {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1.5px solid #b3e5fc;
-  background: #fff;
-  color: #0277bd;
-  font-size: 1rem;
-  min-width: 120px;
-  outline: none;
-  margin-bottom: 24px;
-}
-.teacher-analytics-pie-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 32px;
-  margin-bottom: 32px;
-}
-.teacher-analytics-nodata {
-  color: #e11d48;
-  font-weight: 600;
-  text-align: center;
-  margin-top: 24px;
-}
+.teacher-analytics-root { padding:16px 14px; margin:0 auto; background:#f9fafd; border-radius:10px; box-shadow:0 2px 8px rgba(2,119,189,0.06); font-family:'Segoe UI', Arial, sans-serif; max-width:420px; }
+.teacher-analytics-heading { color:#0277bd; font-weight:700; font-size:0.9rem; margin:0 0 4px 0; letter-spacing:.5px; text-align:center; }
+.teacher-analytics-controls { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:4px; }
+.teacher-analytics-label { font-weight:600; color:#0277bd; font-size:.65rem; }
+.teacher-analytics-semester-select { padding:4px 8px; border-radius:6px; border:1px solid #b3e5fc; background:#fff; color:#0277bd; font-size:.65rem; min-width:90px; outline:none; }
+.teacher-analytics-pie-container { display:flex; flex-direction:column; align-items:center; margin:8px 0 8px 0; }
+.teacher-analytics-nodata { color:#e11d48; font-weight:600; text-align:center; margin-top:12px; font-size:.65rem; }
+.compact-select:focus { box-shadow:0 0 0 2px rgba(2,119,189,0.15); }
+.compact-heading { font-size:.95rem; }

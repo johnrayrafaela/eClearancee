@@ -458,3 +458,36 @@ export const colors = {
   dark: '#263238',
   muted: '#90a4ae'
 };
+
+// Compact typography scale (for pages adopting the smaller, denser layout)
+// These values mirror the sizing approach already used in TeacherSubjectRequests.jsx
+export const typeScale = {
+  xxs: '.55rem',
+  xs: '.6rem',
+  sm: '.65rem',
+  base: '.7rem',
+  md: '.75rem',
+  lg: '.8rem',
+  xl: '.9rem',
+  xxl: '1rem'
+};
+
+// Helper: commonly re-used compact card padding & font reduction
+export const compact = {
+  cardPadding: '14px 16px',
+  sectionGap: 12,
+  heading: {
+    fontSize: typeScale.lg,
+    fontWeight: 600,
+    margin: 0
+  },
+  subHeading: {
+    fontSize: typeScale.base,
+    fontWeight: 600,
+    margin: 0
+  },
+  text: {
+    fontSize: typeScale.base,
+    lineHeight: 1.3
+  }
+};

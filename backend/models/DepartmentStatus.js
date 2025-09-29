@@ -43,6 +43,21 @@ const DepartmentStatus = sequelize.define('DepartmentStatus', {
     allowNull: true,
     // You can store a comma-separated string, or use TEXT if requirements are long
   },
+  link: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Submitted link when requirement type is Link'
+  },
+  checklist: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'JSON serialized array of booleans representing checklist completion for department requirements'
+  },
+  remarks: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Staff feedback when a department request is rejected'
+  }
 });
 
 

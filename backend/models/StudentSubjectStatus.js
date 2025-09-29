@@ -12,6 +12,7 @@ const StudentSubjectStatus = sequelize.define('StudentSubjectStatus', {
   checklist: { type: DataTypes.TEXT, allowNull: true }, // JSON stringified array of booleans
   semester: { type: DataTypes.STRING, allowNull: true },
   link: { type: DataTypes.TEXT, allowNull: true },
+  remarks: { type: DataTypes.TEXT, allowNull: true }, // teacher feedback on rejection
   // Optionally: request_date, response_date, remarks, etc.
 });
 

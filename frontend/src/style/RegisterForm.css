@@ -7,24 +7,14 @@
   100% { opacity: 1; transform: scale(1);}
 }
 
-.register-container {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  padding: 2.5rem 2rem;
-  max-width: 500px;
-  margin: 2rem auto;
-  font-family: 'Segoe UI', sans-serif;
-  animation: fadeIn 0.7s ease;
-}
+/* Global box-sizing for this scope */
+*, *::before, *::after { box-sizing: border-box; }
 
-.register-title {
-  text-align: center;
-  color: #0288d1;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  font-size: 1.7rem;
-}
+.register-container { background:#fff; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.07); padding:2.5rem 2rem; max-width:500px; margin:2rem auto; font-family:'Segoe UI',sans-serif; animation:fadeIn .7s ease; }
+.compact-register { padding:1.5rem 1.2rem; max-width:440px; }
+
+.register-title { text-align:center; color:#0288d1; font-weight:bold; margin-bottom:1.5rem; font-size:1.7rem; }
+.compact-register .register-title { font-size:1rem; margin-bottom:.9rem; }
 
 .register-title-bar {
   color: #ffc107;
@@ -47,29 +37,11 @@
   display: block;
 }
 
-.register-select,
-.register-input {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #b3e5fc;
-  margin-bottom: 1.2rem;
-  font-size: 1rem;
-}
+.register-select, .register-input { width:100%; max-width:100%; padding:.6rem; border-radius:6px; border:1px solid #b3e5fc; margin-bottom:1.2rem; font-size:1rem; box-sizing:border-box; display:block; }
+.compact-input { padding:.45rem .55rem !important; font-size:.7rem !important; margin-bottom:.6rem !important; border-radius:5px !important; }
 
-.register-button {
-  width: 100%;
-  background: #0288d1;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.7rem;
-  font-weight: bold;
-  font-size: 1.1rem;
-  cursor: pointer;
-  margin-top: 1rem;
-  transition: background 0.2s;
-}
+.register-button { width:100%; max-width:100%; background:#0288d1; color:#fff; border:none; border-radius:6px; padding:.7rem; font-weight:bold; font-size:1.1rem; cursor:pointer; margin-top:1rem; transition:background .2s; box-sizing:border-box; }
+.compact-btn { font-size:.75rem !important; padding:.5rem .6rem !important; }
 
 .register-message {
   text-align: center;
@@ -86,12 +58,8 @@
   margin-bottom: 1.2rem;
 }
 
-.register-options-row {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin: 2.5rem 0 2rem 0;
-}
+.register-options-row { display:flex; justify-content:center; gap:3rem; margin:2.5rem 0 2rem; }
+.compact-options { gap:1.6rem; margin:1.2rem 0 1rem; }
 .register-option {
   display: flex;
   flex-direction: column;
@@ -102,18 +70,10 @@
 .register-option:hover {
   transform: translateY(-6px) scale(1.04);
 }
-.register-option-img {
-  width: 110px;
-  height: 110px;
-  margin-bottom: 10px;
-}
-.register-option-label {
-  color: #006eae;
-  font-weight: 700;
-  text-align: center;
-  font-size: 1.1rem;
-  letter-spacing: 0.5px;
-}
+.register-option-img { width:110px; height:110px; margin-bottom:10px; }
+.compact-option .register-option-img { width:70px; height:70px; margin-bottom:6px; }
+.register-option-label { color:#006eae; font-weight:700; text-align:center; font-size:1.1rem; letter-spacing:.5px; }
+.compact-option .register-option-label { font-size:.65rem; line-height:1.1; }
 .success-text {
   color: #0277bd;
   font-weight: bold;

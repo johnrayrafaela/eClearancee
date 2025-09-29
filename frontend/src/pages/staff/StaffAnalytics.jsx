@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import {
+import { 
   fadeInUp,
   keyframes,
   gradients,
@@ -15,21 +15,20 @@ import {
   typeScale,
 } from '../../style/CommonStyles';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+const StaffAnalytics = () => {
+  // Register chart components once (safe to call multiple times)
+  ChartJS.register(ArcElement, Tooltip, Legend);
+  const { user, userType } = useContext(AuthContext);
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const TeacherAnalyticsPage = () => {
-  const { user, userType } = React.useContext(AuthContext);
-  const [analytics, setAnalytics] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-  const [selectedSemester, setSelectedSemester] = React.useState('all');
+  useEffect(() => { injectKeyframes(); }, []);
 
-  React.useEffect(() => { injectKeyframes(); }, []);
-
-  React.useEffect(() => {
-    if (!user || userType !== 'teacher') return;
+  useEffect(() => {
+    if (!user || userType !== 'staff') return;
     setLoading(true); setError(null);
-    axios.get('http://localhost:5000/api/student-subject-status/analytics/teacher', { params: { teacher_id: user.teacher_id } })
+    axios.get('http://localhost:5000/api/department-status/analytics/staff', { params: { staff_id: user.staff_id } })
       .then(res => setAnalytics(res.data))
       .catch(err => setError(err.response?.data?.message || 'Failed to load analytics'))
       .finally(() => setLoading(false));
@@ -50,19 +49,12 @@ const TeacherAnalyticsPage = () => {
   const overallApprovalRate = grandTotal ? ((totalApproved / grandTotal) * 100).toFixed(1) : '0.0';
   const overallRejectionRate = grandTotal ? ((totalRejected / grandTotal) * 100).toFixed(1) : '0.0';
 
-  // Filtered data for doughnut based on selectedSemester
-  const filtered = (() => {
-    if (selectedSemester === '1st') return sem1;
-    if (selectedSemester === '2nd') return sem2;
-    return { Requested: totalRequested, Approved: totalApproved, Rejected: totalRejected };
-  })();
-  const filteredTotal = filtered.Requested + filtered.Approved + filtered.Rejected;
-
+  // Pie (Doughnut) chart configuration
   const pieData = {
     labels: ['Approved', 'Requested', 'Rejected'],
     datasets: [
       {
-        data: [filtered.Approved, filtered.Requested, filtered.Rejected],
+        data: [totalApproved, totalRequested, totalRejected],
         backgroundColor: ['#4caf50', '#ffb300', '#e53935'],
         borderColor: ['#2e7d32', '#ef6c00', '#c62828'],
         borderWidth: 1,
@@ -77,14 +69,17 @@ const TeacherAnalyticsPage = () => {
     plugins: {
       legend: {
         position: 'bottom',
-        labels: { boxWidth: 14, padding: 12, font: { size: 12 } }
+        labels: {
+          boxWidth: 14,
+          padding: 12,
+          font: { size: 12 }
+        }
       },
       tooltip: {
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed;
-            const base = filteredTotal || 1;
-            const pct = ((value / base) * 100).toFixed(1);
+            const pct = grandTotal ? ((value / grandTotal) * 100).toFixed(1) : 0;
             return `${ctx.label}: ${value} (${pct}%)`;
           }
         }
@@ -93,8 +88,6 @@ const TeacherAnalyticsPage = () => {
     animation: { animateRotate: true, animateScale: true },
     cutout: '52%'
   };
-
-  // (Removed unused cardShadow styling from original staff analytics adaptation)
 
   const buildBar = (counts) => {
     const { Approved, Requested, Rejected } = counts;
@@ -160,17 +153,18 @@ const TeacherAnalyticsPage = () => {
     <div style={pageStyles.container}>
       <style>{keyframes}</style>
       <div style={pageStyles.content}>
-        {/* Hero Header */}
         <div style={{ ...pageStyles.hero, ...fadeInUp, padding:24 }}>
           <div style={{ fontSize:'1.4rem', marginBottom:8 }}>📊</div>
-          <h1 style={{ ...headerStyles.pageTitle, color:'#fff', fontSize:typeScale.xxl, textShadow:'1px 1px 2px rgba(0,0,0,0.25)', marginBottom:4 }}>Teacher Subject Analytics</h1>
-          <p style={{ fontSize:typeScale.md, opacity:.9, margin:0, lineHeight:1.3 }}>
-            Track subject approval outcomes across semesters.
-          </p>
+            <h1 style={{ ...headerStyles.pageTitle, color:'#fff', fontSize:typeScale.xxl, textShadow:'1px 1px 2px rgba(0,0,0,0.25)', marginBottom:4 }}>
+              Staff Department Analytics
+            </h1>
+            <p style={{ fontSize:typeScale.md, opacity:.9, margin:0, lineHeight:1.3 }}>
+              Overview of student department clearance requests linked to your departments.
+            </p>
         </div>
 
-        {/* Semester Cards */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:16, marginBottom:18 }}>
+          {/* Semester Cards */}
           {loading ? (
             <div style={{ background:'#eceff1', borderRadius:12, height:120, animation:'shimmer 1.5s infinite' }} />
           ) : error ? (
@@ -183,30 +177,17 @@ const TeacherAnalyticsPage = () => {
           )}
         </div>
 
-        {/* Overall Summary + Pie */}
-        <div style={{ ...cardStyles.default, animation:'fadeInUp .6s ease', animationDelay:'.15s' }}>
+        {/* Summary Card */}
+        <div style={{
+          ...cardStyles.default,
+          animation:'fadeInUp .6s ease',
+          animationDelay:'.15s'
+        }}>
           <div style={{ background:gradients.primary, padding:'14px 16px', color:'#fff', display:'flex', alignItems:'center', gap:10 }}>
             <div style={{ fontSize:'1.4rem' }}>📈</div>
             <div>
               <h3 style={{ margin:0, fontWeight:600, fontSize:typeScale.xl, letterSpacing:'.25px' }}>Overall Summary</h3>
-              <p style={{ margin:'2px 0 0 0', opacity:.9, fontSize:typeScale.md }}>Combined performance (all semesters or filtered).</p>
-            </div>
-            <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8 }}>
-              <label style={{ fontSize:typeScale.sm, fontWeight:600, color:'#e1f5fe' }}>View:</label>
-              <select value={selectedSemester} onChange={e=>setSelectedSemester(e.target.value)} style={{
-                padding:'6px 10px',
-                borderRadius:10,
-                border:'1px solid rgba(255,255,255,0.6)',
-                background:'rgba(255,255,255,0.15)',
-                color:'#fff',
-                fontSize:typeScale.sm,
-                backdropFilter:'blur(4px)',
-                outline:'none'
-              }}>
-                <option value="all">All</option>
-                <option value="1st">1st</option>
-                <option value="2nd">2nd</option>
-              </select>
+              <p style={{ margin:'2px 0 0 0', opacity:.9, fontSize:typeScale.md }}>Consolidated performance across both semesters.</p>
             </div>
           </div>
           <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:18 }}>
@@ -234,19 +215,25 @@ const TeacherAnalyticsPage = () => {
               </div>
             </div>
 
-            <div style={{ display:'flex', flexWrap:'wrap', gap:18, alignItems:'stretch' }}>
+            {/* Pie Chart Visualization */}
+            <div style={{
+              display:'flex',
+              flexWrap:'wrap',
+              gap:18,
+              alignItems:'stretch'
+            }}>
               <div style={{ flex:'1 1 280px', minWidth:260, background:'#fafafa', border:'1px solid #e0f2f1', borderRadius:16, padding:'14px 16px', boxShadow:'0 2px 6px rgba(0,0,0,0.05)', position:'relative' }}>
                 <h4 style={{ margin:'0 0 8px 0', fontSize:typeScale.lg, fontWeight:600, color:'#006064', letterSpacing:'.25px', display:'flex', alignItems:'center', gap:6 }}>
-                  <span>🧮</span> Distribution ({selectedSemester === 'all' ? 'All' : selectedSemester})
+                  <span>🧮</span> Distribution Pie
                 </h4>
-                {filteredTotal === 0 ? (
+                {grandTotal === 0 ? (
                   <div style={{ fontSize:typeScale.base, color:'#546e7a', padding:'12px 4px' }}>No data yet to visualize.</div>
                 ) : (
                   <div style={{ height:260, position:'relative' }}>
                     <Doughnut data={pieData} options={pieOptions} />
                     <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', textAlign:'center', pointerEvents:'none' }}>
                       <div style={{ fontSize:typeScale.sm, fontWeight:600, color:'#37474f' }}>Total</div>
-                      <div style={{ fontSize:typeScale.xl, fontWeight:700, color:'#01579b' }}>{filteredTotal}</div>
+                      <div style={{ fontSize:typeScale.xl, fontWeight:700, color:'#01579b' }}>{grandTotal}</div>
                     </div>
                   </div>
                 )}
@@ -263,10 +250,10 @@ const TeacherAnalyticsPage = () => {
             </div>
 
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginTop:4 }}>
-              <a href="/teacher/dashboard" style={{ textDecoration:'none' }} className="btn-hover">
+              <a href="/staff/dashboard" style={{ textDecoration:'none' }} className="btn-hover">
                 <div style={{ ...buttonStyles.secondary, padding:'8px 18px', borderRadius:18, fontSize:typeScale.base }}>⬅ Back to Dashboard</div>
               </a>
-              <a href="/teacher/subject-requests" style={{ textDecoration:'none' }} className="btn-hover">
+              <a href="/staff/department-requests" style={{ textDecoration:'none' }} className="btn-hover">
                 <div style={{ ...buttonStyles.primary, padding:'8px 18px', borderRadius:18, fontSize:typeScale.base }}>📋 Manage Requests</div>
               </a>
             </div>
@@ -277,4 +264,4 @@ const TeacherAnalyticsPage = () => {
   );
 };
 
-export default TeacherAnalyticsPage;
+export default StaffAnalytics;

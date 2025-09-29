@@ -3,6 +3,7 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../Context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import '../style/RegisterForm.css';
+import { typeScale } from '../style/CommonStyles';
 import logo from '../assets/image/logo/eClearance.png'; // Ensure this path is correct
 
 const RegisterForm = () => {
@@ -63,14 +64,12 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="register-container">
-      <h2 className="register-title">
+    <div className="register-container compact-register">
+      <h2 className="register-title" style={{ fontSize: typeScale.xxl, marginBottom: '1rem', letterSpacing: '.3px' }}>
         <span className="register-title-bar">|</span>
         eClearance <span className="register-title-light">Registration</span>
       </h2>
-      <div className="register-subtitle">
-        Automated School Clearance Proccessing System
-      </div>
+      <div className="register-subtitle" style={{ fontSize: typeScale.base, marginBottom: '1.2rem' }}>Automated School Clearance System</div>
       {showSuccess && (
         <div className="success-anim">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -84,9 +83,9 @@ const RegisterForm = () => {
       )}
       {message && !showSuccess && <p className="register-message">{message}</p>}
       {!showSuccess && (!showForm ? (
-        <div className="register-options-row">
+  <div className="register-options-row compact-options">
           <div
-            className="register-option"
+            className="register-option compact-option"
             onClick={() => { setAccountType('faculty'); setShowForm(true); }}
           >
             <img
@@ -99,7 +98,7 @@ const RegisterForm = () => {
             </div>
           </div>
           <div
-            className="register-option"
+            className="register-option compact-option"
             onClick={() => { setAccountType('teacher'); setShowForm(true); }}
           >
             <img
@@ -112,7 +111,7 @@ const RegisterForm = () => {
             </div>
           </div>
           <div
-            className="register-option"
+            className="register-option compact-option"
             onClick={() => { setAccountType('user'); setShowForm(true); }}
           >
             <img
@@ -142,7 +141,7 @@ const RegisterForm = () => {
               alignItems: 'center',
               color: '#0277bd',
               fontWeight: 'bold',
-              fontSize: '1rem'
+              fontSize: typeScale.xl
             }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -156,7 +155,7 @@ const RegisterForm = () => {
             value={formData.firstname}
             onChange={handleChange}
             required
-            className="register-input"
+            className="register-input compact-input"
           />
           <input
             name="lastname"
@@ -164,7 +163,7 @@ const RegisterForm = () => {
             value={formData.lastname}
             onChange={handleChange}
             required
-            className="register-input"
+            className="register-input compact-input"
           />
           <input
             name="email"
@@ -173,7 +172,7 @@ const RegisterForm = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="register-input"
+            className="register-input compact-input"
           />
           {/* Only show phone input for students */}
           {accountType === 'user' && (
@@ -186,7 +185,7 @@ const RegisterForm = () => {
               pattern="^09\d{9}$"
               maxLength={11}
               required
-              className="register-input"
+              className="register-input compact-input"
             />
           )}
           <input
@@ -196,7 +195,7 @@ const RegisterForm = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="register-input"
+            className="register-input compact-input"
           />
 
           {/* Only show course/year/block for students */}
@@ -207,7 +206,7 @@ const RegisterForm = () => {
                 value={formData.course}
                 onChange={handleChange}
                 required
-                className="register-select"
+                className="register-select compact-input"
               >
                 <option value="">Select Course</option>
                 <option value="BSIT">BSIT</option>
@@ -222,7 +221,7 @@ const RegisterForm = () => {
                 value={formData.year_level}
                 onChange={handleChange}
                 required
-                className="register-select"
+                className="register-select compact-input"
               >
                 <option value="">Select Year Level</option>
                 <option value="1st Year">1st Year</option>
@@ -236,7 +235,7 @@ const RegisterForm = () => {
                 value={formData.block}
                 onChange={handleChange}
                 required
-                className="register-select"
+                className="register-select compact-input"
               >
                 <option value="">Select Block</option>
                 <option value="A">A</option>
@@ -247,10 +246,10 @@ const RegisterForm = () => {
             </>
           )}
 
-          <button type="submit" className="register-button">Register</button>
+          <button type="submit" className="register-button compact-btn" style={{ fontSize: typeScale.xl, padding: '0.55rem 0.75rem' }}>Register</button>
         </form>
       ))}
-      <p className="register-login-link">
+      <p className="register-login-link" style={{ fontSize: typeScale.base }}>
         Already have an account?{' '}
         <Link to="/login" className="register-login-link-a">
           Login here

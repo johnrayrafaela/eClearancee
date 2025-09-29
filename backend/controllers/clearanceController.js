@@ -4,6 +4,7 @@ const Subject = require('../models/Subject');
 const Clearance = require('../models/Clearance');
 const Teacher = require('../models/Teacher');
 const bcrypt = require('bcrypt'); // Make sure to install bcrypt if not yet
+const { Op } = require('sequelize');
 
 exports.getStudentClearanceInfo = async (req, res) => {
   try {
@@ -70,6 +71,7 @@ exports.createClearance = async (req, res) => {
           student_id,
           subject_id: subj.subject_id,
           status: 'Pending',
+          semester, // store semester so later filtering is accurate
         });
       }
     }
@@ -238,10 +240,26 @@ exports.getClearanceStatus = async (req, res) => {
       Subject.hasMany(StudentSubjectStatus, { as: 'StudentSubjectStatus', foreignKey: 'subject_id' });
     }
     // Find all StudentSubjectStatus for this student and semester
-    const studentSubjectStatuses = await StudentSubjectStatus.findAll({
-      where: { student_id: student.student_id },
-      attributes: ['subject_id', 'status']
+    let studentSubjectStatuses = await StudentSubjectStatus.findAll({
+      where: { student_id: student.student_id, [Op.or]: [ { semester: clearance.semester }, { semester: null } ] },
+      attributes: ['id','subject_id','status','semester']
     });
+    // Normalize legacy rows without semester so they don't leak across semester views
+    const legacyNull = studentSubjectStatuses.filter(r => !r.semester);
+    if (legacyNull.length) {
+      const fixIds = [...new Set(legacyNull.map(r => r.subject_id))];
+      const fixSubjects = await Subject.findAll({ where: { subject_id: fixIds } });
+      const map = new Map(fixSubjects.map(s => [s.subject_id, s.semester]));
+      for (const row of legacyNull) {
+        row.semester = map.get(row.subject_id) || clearance.semester;
+        try { await row.save(); } catch {/* ignore */}
+      }
+      // Refetch strictly for this clearance semester after normalization
+      studentSubjectStatuses = await StudentSubjectStatus.findAll({
+        where: { student_id: student.student_id, semester: clearance.semester },
+        attributes: ['id','subject_id','status','semester']
+      });
+    }
     const selectedSubjectIds = studentSubjectStatuses.map(s => s.subject_id);
     // Fetch only the selected subjects
     const subjects = await Subject.findAll({

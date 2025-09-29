@@ -5,7 +5,8 @@ import {
   gradients, 
   buttonStyles, 
   fadeInUp, 
-  keyframes 
+  keyframes,
+  typeScale
 } from '../../style/CommonStyles';
 
 // Inject keyframes
@@ -20,34 +21,30 @@ if (typeof document !== 'undefined' && !document.querySelector('#common-keyframe
 
 const styles = {
   container: {
-    padding: '2rem',
+    padding: '18px 16px',
     margin: '0 auto',
     background: gradients.light,
-    borderRadius: 20,
-    boxShadow: '0 10px 30px rgba(2,119,189,0.1)',
+    borderRadius: 16,
+    boxShadow: '0 6px 18px rgba(2,119,189,0.08)',
     fontFamily: 'Segoe UI, Arial, sans-serif',
     maxWidth: '1400px',
     ...fadeInUp
   },
   heading: {
     color: '#0277bd',
-    fontWeight: 900,
-    fontSize: '1.8rem',
-    marginBottom: 15,
-    letterSpacing: '0.5px',
-    textAlign: 'center',
-    background: gradients.primary,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
+    fontWeight: 700,
+    fontSize: typeScale.xxl,
+    marginBottom: 10,
+    letterSpacing: '.5px',
+    textAlign: 'center'
   },
   statusBox: {
-    marginBottom: 20,
+    marginBottom: 14,
     background: gradients.card,
-    borderRadius: 12,
-    padding: 15,
-    boxShadow: '0 4px 15px rgba(2,119,189,0.08)',
-    fontSize: 16,
+    borderRadius: 10,
+    padding: '10px 12px',
+    boxShadow: '0 3px 10px rgba(2,119,189,0.06)',
+    fontSize: typeScale.xl,
     color: '#2563eb',
     border: '1px solid #e1f5fe'
   },
@@ -55,28 +52,28 @@ const styles = {
     width: '100%',
     borderCollapse: 'collapse',
     background: '#fff',
-    borderRadius: 15,
+    borderRadius: 12,
     overflow: 'hidden',
-    boxShadow: '0 5px 20px rgba(2,119,189,0.08)',
-    marginTop: 20,
+    boxShadow: '0 4px 14px rgba(2,119,189,0.06)',
+    marginTop: 14,
     border: '1px solid #e1f5fe'
   },
   th: {
     background: gradients.primary,
     color: '#fff',
     border: 'none',
-    padding: 10,
+    padding: '6px 8px',
     fontWeight: 600,
     textAlign: 'left',
-    fontSize: '0.8rem',
-    letterSpacing: '0.3px'
+    fontSize: typeScale.lg,
+    letterSpacing: '.3px'
   },
   td: {
     border: '1px solid #f0f0f0',
-    padding: 10,
+    padding: '6px 8px',
     color: '#333',
     verticalAlign: 'top',
-    fontSize: '0.85rem'
+    fontSize: typeScale.base
   },
   error: {
     color: '#d32f2f',
@@ -90,26 +87,26 @@ const styles = {
   },
   button: {
     ...buttonStyles.primary,
-    padding: '6px 12px',
-    fontSize: '0.75rem',
+    padding: '4px 10px',
+    fontSize: typeScale.base,
     borderRadius: 6,
-    marginRight: 6,
-    boxShadow: '0 3px 10px rgba(2,119,189,0.2)'
+    marginRight: 4,
+    boxShadow: '0 3px 8px rgba(2,119,189,0.18)'
   },
   label: {
     display: 'block',
-    marginBottom: 6,
+    marginBottom: 4,
     fontWeight: 600,
     color: '#0277bd',
-    fontSize: '0.9rem'
+    fontSize: typeScale.xl
   },
   input: {
-    padding: 8,
+    padding: '6px 10px',
     borderRadius: 8,
     border: '2px solid #e1f5fe',
     width: '100%',
-    maxWidth: 250,
-    fontSize: 14,
+    maxWidth: 220,
+    fontSize: typeScale.lg,
     color: '#333',
     background: '#f8fafc',
     transition: 'all 0.3s ease',
@@ -118,16 +115,16 @@ const styles = {
   checklistItem: {
     display: 'flex',
     alignItems: 'center',
-    marginBottom: 6,
-    padding: 6,
+    marginBottom: 4,
+    padding: '4px 6px',
     borderRadius: 6,
     background: '#f8fafc',
     border: '1px solid #e1f5fe'
   },
   instructionBox: {
-    fontSize: 12,
-    marginTop: 6,
-    padding: 8,
+    fontSize: typeScale.xs,
+    marginTop: 4,
+    padding: '6px 8px',
     background: '#e3f2fd',
     borderRadius: 6,
     color: '#1976d2',
@@ -157,11 +154,14 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
   const [selectedSemester, setSelectedSemester] = useState('1st');
   const [departments, setDepartments] = useState([]);
   const [instructionModal, setInstructionModal] = useState(null); // { subjectId, name, type, instructions }
+  const [remarksModal, setRemarksModal] = useState(null); // { subjectId, name, remarks }
 
   // Department file upload state and request (moved inside component)
   const [deptFiles, setDeptFiles] = useState({}); // { [department_id]: File[] }
   const [deptRequesting, setDeptRequesting] = useState({}); // { [department_id]: boolean }
-  const [departmentStatuses, setDepartmentStatuses] = useState([]); // [{ department_id, status, file_path }]
+  const [departmentStatuses, setDepartmentStatuses] = useState([]); // [{ department_id, status, file_path, remarks }]
+  const [deptLinks, setDeptLinks] = useState({}); // { [department_id]: string }
+  const [deptChecklists, setDeptChecklists] = useState({}); // { [department_id]: boolean[] }
 
   // ---- Helpers: Subject Status Upsert & Dedup (prevents duplicate counting) ----
   const upsertSubjectStatus = React.useCallback((prev, newEntry) => {
@@ -171,9 +171,10 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
       map.set(s.subject_id, s);
     });
     const existing = map.get(newEntry.subject_id) || {};
-    map.set(newEntry.subject_id, { ...existing, ...newEntry });
+    // Preserve semester explicitly (newEntry.semester preferred)
+    map.set(newEntry.subject_id, { ...existing, ...newEntry, semester: newEntry.semester || existing.semester || selectedSemester || '1st' });
     return Array.from(map.values());
-  }, []);
+  }, [selectedSemester]);
 
   // One-time dedupe after initial load of subject statuses (in case historical duplicates exist)
   useEffect(() => {
@@ -205,6 +206,10 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     const found = departmentStatuses.find(s => s.department_id === departmentId);
     return found ? found.status : 'Pending';
   };
+  const getDeptRemarks = (departmentId) => {
+    const found = departmentStatuses.find(s => s.department_id === departmentId);
+    return found && found.remarks ? found.remarks : null;
+  };
   const getDeptFile = (departmentId) => {
     const found = departmentStatuses.find(s => s.department_id === departmentId);
     return found && found.file_path ? found.file_path : null;
@@ -212,33 +217,62 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
 
   // Request approval for a department
   const requestDeptApproval = async (departmentId) => {
-    if (!window.confirm('Are you sure you want to request approval for this department? This will submit your uploaded file.')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to request approval for this department?')) return;
     setDeptRequesting(prev => ({ ...prev, [departmentId]: true }));
     try {
-      const formData = new FormData();
-      formData.append('student_id', user.student_id);
-      formData.append('department_id', departmentId);
-      // Use selected semester or fallback default
-      const effectiveSemester = selectedSemester || '1st';
-      formData.append('semester', effectiveSemester);
-      // Get requirements from department object
       const deptObj = departments.find(d => d.department_id === departmentId);
-      const requirements = deptObj && deptObj.requirements ? deptObj.requirements : '';
-      formData.append('requirements', requirements);
-      if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
-        formData.append('file', deptFiles[departmentId][0]);
+      const reqRaw = deptObj && deptObj.requirements ? deptObj.requirements : '';
+  let parsed = null; try { parsed = JSON.parse(reqRaw); } catch { /* ignore parse error */ }
+      const type = parsed?.type || 'Text';
+      const effectiveSemester = selectedSemester || '1st';
+      if (type === 'Link') {
+        const linkVal = deptLinks[departmentId];
+        if (!linkVal || !/^https?:\/\//.test(linkVal)) {
+          alert('Enter a valid link (http/https) for this department requirement.');
+          setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
+          return;
+        }
+        await axios.post('http://localhost:5000/api/department-status/request', {
+          student_id: user.student_id,
+          department_id: departmentId,
+            semester: effectiveSemester,
+            requirements: reqRaw,
+            link: linkVal
+        });
+        setDeptLinks(prev => ({ ...prev, [departmentId]: '' }));
+      } else if (type === 'Checklist') {
+        const checklistVals = deptChecklists[departmentId];
+        if (!checklistVals || !checklistVals.some(Boolean)) {
+          alert('Check at least one checklist item before requesting.');
+          setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
+          return;
+        }
+        await axios.post('http://localhost:5000/api/department-status/request', {
+          student_id: user.student_id,
+          department_id: departmentId,
+          semester: effectiveSemester,
+          requirements: reqRaw,
+          checklist: checklistVals
+        });
+        setDeptChecklists(prev => ({ ...prev, [departmentId]: [] }));
+      } else { // File/Text/Other treat as multipart with file
+        const formData = new FormData();
+        formData.append('student_id', user.student_id);
+        formData.append('department_id', departmentId);
+        formData.append('semester', effectiveSemester);
+        formData.append('requirements', reqRaw);
+        if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
+          formData.append('file', deptFiles[departmentId][0]);
+        }
+        await axios.post('http://localhost:5000/api/department-status/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        setDeptFiles(prev => ({ ...prev, [departmentId]: null }));
       }
-      await axios.post('http://localhost:5000/api/department-status/request', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      // Refetch department statuses
+      // Refresh statuses
       const res = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`);
       setDepartmentStatuses(res.data.statuses || []);
-      setDeptFiles(prev => ({ ...prev, [departmentId]: null }));
       onStatusChange && onStatusChange();
-    } catch {
+    } catch (e) {
+      console.error(e);
       setError('Failed to request department approval.');
     }
     setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
@@ -255,12 +289,21 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
       axios.get('http://localhost:5000/api/departments')
     ])
       .then(([clearanceRes, statusRes, deptRes]) => {
-        setClearance(clearanceRes.data.clearance);
-        setSubjects(clearanceRes.data.subjects);
-        setSubjectStatuses(statusRes.data.statuses || []);
-        setDepartments(deptRes.data || []);
-        setError('');
-        onStatusesUpdate && onStatusesUpdate({ subjects: clearanceRes.data.subjects, statuses: statusRes.data.statuses || [] });
+        if (!clearanceRes.data.clearance) {
+          // No clearance created for this semester: clear lists and show instruction message
+          setClearance(null);
+            setSubjects([]);
+            setSubjectStatuses([]);
+            setDepartments([]);
+            setError('You have not created a clearance for this semester yet. Please create a clearance first to manage subjects and department requirements.');
+        } else {
+          setClearance(clearanceRes.data.clearance);
+          setSubjects(clearanceRes.data.subjects);
+          setSubjectStatuses(statusRes.data.statuses || []);
+          setDepartments(deptRes.data || []);
+          setError('');
+          onStatusesUpdate && onStatusesUpdate({ subjects: clearanceRes.data.subjects, statuses: statusRes.data.statuses || [] });
+        }
       })
       .catch(err => {
         if (err.response && err.response.status === 404) {
@@ -268,7 +311,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           setSubjects([]);
           setSubjectStatuses([]);
           setDepartments([]);
-          setError('No clearance found. Please request clearance first.');
+          setError('You have not created a clearance for this semester yet. Please create a clearance first to manage subjects and department requirements.');
         } else {
           setError('Failed to load clearance, subject statuses, or departments.');
         }
@@ -302,11 +345,11 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
       });
       // Upsert status locally (no duplicates)
       setSubjectStatuses(prev => {
-        const updated = upsertSubjectStatus(prev, { subject_id: subjectId, status: 'Requested' });
+        const updated = upsertSubjectStatus(prev, { subject_id: subjectId, status: 'Requested', semester: effectiveSemester });
         onStatusesUpdate && onStatusesUpdate({ subjects, statuses: updated });
         // Dispatch global event for dashboards/analytics listeners
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('student-subject-status-changed', { detail: { subject_id: subjectId, status: 'Requested' } }));
+          window.dispatchEvent(new CustomEvent('student-subject-status-changed', { detail: { subject_id: subjectId, status: 'Requested', semester: effectiveSemester } }));
         }
         return updated;
       });
@@ -325,6 +368,43 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     const found = subjectStatuses.find(s => s.subject_id === subjectId);
     return found ? found.status : 'Pending';
   };
+
+  // --- Polling: keep subject statuses fresh after teacher approves/rejects ---
+  // Without this, the student would continue to see 'Requested' (or 'Pending' if initial fetch missed)
+  // until a manual page refresh. Poll gently (every 15s) when a clearance exists.
+  React.useEffect(() => {
+    if (!user || userType !== 'user' || !clearance) return; // only when clearance present
+    let cancelled = false;
+    const interval = setInterval(() => {
+      const effectiveSemester = selectedSemester || '1st';
+      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`)
+        .then(res => {
+          if (cancelled) return;
+            const incoming = (res.data.statuses || []).map(s => ({ ...s, semester: s.semester || effectiveSemester }));
+            // Merge with existing using latest status per subject_id
+            const map = new Map();
+            subjectStatuses.forEach(s => map.set(s.subject_id, s));
+            let changed = false;
+            incoming.forEach(s => {
+              const prev = map.get(s.subject_id);
+              if (!prev || prev.status !== s.status) {
+                changed = true;
+              }
+              map.set(s.subject_id, { ...prev, ...s, semester: s.semester || prev?.semester || effectiveSemester });
+            });
+            if (changed) {
+              const updated = Array.from(map.values());
+              setSubjectStatuses(updated);
+              onStatusesUpdate && onStatusesUpdate({ subjects, statuses: updated });
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('student-subject-status-changed', { detail: { refresh: true, semester: effectiveSemester } }));
+              }
+            }
+        })
+        .catch(() => { /* silent */ });
+    }, 15000); // 15s gentle polling
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [user, userType, clearance, selectedSemester, subjectStatuses, subjects, onStatusesUpdate]);
 
   if (!user || userType !== 'user') {
     return <div style={styles.error}>❌ Access denied. Only students can view clearance status.</div>;
@@ -373,8 +453,28 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           }}>{clearance.status}</span>
         </div>
       )}
-      {/* Always render subjects/department sections; semester auto-fallback handled internally */}
-      <>
+      {/* If no clearance for selected semester, show instruction and hide subjects/departments */}
+      {!clearance && (
+        <div style={{
+          background: '#fff3e0',
+          border: '1px solid #ffcc80',
+          padding: '18px 20px',
+          borderRadius: 14,
+          marginTop: 10,
+          color: '#bf6516',
+          fontWeight: 600,
+          textAlign: 'center',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}>
+          <div style={{ fontSize: '1rem', marginBottom: 6 }}>⚠️ Clearance Not Created</div>
+          <div style={{ fontSize: '0.8rem', fontWeight: 500, lineHeight: 1.5 }}>
+            You haven't created a clearance for the {selectedSemester || '1st'} semester yet.<br/>
+            Go to the clearance creation page and create one first. Once created, your subjects and department requirements will be shown here.
+          </div>
+        </div>
+      )}
+      {clearance && (
+        <>
           
 
           {/* Subjects Table */}
@@ -399,6 +499,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                   <th style={styles.th}>Requirement Type</th>
                   <th style={styles.th}>Instructions</th>
                   <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Remarks</th>
                   <th style={styles.th}>File Upload</th>
                   <th style={styles.th}>Action</th>
                 </tr>
@@ -517,6 +618,25 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                             ⏳ Pending
                           </span>
                         )}
+                      </td>
+                      <td style={styles.td}>
+                        {(() => {
+                          const statusObjLocal = subjectStatuses.find(s => s.subject_id === subject.subject_id);
+                          if (status === 'Rejected' && statusObjLocal?.remarks) {
+                            return (
+                              <button
+                                style={{ ...buttonStyles.danger, padding:'6px 10px', fontSize:'0.6rem', borderRadius:6 }}
+                                onClick={() => setRemarksModal({ subjectId: subject.subject_id, name: subject.name, remarks: statusObjLocal.remarks })}
+                              >
+                                View Remarks
+                              </button>
+                            );
+                          }
+                          if (status === 'Approved') {
+                            return <span style={{ fontSize:'0.6rem', color:'#2e7d32', fontStyle:'italic' }}>No remarks</span>;
+                          }
+                          return <span style={{ fontSize:'0.6rem', color:'#9ca3af' }}>-</span>;
+                        })()}
                       </td>
                       <td style={styles.td}>
                         {/* If requirement is Checklist, show checklist UI */}
@@ -800,6 +920,59 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
             </div>
           )}
 
+          {/* Remarks Modal (Teacher or Department) */}
+          {remarksModal && (
+            <div
+              onClick={(e)=>{ if(e.target===e.currentTarget) setRemarksModal(null); }}
+              style={{
+                position:'fixed', top:0,left:0,width:'100vw',height:'100vh',
+                background:'rgba(0,0,0,0.55)', display:'flex',alignItems:'center',justifyContent:'center',
+                zIndex:10001, backdropFilter:'blur(4px)'
+              }}
+            >
+              <div style={{ background:'#ffffff', borderRadius:18, padding:0, width:'92%', maxWidth:520, boxShadow:'0 18px 50px rgba(0,0,0,0.3)', display:'flex', flexDirection:'column', maxHeight:'75vh' }}>
+                <div style={{ padding:'14px 18px', borderBottom:'1px solid #e1f5fe', display:'flex', alignItems:'center', gap:12, background:'linear-gradient(135deg,#b71c1c 0%, #880e4f 100%)' }}>
+                  <div style={{ fontSize:'1.4rem' }}>📝</div>
+                  <div style={{ flex:1 }}>
+                    <h4 style={{ margin:0, color:'#fff', fontSize:'1rem', fontWeight:700 }}>
+                      {remarksModal.type === 'department' ? 'Department Remarks' : 'Teacher Remarks'}
+                    </h4>
+                    <div style={{ fontSize:'0.6rem', color:'#ffebee', letterSpacing:'0.5px', textTransform:'uppercase', fontWeight:600 }}>
+                      {remarksModal.name}
+                    </div>
+                  </div>
+                  <button
+                    onClick={()=>setRemarksModal(null)}
+                    style={{ background:'rgba(255,255,255,0.2)', border:'none', color:'#fff', padding:'6px 10px', borderRadius:8, cursor:'pointer', fontSize:'0.65rem', fontWeight:600 }}
+                  >Close ✕</button>
+                </div>
+                <div style={{ padding:'18px 22px', overflowY:'auto' }}>
+                  <div style={{
+                    fontSize:'0.75rem', background:'#fff8f8', border:'1px solid #ffcdd2', borderRadius:10,
+                    padding:'14px 16px', color:'#b71c1c', whiteSpace:'pre-wrap', lineHeight:1.5
+                  }}>
+                    {remarksModal.remarks}
+                  </div>
+                </div>
+                <div style={{ padding:'10px 16px', borderTop:'1px solid #e1f5fe', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fafafa' }}>
+                  <span style={{ fontSize:'0.6rem', color:'#607d8b' }}>
+                    {remarksModal.type === 'department' ? 'These remarks were written by department staff.' : 'These remarks were written by your teacher.'}
+                  </span>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button
+                      onClick={() => { navigator.clipboard && navigator.clipboard.writeText(remarksModal.remarks || ''); }}
+                      style={{ ...buttonStyles.secondary, padding:'6px 12px', fontSize:'0.6rem', borderRadius:6 }}
+                    >Copy</button>
+                    <button
+                      onClick={()=>setRemarksModal(null)}
+                      style={{ ...buttonStyles.primary, padding:'6px 12px', fontSize:'0.6rem', borderRadius:6 }}
+                    >Done</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
 
 
 
@@ -822,9 +995,11 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                 <tr>
                   <th style={styles.th}>Department Name</th>
                   <th style={styles.th}>Assigned Staff</th>
-                  <th style={styles.th}>Requirements</th>
+                  <th style={styles.th}>Requirement Type</th>
+                  <th style={styles.th}>Instructions</th>
                   <th style={styles.th}>Status</th>
-                  <th style={styles.th}>File Upload</th>
+                  <th style={styles.th}>Remarks</th>
+                  <th style={styles.th}>Submission</th>
                   <th style={styles.th}>Action</th>
                 </tr>
               </thead>
@@ -832,17 +1007,64 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                 {departments.map((dept, idx) => {
                   const deptStatus = getDeptStatus(dept.department_id);
                   const uploadedFile = getDeptFile(dept.department_id);
+                  const deptRemarks = getDeptRemarks(dept.department_id);
                   let staffName = '-';
                   if (dept.staff && (dept.staff.firstname || dept.staff.lastname)) {
                     staffName = `${dept.staff.firstname || ''} ${dept.staff.lastname || ''}`.trim();
                   }
-                  // Get requirements from department object (persisted in Department model)
-                  const requirements = dept.requirements && dept.requirements.trim() !== '' ? dept.requirements : '-';
+                  // Parse structured requirements similar to subjects
+                  let deptReqObj = { type: 'Text', instructions: '', checklist: [] };
+                  if (dept.requirements && dept.requirements.trim() !== '') {
+                    try {
+                      deptReqObj = JSON.parse(dept.requirements);
+                      if (!deptReqObj.instructions) {
+                        deptReqObj.instructions = deptReqObj.value || '';
+                      }
+                      if (!deptReqObj.type) deptReqObj.type = 'Text';
+                    } catch {
+                      // legacy plain text stored
+                      deptReqObj = { type: 'Text', instructions: dept.requirements, checklist: [] };
+                    }
+                  }
                   return (
                     <tr key={dept.department_id || idx}>
                       <td style={styles.td}>{dept.name}</td>
                       <td style={styles.td}>{staffName}</td>
-                      <td style={styles.td}>{requirements}</td>
+                      {/* Requirement Type */}
+                      <td style={styles.td}>
+                        {(() => {
+                          const type = deptReqObj.type || 'Text';
+                          switch(type){
+                            case 'Checklist': return '✅ Checklist';
+                            case 'Link': return '🔗 Link/URL';
+                            case 'File': return '📁 File Upload';
+                            case 'Text': return '📝 Text';
+                            case 'Other': return '🔧 Other';
+                            default: return type;
+                          }
+                        })()}
+                      </td>
+                      {/* Instructions (with modal trigger if long) */}
+                      <td style={styles.td}>
+                        {(() => {
+                          const raw = (deptReqObj.instructions || '').trim();
+                          if (!raw) {
+                            return <span style={{ fontSize: '0.7rem', fontStyle: 'italic', color: '#666' }}>No instructions</span>;
+                          }
+                          const LONG_THRESHOLD = 70;
+                          if (raw.length > LONG_THRESHOLD) {
+                            return (
+                              <button
+                                style={{ ...buttonStyles.secondary, padding: '6px 10px', fontSize: '0.6rem', borderRadius: 6, lineHeight: 1.2 }}
+                                onClick={() => setInstructionModal({ departmentId: dept.department_id, name: dept.name, type: deptReqObj.type, instructions: raw })}
+                              >
+                                View Instructions ({raw.length} chars)
+                              </button>
+                            );
+                          }
+                          return <span style={{ fontSize: '0.7rem', color: '#1976d2' }}>{raw}</span>;
+                        })()}
+                      </td>
                       <td style={styles.td}>
                         {deptStatus === 'Requested' && (
                           <span style={{ 
@@ -894,7 +1116,20 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                         )}
                       </td>
                       <td style={styles.td}>
-                        {(deptStatus === 'Pending' || deptStatus === 'Rejected') && requirements !== '-' ? (
+                        {deptStatus === 'Rejected' && deptRemarks ? (
+                          <button
+                            style={{ ...styles.button, padding: '4px 8px', fontSize: '0.65rem' }}
+                            onClick={() => setRemarksModal({
+                              type: 'department',
+                              name: dept.name,
+                              remarks: deptRemarks
+                            })}
+                          >View</button>
+                        ) : <span>-</span>}
+                      </td>
+                      <td style={styles.td}>
+                        {/* Submission cell adapts based on requirement type (display only for now) */}
+                        {(deptStatus === 'Pending' || deptStatus === 'Rejected') && (deptReqObj.type === 'File' || deptReqObj.type === 'Text' || deptReqObj.type === 'Other') ? (
                           <>
                             <input
                               type="file"
@@ -916,6 +1151,43 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                               </ul>
                             )}
                           </>
+                        ) : (deptStatus === 'Pending' || deptStatus === 'Rejected') && deptReqObj.type === 'Link' ? (
+                          <div>
+                            <input
+                              type="url"
+                              placeholder="Paste link (http/https)..."
+                              value={deptLinks[dept.department_id] || ''}
+                              onChange={e => setDeptLinks(prev => ({ ...prev, [dept.department_id]: e.target.value }))}
+                              style={styles.input}
+                            />
+                            {departmentStatuses.find(s => s.department_id === dept.department_id)?.link && (
+                              <div style={{ fontSize:'0.6rem', marginTop:4 }}>
+                                <strong>Submitted:</strong> <a href={departmentStatuses.find(s => s.department_id === dept.department_id)?.link} target="_blank" rel="noopener noreferrer">View Link</a>
+                              </div>
+                            )}
+                          </div>
+                        ) : (deptStatus === 'Pending' || deptStatus === 'Rejected') && deptReqObj.type === 'Checklist' ? (
+                          <div>
+                            {(deptReqObj.checklist && deptReqObj.checklist.length > 0) ? (
+                              (deptReqObj.checklist).map((item, cIdx) => (
+                                <label key={cIdx} style={styles.checklistItem}>
+                                  <input
+                                    type="checkbox"
+                                    checked={deptChecklists[dept.department_id]?.[cIdx] || false}
+                                    onChange={e => {
+                                      const list = [...(deptChecklists[dept.department_id] || [])];
+                                      list[cIdx] = e.target.checked;
+                                      setDeptChecklists(prev => ({ ...prev, [dept.department_id]: list }));
+                                    }}
+                                    style={{ marginRight:6 }}
+                                  />
+                                  <span style={{ fontSize:'0.65rem' }}>{item}</span>
+                                </label>
+                              ))
+                            ) : (
+                              <div style={{ fontSize:'0.6rem', fontStyle:'italic', color:'#666' }}>No checklist items defined.</div>
+                            )}
+                          </div>
                         ) : <span>-</span>}
                         {(deptStatus === 'Requested' || deptStatus === 'Approved') && uploadedFile && (
                           <a
@@ -934,7 +1206,9 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                             style={styles.button}
                             disabled={
                               deptRequesting[dept.department_id] ||
-                              (requirements !== '-' && (!deptFiles[dept.department_id] || deptFiles[dept.department_id].length === 0))
+                              ((deptReqObj.type === 'File' || deptReqObj.type === 'Text' || deptReqObj.type === 'Other') && (!deptFiles[dept.department_id] || deptFiles[dept.department_id].length === 0)) ||
+                              (deptReqObj.type === 'Link' && (!deptLinks[dept.department_id] || !/^https?:\/\//.test(deptLinks[dept.department_id]))) ||
+                              (deptReqObj.type === 'Checklist' && !(deptChecklists[dept.department_id] && deptChecklists[dept.department_id].some(Boolean)))
                             }
                             onClick={() => requestDeptApproval(dept.department_id)}
                           >
@@ -970,6 +1244,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           )}
           
         </>
+      )}
     </div>
   );
 };

@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../Context/AuthContext';
-import logo from '../assets/image/logo/eClearance.png'; // Ensure this path is correct
+import logo from '../assets/image/logo/eClearance.png';
+import { typeScale } from '../style/CommonStyles';
 
 const Navbar = () => {
   const { user, userType, logout } = useContext(AuthContext);
@@ -17,11 +18,14 @@ const Navbar = () => {
 
   return (
     <nav style={styles.nav}>
-      <img
-        src={logo}
-        style={{ width: 150, height: 150, marginBottom: '1.5rem', borderRadius: '50%' }}
-        alt="Logo"
-      />
+      <div style={styles.brandBox}>
+        <img
+          src={logo}
+          style={{ width: 70, height: 70, borderRadius: '50%', boxShadow:'0 4px 12px rgba(0,0,0,0.12)' }}
+          alt="Logo"
+        />
+        <h1 style={styles.brandTitle}>eClearance</h1>
+      </div>
       {/* Make links scrollable */}
       <div style={styles.linksWrapper}>
         <div style={styles.links}>
@@ -29,22 +33,22 @@ const Navbar = () => {
             <>
 
               <Link to="/profile" style={styles.link}>Profile</Link>
-              <Link to="/student/dashboard" style={styles.link}>Student Dashboard</Link>
-              <Link to="/student/clearance" style={styles.link}>Clearance Request</Link>
-              <Link to="/student/clearancestatus" style={styles.link}>Clearance Status</Link>
+              <Link to="/student/dashboard" style={styles.link}>Dashboard</Link>
+              <Link to="/student/clearance" style={styles.link}>Request</Link>
+              <Link to="/student/clearancestatus" style={styles.link}>Status</Link>
               <Link to="/student/analytics" style={styles.link}>Analytics</Link>
             </>
           )}
           {user && userType === 'admin' && (
             <>
            
-              <Link to="/admin/dashboard" style={styles.link}>Admin Dashboard</Link>
-              <Link to="/admin/clearancerequest" style={styles.link}> Pending Clearance Request</Link>
-              <Link to="/studentmanagement" style={styles.link}>Student Management</Link>
-              <Link to="/staffmanagement" style={styles.link}>Staff Management</Link>
-              <Link to="/admin/teachermanagement" style={styles.link}> Teacher Management</Link>
-              <Link to="/admin/subjectmanagement" style={styles.link}>Subject Management</Link>
-              <Link to="/admin/departmentmanagement" style={styles.link}>Department Management</Link>
+              <Link to="/admin/dashboard" style={styles.link}>Dashboard</Link>
+              <Link to="/admin/clearancerequest" style={styles.link}>Pending Requests</Link>
+              <Link to="/studentmanagement" style={styles.link}>Students</Link>
+              <Link to="/staffmanagement" style={styles.link}>Staff</Link>
+              <Link to="/admin/teachermanagement" style={styles.link}>Teachers</Link>
+              <Link to="/admin/subjectmanagement" style={styles.link}>Subjects</Link>
+              <Link to="/admin/departmentmanagement" style={styles.link}>Departments</Link>
               <Link to="/admin/analytics" style={styles.link}>Analytics</Link>
              
             </>
@@ -52,19 +56,19 @@ const Navbar = () => {
 
           {user && userType === 'teacher' && (
             <>
-              <Link to="/teacher/dashboard" style={styles.link}>Teacher Dashboard</Link>
-              <Link to="/teacher/subject-requests" style={styles.link}>Subject Approval Requests</Link>
+              <Link to="/teacher/dashboard" style={styles.link}>Dashboard</Link>
+              <Link to="/teacher/subject-requests" style={styles.link}>Subject Request Approvals</Link>
               <Link to="/teacher/profile" style={styles.link}>Profile</Link>
-              <Link to="/teacher/subject-requirements" style={styles.link}>My Subjects</Link>
+              <Link to="/teacher/subject-requirements" style={styles.link}>Subjects Add Requirements</Link>
               <Link to="/teacher/add-subject" style={styles.link}>Add Subject</Link>
               <Link to="/teacher/analytics" style={styles.link}>Analytics</Link>
             </>
           )}
           {user && userType === 'staff' && (
             <>
-              <Link to="/staff/dashboard" style={styles.link}>Faculty Dashboard</Link>
-              <Link to="/staff/department-requests" style={styles.link}>Department Requests</Link>
-              <Link to="/staff/department-requirements" style={styles.link}>Department Requirements</Link>
+              <Link to="/staff/dashboard" style={styles.link}>Dashboard</Link>
+              <Link to="/staff/department-requests" style={styles.link}>Requests</Link>
+              <Link to="/staff/department-requirements" style={styles.link}>Requirements</Link>
               <Link to="/staff/profile" style={styles.link}>Profile</Link>
             </>
           )}
@@ -91,21 +95,14 @@ const Navbar = () => {
 
 const styles = {
   nav: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    height: '100vh',
-    width: '210px',
-    background: 'linear-gradient(180deg, #e0f7fa 60%, #b2ebf2 100%)',
-    borderRight: '2px solid #b2ebf2',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '2.5rem 1rem 1rem 1rem',
-    zIndex: 100,
-    boxShadow: '2px 0 12px rgba(2,119,189,0.07)',
-    transition: 'width 0.2s',
+    position: 'fixed', top: 0, left: 0, height: '100vh', width: 180,
+    background: 'linear-gradient(180deg,#f8fafc 0%,#e0f7fa 100%)',
+    borderRight: '1px solid #d0edf2', display: 'flex', flexDirection: 'column',
+    alignItems: 'stretch', padding: '14px 12px 10px', zIndex: 100,
+    boxShadow: '0 0 0 1px rgba(2,119,189,0.04), 4px 0 18px -6px rgba(2,119,189,0.15)'
   },
+  brandBox: { display:'flex', flexDirection:'column', alignItems:'center', gap:6, marginBottom:12 },
+  brandTitle: { margin:0, fontSize: typeScale.xl, fontWeight:700, color:'#0277bd', letterSpacing:'.5px' },
   logo: {
     margin: 0,
     color: '#0277bd',
@@ -117,69 +114,17 @@ const styles = {
     fontFamily: 'Segoe UI, Arial, sans-serif',
   },
   // Add a wrapper for scrollable links
-  linksWrapper: {
-    flex: 1,
-    width: '100%',
-    overflowY: 'auto',
-    marginTop: '1rem',
-    marginBottom: '1rem',
-  },
-  links: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.2rem',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  link: {
-    textDecoration: 'none',
-    color: '#0277bd',
-    fontWeight: 600,
-    fontSize: '1.08rem',
-    padding: '0.6rem 1rem',
-    borderRadius: '8px',
-    width: '100%',
-    transition: 'background 0.18s, color 0.18s',
-    background: 'none',
-  },
+  linksWrapper: { flex:1, width:'100%', overflowY:'auto', marginTop:4, paddingRight:2 },
+  links: { display:'flex', flexDirection:'column', gap:6, alignItems:'stretch', width:'100%' },
+  link: { textDecoration:'none', color:'#0369a1', fontWeight:600, fontSize: typeScale.lg, padding:'6px 10px', borderRadius:8, width:'100%', lineHeight:1.2, background:'transparent', transition:'background .18s,color .18s' },
   avatarContainer: {
     position: 'relative',
     cursor: 'pointer',
     alignSelf: 'flex-start',
   },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: '50%',
-    border: '2.5px solid #0288d1',
-    boxShadow: '0 2px 8px rgba(2,119,189,0.09)',
-    transition: 'border 0.2s',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: '110%',
-    left: 0,
-    background: '#fff',
-    border: '1.5px solid #b2ebf2',
-    borderRadius: 6,
-    boxShadow: '0 4px 16px rgba(2,119,189,0.09)',
-    zIndex: 10,
-    minWidth: '130px',
-    marginTop: 4,
-  },
-  dropdownBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#0277bd',
-    padding: '0.7rem 1.2rem',
-    cursor: 'pointer',
-    fontWeight: 700,
-    width: '100%',
-    textAlign: 'left',
-    fontSize: '1rem',
-    borderRadius: 6,
-    transition: 'background 0.15s',
-  },
+  avatar: { width:34, height:34, borderRadius:'50%', border:'2px solid #0288d1', boxShadow:'0 2px 6px rgba(2,119,189,0.15)', transition:'transform .2s' },
+  dropdown: { position:'absolute', top:'108%', left:0, background:'#ffffff', border:'1px solid #d0edf2', borderRadius:8, boxShadow:'0 6px 22px -6px rgba(2,119,189,0.25)', zIndex:20, minWidth:120, padding:4 },
+  dropdownBtn: { background:'none', border:'none', color:'#0369a1', padding:'6px 10px', cursor:'pointer', fontWeight:600, width:'100%', textAlign:'left', fontSize: typeScale.lg, borderRadius:6, transition:'background .15s' },
 };
 
 export default Navbar;

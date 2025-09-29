@@ -1,69 +1,119 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/image/logo/eClearance.png"; // Ensure this path is correct
+import logo from "../assets/image/logo/eClearance.png";
+import { typeScale, gradients, buttonStyles, injectKeyframes, colors } from "../style/CommonStyles";
 
-const Landingpage = () => (
-  <div style={{
+const Landingpage = () => {
+  useEffect(() => { injectKeyframes(); }, []);
+
+  const outerStyle = {
     minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1.8rem .9rem",
+    background: gradients.background,
+    fontFamily: "'Segoe UI', sans-serif"
+  };
+
+  const card = {
+    background: "#fff",
+    borderRadius: 18,
+    width: "100%",
+    maxWidth: 420,
+    padding: "1.8rem 1.4rem 1.6rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    boxShadow: "0 10px 38px -8px rgba(2,119,189,0.25),0 6px 20px -6px rgba(2,119,189,0.18)",
+    animation: "fadeInUp .55s ease-out"
+  };
+
+  const title = {
+    margin: ".45rem 0 .3rem",
+    fontSize: typeScale.xxl,
+    fontWeight: 800,
+    letterSpacing: ".5px",
+    color: colors.primary,
+    lineHeight: 1.05
+  };
+
+  const tagline = {
+    fontSize: typeScale.lg,
+    color: "#444",
+    lineHeight: 1.25,
+    marginBottom: "1rem",
+    fontWeight: 600
+  };
+
+  const actionCol = {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    width: "100%",
+    marginTop: ".4rem"
+  };
+
+  const smallBtnBase = {
+    ...buttonStyles.primary,
+    width: "100%",
+    padding: "10px 14px",
+    fontSize: typeScale.xl,
+    borderRadius: 10,
+    fontWeight: 700,
+    letterSpacing: ".4px",
+    textDecoration: "none",
+    display: "inline-flex",
+    alignItems: "center",
     justifyContent: "center",
-    padding: "2rem"
-  }}>
-    <div style={{
-      background: "#fff",
-      borderRadius: 16,
-      boxShadow: "0 4px 24px rgba(2,119,189,0.08)",
-      padding: "3rem 2.5rem",
-      maxWidth: 420,
-      width: "100%",
-      textAlign: "center"
-    }}>
-      <img src={logo} alt="eClearance Logo" style={{
-        width: 80,height: 80,
-        borderRadius: "50%",
-        boxShadow: "0 2px 12px rgba(2,119,189,0.1)"
-      }} />
-      <h1 style={{ fontWeight: 900, color: "#0277bd", marginBottom: 8 }}>
-        eClearance
-      </h1>
-      <div style={{ color: "#444", fontSize: 18, marginBottom: 24 }}>
-        Automated School Clearance Processing System
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <Link to="/login" style={{
-          background: "#0288d1",
-          color: "#fff",
-          fontWeight: 700,
-          padding: "0.9rem 0",
-          borderRadius: 8,
-          textDecoration: "none",
-          fontSize: 18,
-          letterSpacing: 0.5,
-          transition: "background 0.2s"
-        }}>
-          Login
-        </Link>
-        <Link to="/register" style={{
-          background: "#ffc107",
-          color: "#222",
-          fontWeight: 700,
-          padding: "0.9rem 0",
-          borderRadius: 8,
-          textDecoration: "none",
-          fontSize: 18,
-          letterSpacing: 0.5,
-          transition: "background 0.2s"
-        }}>
-          Register
-        </Link>
-      </div>
-      <div style={{ marginTop: 32, color: "#90caf9", fontSize: 14 }}>
-        &copy; {new Date().getFullYear()} eClearance | All rights reserved.
+    boxSizing: "border-box"
+  };
+
+  const loginBtn = {
+    ...smallBtnBase
+  };
+
+  const registerBtn = {
+    ...smallBtnBase,
+    background: gradients.warning,
+    boxShadow: "0 4px 15px rgba(255,152,0,0.3)"
+  };
+
+  const footer = {
+    marginTop: "1.2rem",
+    fontSize: typeScale.base,
+    color: colors.muted,
+    letterSpacing: ".3px"
+  };
+
+  return (
+    <div style={outerStyle}>
+      <div style={card}>
+        <img
+          src={logo}
+          alt="eClearance Logo"
+          style={{
+            width: 66,
+            height: 66,
+            borderRadius: "50%",
+            boxShadow: "0 4px 18px rgba(2,119,189,0.25)",
+            objectFit: "cover"
+          }}
+        />
+        <h1 style={title}>eClearance</h1>
+        <p style={tagline} aria-label="System Tagline">
+          Automated School Clearance Processing
+        </p>
+        <div style={actionCol}>
+          <Link to="/login" style={loginBtn}>Login</Link>
+          <Link to="/register" style={registerBtn}>Register</Link>
+        </div>
+        <div style={footer}>
+          © {new Date().getFullYear()} eClearance · All rights reserved
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Landingpage;

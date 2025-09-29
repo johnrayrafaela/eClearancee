@@ -1,74 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
-
-// Animation keyframes
-const fadeInUp = {
-  animation: 'fadeInUp 0.6s ease-out'
-};
-
-const slideInLeft = {
-  animation: 'slideInLeft 0.8s ease-out'
-};
-
-const bounceIn = {
-  animation: 'bounceIn 0.7s ease-out'
-};
-
-const keyframes = `
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-50px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes bounceIn {
-    0% { opacity: 0; transform: scale(0.3); }
-    50% { opacity: 1; transform: scale(1.05); }
-    70% { transform: scale(0.9); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-  
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-  
-  .btn-hover {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .btn-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(2,119,189,0.3);
-  }
-  
-  .btn-hover:active {
-    transform: translateY(0);
-  }
-  
-  .card-hover {
-    transition: all 0.3s ease;
-  }
-  
-  .card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(2,119,189,0.2);
-  }
-  
-  .loading-shimmer {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200px 100%;
-    animation: shimmer 1.5s infinite;
-  }
-`;
+import { typeScale, fadeInUp, slideInLeft, bounceIn, keyframes } from '../../style/CommonStyles';
 
 const TeacherSubjectRequirements = () => {
   const { user, userType } = useContext(AuthContext);
@@ -130,7 +63,7 @@ const TeacherSubjectRequirements = () => {
       const requirementData = {
         type: reqObj.type,
         instructions: reqObj.instructions || '', // Include teacher instructions
-        checklist: reqObj.type === 'Checklist' ? [] : undefined
+        checklist: reqObj.type === 'Checklist' ? (Array.isArray(reqObj.checklist) ? reqObj.checklist : []) : undefined
       };
       
       await axios.patch(`http://localhost:5000/api/subject/${subject_id}/requirements`, {
@@ -186,6 +119,10 @@ const TeacherSubjectRequirements = () => {
     // Maintain stable draft states; reset when subject or showModal changes (effect below)
     const [draftType, setDraftType] = useState(storedReq.type || 'Text');
     const [draftInstructions, setDraftInstructions] = useState(storedReq.instructions || '');
+    const [draftChecklistInput, setDraftChecklistInput] = useState('');
+    const [draftChecklistItems, setDraftChecklistItems] = useState(
+      storedReq.type === 'Checklist' && Array.isArray(storedReq.checklist) ? storedReq.checklist : []
+    );
 
     // Sync drafts when a new subject is opened
     useEffect(() => {
@@ -193,6 +130,8 @@ const TeacherSubjectRequirements = () => {
         const base = requirements[subjectId] || { type: 'Text', instructions: '' };
         setDraftType(base.type || 'Text');
         setDraftInstructions(base.instructions || '');
+        setDraftChecklistItems(base.type === 'Checklist' && Array.isArray(base.checklist) ? base.checklist : []);
+        setDraftChecklistInput('');
       }
     }, [visible, subjectId]);
 
@@ -384,6 +323,45 @@ const TeacherSubjectRequirements = () => {
               </div>
             </div>
 
+            {draftType === 'Checklist' && (
+              <div style={{ marginBottom: 30 }}>
+                <label style={{ fontWeight:600, color:'#0277bd', display:'block', marginBottom:8, fontSize:'1rem' }}>Checklist Items (All must be completed by student)</label>
+                <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                  <input
+                    type="text"
+                    value={draftChecklistInput}
+                    onChange={e=>setDraftChecklistInput(e.target.value)}
+                    placeholder="Add checklist item..."
+                    style={{ flex:1, padding:'10px 14px', borderRadius:12, border:'2px solid #e1f5fe', fontSize:'.9rem', background:'#f8fafc', outline:'none' }}
+                    onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); if(draftChecklistInput.trim()){ setDraftChecklistItems(prev=>[...prev, draftChecklistInput.trim()]); setDraftChecklistInput(''); } } }}
+                  />
+                  <button
+                    type="button"
+                    onClick={()=>{ if(draftChecklistInput.trim()){ setDraftChecklistItems(prev=>[...prev, draftChecklistInput.trim()]); setDraftChecklistInput(''); } }}
+                    style={{ background:'linear-gradient(135deg,#0277bd 0%,#01579b 100%)', color:'#fff', border:'none', padding:'10px 16px', borderRadius:12, fontWeight:600, cursor:'pointer', fontSize:'.8rem' }}
+                  >Add</button>
+                </div>
+                {draftChecklistItems.length === 0 && (
+                  <div style={{ fontSize:'.65rem', fontStyle:'italic', color:'#666', marginBottom:8 }}>No items added yet.</div>
+                )}
+                <ul style={{ listStyle:'none', margin:0, padding:0, display:'flex', flexDirection:'column', gap:6 }}>
+                  {draftChecklistItems.map((item,i)=>(
+                    <li key={i} style={{ background:'#f1f5f9', padding:'8px 10px', borderRadius:10, display:'flex', alignItems:'center', gap:10 }}>
+                      <span style={{ fontSize:'.7rem', fontWeight:700, color:'#0277bd' }}>{i+1}.</span>
+                      <span style={{ flex:1, fontSize:'.7rem' }}>{item}</span>
+                      <button
+                        onClick={()=> setDraftChecklistItems(prev => prev.filter((_,idx)=> idx!==i))}
+                        style={{ background:'rgba(0,0,0,0.1)', border:'none', color:'#333', padding:'4px 8px', borderRadius:8, cursor:'pointer', fontSize:'.55rem', fontWeight:600 }}
+                      >✕</button>
+                    </li>
+                  ))}
+                </ul>
+                {draftChecklistItems.length > 0 && (
+                  <div style={{ marginTop:8, fontSize:'.55rem', textTransform:'uppercase', letterSpacing:'.5px', color:'#0277bd', fontWeight:700 }}>{draftChecklistItems.length} Item{draftChecklistItems.length>1?'s':''} Added</div>
+                )}
+              </div>
+            )}
+
             <div style={{
               display: 'flex',
               gap: 15,
@@ -413,8 +391,12 @@ const TeacherSubjectRequirements = () => {
                   const newReq = {
                     type: draftType,
                     instructions: draftInstructions,
-                    checklist: draftType === 'Checklist' ? [] : undefined
+                    checklist: draftType === 'Checklist' ? draftChecklistItems : undefined
                   };
+                  if (draftType === 'Checklist' && (!draftChecklistItems || draftChecklistItems.length === 0)) {
+                    alert('Add at least one checklist item before saving.');
+                    return;
+                  }
                   setRequirements(prev => ({ ...prev, [subjectId]: newReq }));
                   await handleSave(subjectId, newReq);
                   handleModalClose();
@@ -467,33 +449,32 @@ const TeacherSubjectRequirements = () => {
       
       {/* Main Container */}
       <div style={{ 
-        margin: '20px auto', 
-        padding: '40px', 
+        margin: '16px auto', 
+        padding: '20px 18px', 
         background: 'linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%)', 
-        borderRadius: 20, 
-        boxShadow: '0 20px 60px rgba(2,119,189,0.1)',
+        borderRadius: 16, 
+        boxShadow: '0 10px 28px rgba(2,119,189,0.08)',
         maxWidth: '1400px',
         ...fadeInUp
       }}>
         
         {/* Header Section */}
-        <div style={{ textAlign: 'center', marginBottom: 40, ...slideInLeft }}>
+        <div style={{ textAlign: 'center', marginBottom: 22, ...slideInLeft }}>
           <h1 style={{ 
             color: '#0277bd', 
-            fontWeight: 900, 
-            fontSize: '2.5rem', 
-            marginBottom: 10, 
-            letterSpacing: '2px',
-            textShadow: '0 2px 4px rgba(2,119,189,0.1)'
+            fontWeight: 700, 
+            fontSize: typeScale.xxl, 
+            marginBottom: 6, 
+            letterSpacing: '.5px'
           }}>
             📚 Subject Requirements Manager
           </h1>
           <p style={{ 
             color: '#546e7a', 
-            fontSize: '1.1rem', 
-            maxWidth: 600, 
+            fontSize: typeScale.lg, 
+            maxWidth: 520, 
             margin: '0 auto',
-            lineHeight: 1.6
+            lineHeight: 1.35
           }}>
             Set and manage requirements for your subjects efficiently
           </p>
@@ -502,29 +483,29 @@ const TeacherSubjectRequirements = () => {
         {/* Filter Controls */}
         <div style={{ 
           background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)', 
-          borderRadius: 20, 
-          boxShadow: '0 10px 30px rgba(2,119,189,0.1)', 
-          padding: 30,
-          marginBottom: 30,
-          ...slideInLeft
+            borderRadius: 16, 
+            boxShadow: '0 6px 20px rgba(2,119,189,0.08)', 
+            padding: 18,
+            marginBottom: 20,
+            ...slideInLeft
         }}>
           <div style={{ 
             textAlign: 'center',
             marginBottom: 25
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: 10 }}>🔍</div>
+            <div style={{ fontSize: '1.4rem', marginBottom: 6 }}>🔍</div>
             <h3 style={{ 
               color: '#0277bd', 
-              fontWeight: 700, 
-              fontSize: '1.5rem',
-              marginBottom: 8,
-              letterSpacing: '0.5px'
+              fontWeight: 600, 
+              fontSize: typeScale.xxl,
+              marginBottom: 4,
+              letterSpacing: '.25px'
             }}>
               Filter Subjects
             </h3>
             <p style={{ 
               color: '#546e7a', 
-              fontSize: '0.9rem' 
+              fontSize: typeScale.lg 
             }}>
               Filter by year level and semester
             </p>
@@ -535,8 +516,8 @@ const TeacherSubjectRequirements = () => {
               fontWeight: 600, 
               color: '#0277bd', 
               display: 'block', 
-              marginBottom: 10,
-              fontSize: '1rem'
+              marginBottom: 6,
+              fontSize: typeScale.xl
             }}>
               Year Level:
             </label>
@@ -552,9 +533,9 @@ const TeacherSubjectRequirements = () => {
                         'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)',
                       color: '#fff',
                       border: 'none',
-                      borderRadius: 25,
-                      padding: '10px 20px',
-                      fontSize: '0.9rem',
+                      borderRadius: 18,
+                      padding: '6px 12px',
+                      fontSize: typeScale.lg,
                       fontWeight: 600,
                       cursor: hasSubjects ? 'pointer' : 'not-allowed',
                       opacity: hasSubjects ? 1 : 0.5,
@@ -578,12 +559,12 @@ const TeacherSubjectRequirements = () => {
               fontWeight: 600, 
               color: '#0277bd', 
               display: 'block', 
-              marginBottom: 10,
-              fontSize: '1rem'
+              marginBottom: 6,
+              fontSize: typeScale.xl
             }}>
               Semester:
             </label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
               {semesters.map(sem => {
                 const hasSubjects = sem === 'All' ? true : subjects.some(s => 
                   (activeYear === 'All' || s.year_level === activeYear) && s.semester === sem
@@ -597,9 +578,9 @@ const TeacherSubjectRequirements = () => {
                         'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)',
                       color: '#fff',
                       border: 'none',
-                      borderRadius: 25,
-                      padding: '10px 20px',
-                      fontSize: '0.9rem',
+                      borderRadius: 18,
+                      padding: '6px 12px',
+                      fontSize: typeScale.lg,
                       fontWeight: 600,
                       cursor: hasSubjects ? 'pointer' : 'not-allowed',
                       opacity: hasSubjects ? 1 : 0.5,
@@ -631,26 +612,26 @@ const TeacherSubjectRequirements = () => {
           {/* Section Header */}
           <div style={{ 
             background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', 
-            padding: 25, 
+            padding: '14px 16px', 
             color: '#fff',
             display: 'flex',
             alignItems: 'center',
-            gap: 15
+            gap: 10
           }}>
             <div style={{ fontSize: '2rem' }}>📚</div>
             <div>
               <h3 style={{ 
                 margin: 0, 
-                fontWeight: 700, 
-                fontSize: '1.5rem',
-                letterSpacing: '0.5px'
+                fontWeight: 600, 
+                fontSize: typeScale.xxl,
+                letterSpacing: '.25px'
               }}>
                 My Subjects
               </h3>
               <p style={{ 
-                margin: '5px 0 0 0', 
+                margin: '2px 0 0 0', 
                 opacity: 0.9,
-                fontSize: '0.9rem'
+                fontSize: typeScale.lg
               }}>
                 Manage requirements for your subjects
               </p>
@@ -661,13 +642,13 @@ const TeacherSubjectRequirements = () => {
           </div>
 
           {/* Subjects Content */}
-          <div style={{ padding: 30 }}>
+            <div style={{ padding: '18px 20px' }}>
             {loading ? (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-                gap: 25 
-              }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+                  gap: 16 
+                }}>
                 {[1,2,3].map(i => (
                   <div key={i} style={{
                     background: '#f0f0f0',
@@ -709,10 +690,10 @@ const TeacherSubjectRequirements = () => {
                       className="card-hover"
                       style={{ 
                         background: 'linear-gradient(135deg, #fff 0%, #e8f5e8 100%)', 
-                        borderRadius: 15, 
-                        padding: 25, 
+                        borderRadius: 12, 
+                        padding: 16, 
                         border: '2px solid #e8f5e8',
-                        boxShadow: '0 8px 25px rgba(76,175,80,0.1)',
+                        boxShadow: '0 6px 18px rgba(76,175,80,0.12)',
                         position: 'relative',
                         overflow: 'hidden',
                         ...fadeInUp,
@@ -745,28 +726,28 @@ const TeacherSubjectRequirements = () => {
                       
                       <h4 style={{ 
                         color: '#2e7d32', 
-                        marginBottom: 15, 
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        paddingRight: 100
+                        marginBottom: 10, 
+                        fontSize: typeScale.xxl,
+                        fontWeight: 600,
+                        paddingRight: 80
                       }}>
                         📖 {subj.name}
                       </h4>
                       
                       <div style={{ marginBottom: 15, color: '#546e7a' }}>
-                        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ fontSize: '1rem' }}>🎓</span>
                           <div>
                             <strong>Course:</strong> {subj.course}
                           </div>
                         </div>
-                        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ fontSize: '1rem' }}>📅</span>
                           <div>
                             <strong>Year Level:</strong> {subj.year_level}
                           </div>
                         </div>
-                        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ fontSize: '1rem' }}>📆</span>
                           <div>
                             <strong>Semester:</strong> {subj.semester}
@@ -778,11 +759,11 @@ const TeacherSubjectRequirements = () => {
                             <div style={{ flex: 1 }}>
                               <strong>Requirement Type:</strong>
                               <div style={{ 
-                                marginTop: 5, 
-                                padding: 8, 
+                                marginTop: 4, 
+                                padding: '6px 8px', 
                                 background: '#f1f8e9', 
                                 borderRadius: 6,
-                                fontSize: '0.85rem'
+                                fontSize: typeScale.lg
                               }}>
                                 {(() => {
                                   try {

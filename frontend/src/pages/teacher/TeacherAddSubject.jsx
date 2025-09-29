@@ -1,106 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
-
-// Animation keyframes
-const fadeInUp = {
-  animation: 'fadeInUp 0.6s ease-out'
-};
-
-const slideIn = {
-  animation: 'slideIn 0.5s ease-out'
-};
-
-const slideInLeft = {
-  animation: 'slideInLeft 0.8s ease-out'
-};
-
-const bounceIn = {
-  animation: 'bounceIn 0.7s ease-out'
-};
-
-const keyframes = `
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-30px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-50px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes bounceIn {
-    0% { opacity: 0; transform: scale(0.3); }
-    50% { opacity: 1; transform: scale(1.05); }
-    70% { transform: scale(0.9); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-  
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-  
-  @keyframes shimmer {
-    0% { background-position: -200px 0; }
-    100% { background-position: calc(200px + 100%) 0; }
-  }
-  
-  .btn-hover {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .btn-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(2,119,189,0.3);
-  }
-  
-  .btn-hover:active {
-    transform: translateY(0);
-  }
-  
-  .card-hover {
-    transition: all 0.3s ease;
-  }
-  
-  .card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(2,119,189,0.2);
-  }
-  
-  .search-focus {
-    transition: all 0.3s ease;
-  }
-  
-  .search-focus:focus {
-    transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(2,119,189,0.3);
-  }
-  
-  .table-row {
-    transition: all 0.2s ease;
-  }
-  
-  .table-row:hover {
-    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-    transform: scale(1.01);
-  }
-  
-  .loading-shimmer {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200px 100%;
-    animation: shimmer 1.5s infinite;
-  }
-`;
+import { typeScale, fadeInUp, slideIn, slideInLeft, bounceIn, keyframes } from '../../style/CommonStyles';
 
 const TeacherAddSubject = () => {
   const [showModal, setShowModal] = useState(false);
@@ -274,33 +175,32 @@ const TeacherAddSubject = () => {
       
       {/* Main Container */}
       <div style={{ 
-        margin: '20px auto', 
-        padding: '40px', 
+        margin: '16px auto', 
+        padding: '20px 18px', 
         background: 'linear-gradient(135deg, #f8fafc 0%, #e3f2fd 100%)', 
-        borderRadius: 20, 
-        boxShadow: '0 20px 60px rgba(2,119,189,0.1)',
+        borderRadius: 16, 
+        boxShadow: '0 10px 28px rgba(2,119,189,0.08)',
         maxWidth: '1400px',
         ...fadeInUp
       }}>
         
         {/* Header Section */}
-        <div style={{ textAlign: 'center', marginBottom: 40, ...slideIn }}>
+        <div style={{ textAlign: 'center', marginBottom: 22, ...slideIn }}>
           <h1 style={{ 
             color: '#0277bd', 
-            fontWeight: 900, 
-            fontSize: '2.5rem', 
-            marginBottom: 10, 
-            letterSpacing: '2px',
-            textShadow: '0 2px 4px rgba(2,119,189,0.1)'
+            fontWeight: 700, 
+            fontSize: typeScale.xxl, 
+            marginBottom: 6, 
+            letterSpacing: '.5px'
           }}>
             📚 Subject Management
           </h1>
           <p style={{ 
             color: '#546e7a', 
-            fontSize: '1.1rem', 
-            maxWidth: 600, 
+            fontSize: typeScale.lg, 
+            maxWidth: 520, 
             margin: '0 auto',
-            lineHeight: 1.6
+            lineHeight: 1.35
           }}>
             Create new subjects, claim existing ones, or manage your current teaching assignments
           </p>
@@ -309,9 +209,9 @@ const TeacherAddSubject = () => {
         {/* Action Buttons */}
         <div style={{ 
           display: 'flex', 
-          gap: 20, 
+          gap: 12, 
           justifyContent: 'center', 
-          marginBottom: 40,
+          marginBottom: 20,
           flexWrap: 'wrap',
           ...bounceIn
         }}>
@@ -320,16 +220,16 @@ const TeacherAddSubject = () => {
             style={{ 
               background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)', 
               color: '#fff', 
-              padding: '15px 40px', 
-              borderRadius: 50, 
+              padding: '8px 18px', 
+              borderRadius: 30, 
               border: 'none', 
-              fontWeight: 700, 
-              fontSize: '1.1rem',
+              fontWeight: 600, 
+              fontSize: typeScale.xl,
               cursor: 'pointer',
-              boxShadow: '0 8px 20px rgba(25,118,210,0.3)',
+              boxShadow: '0 4px 12px rgba(25,118,210,0.25)',
               display: 'flex',
               alignItems: 'center',
-              gap: 10
+              gap: 6
             }} 
             onClick={() => { 
               setShowModal(true); 
@@ -339,8 +239,8 @@ const TeacherAddSubject = () => {
               setSuccess(''); 
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>➕</span>
-            Create New Subject
+            <span style={{ fontSize: typeScale.xl }}>➕</span>
+            New Subject
           </button>
           
           <button 
@@ -348,16 +248,16 @@ const TeacherAddSubject = () => {
             style={{ 
               background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)', 
               color: '#fff', 
-              padding: '15px 40px', 
-              borderRadius: 50, 
+              padding: '8px 18px', 
+              borderRadius: 30, 
               border: 'none', 
-              fontWeight: 700, 
-              fontSize: '1.1rem',
+              fontWeight: 600, 
+              fontSize: typeScale.xl,
               cursor: 'pointer',
-              boxShadow: '0 8px 20px rgba(76,175,80,0.3)',
+              boxShadow: '0 4px 12px rgba(76,175,80,0.25)',
               display: 'flex',
               alignItems: 'center',
-              gap: 10
+              gap: 6
             }} 
             onClick={() => {
               setShowAvailableModal(true);
@@ -365,8 +265,8 @@ const TeacherAddSubject = () => {
               setSuccess('');
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>🎯</span>
-            Browse Available Subjects ({unclaimedSubjects.length})
+            <span style={{ fontSize: typeScale.xl }}>🎯</span>
+            Available ({unclaimedSubjects.length})
           </button>
         </div>
 
@@ -433,33 +333,33 @@ const TeacherAddSubject = () => {
               transform: 'scale(1)',
               ...bounceIn
             }}>
-              <div style={{ textAlign: 'center', marginBottom: 30 }}>
+              <div style={{ textAlign: 'center', marginBottom: 18 }}>
                 <div style={{ fontSize: '3rem', marginBottom: 15 }}>
                   {editing ? '✏️' : '📝'}
                 </div>
                 <h3 style={{ 
                   color: '#0277bd', 
-                  fontWeight: 900, 
-                  fontSize: '1.8rem', 
-                  marginBottom: 10,
-                  letterSpacing: '1px'
+                  fontWeight: 700, 
+                  fontSize: typeScale.xxl, 
+                  marginBottom: 6,
+                  letterSpacing: '.5px'
                 }}>
                   {editing ? 'Edit Subject' : 'Create New Subject'}
                 </h3>
-                <p style={{ color: '#546e7a', fontSize: '1rem' }}>
+                <p style={{ color: '#546e7a', fontSize: typeScale.lg }}>
                   {editing ? 'Update subject information' : 'Fill in the details to create a new subject'}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-                <div style={{ display: 'grid', gap: 20 }}>
+                <div style={{ display: 'grid', gap: 14 }}>
                   <div>
                     <label style={{ 
                       fontWeight: 600, 
                       color: '#0277bd', 
                       display: 'block', 
-                      marginBottom: 8,
-                      fontSize: '1rem'
+                      marginBottom: 6,
+                      fontSize: typeScale.xl
                     }}>
                       📖 Subject Name
                     </label>
@@ -471,10 +371,10 @@ const TeacherAddSubject = () => {
                       className="search-focus"
                       style={{ 
                         width: '100%',
-                        padding: '12px 20px', 
-                        borderRadius: 15, 
+                        padding: '8px 14px', 
+                        borderRadius: 12, 
                         border: '2px solid #e1f5fe', 
-                        fontSize: '1rem',
+                        fontSize: typeScale.xl,
                         outline: 'none',
                         background: '#f8fafc',
                         boxSizing: 'border-box'
@@ -483,14 +383,14 @@ const TeacherAddSubject = () => {
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
                       <label style={{ 
                         fontWeight: 600, 
                         color: '#0277bd', 
                         display: 'block', 
-                        marginBottom: 8,
-                        fontSize: '1rem'
+                        marginBottom: 6,
+                        fontSize: typeScale.xl
                       }}>
                         🎓 Course
                       </label>
@@ -501,10 +401,10 @@ const TeacherAddSubject = () => {
                         required 
                         style={{ 
                           width: '100%',
-                          padding: '12px 20px', 
-                          borderRadius: 15, 
+                          padding: '8px 14px', 
+                          borderRadius: 12, 
                           border: '2px solid #e1f5fe', 
-                          fontSize: '1rem',
+                          fontSize: typeScale.xl,
                           outline: 'none',
                           background: '#f8fafc',
                           boxSizing: 'border-box'
@@ -522,8 +422,8 @@ const TeacherAddSubject = () => {
                         fontWeight: 600, 
                         color: '#0277bd', 
                         display: 'block', 
-                        marginBottom: 8,
-                        fontSize: '1rem'
+                        marginBottom: 6,
+                        fontSize: typeScale.xl
                       }}>
                         📅 Year Level
                       </label>
@@ -534,10 +434,10 @@ const TeacherAddSubject = () => {
                         required 
                         style={{ 
                           width: '100%',
-                          padding: '12px 20px', 
-                          borderRadius: 15, 
+                          padding: '8px 14px', 
+                          borderRadius: 12, 
                           border: '2px solid #e1f5fe', 
-                          fontSize: '1rem',
+                          fontSize: typeScale.xl,
                           outline: 'none',
                           background: '#f8fafc',
                           boxSizing: 'border-box'
@@ -556,8 +456,8 @@ const TeacherAddSubject = () => {
                       fontWeight: 600, 
                       color: '#0277bd', 
                       display: 'block', 
-                      marginBottom: 8,
-                      fontSize: '1rem'
+                      marginBottom: 6,
+                      fontSize: typeScale.xl
                     }}>
                       📆 Semester
                     </label>
@@ -567,10 +467,10 @@ const TeacherAddSubject = () => {
                       onChange={handleChange} 
                       style={{ 
                         width: '100%',
-                        padding: '12px 20px', 
-                        borderRadius: 15, 
+                        padding: '8px 14px', 
+                        borderRadius: 12, 
                         border: '2px solid #e1f5fe', 
-                        fontSize: '1rem',
+                        fontSize: typeScale.xl,
                         outline: 'none',
                         background: '#f8fafc',
                         boxSizing: 'border-box'
@@ -583,9 +483,9 @@ const TeacherAddSubject = () => {
                 </div>
 
                 <div style={{ 
-                  marginTop: 30, 
+                  marginTop: 18, 
                   display: 'flex', 
-                  gap: 15, 
+                  gap: 10, 
                   justifyContent: 'center' 
                 }}>
                   <button 
@@ -594,14 +494,14 @@ const TeacherAddSubject = () => {
                     style={{ 
                       background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', 
                       color: '#fff', 
-                      padding: '12px 30px', 
-                      borderRadius: 25, 
+                      padding: '8px 18px', 
+                      borderRadius: 18, 
                       border: 'none', 
-                      fontWeight: 700, 
-                      fontSize: '1rem',
+                      fontWeight: 600, 
+                      fontSize: typeScale.xl,
                       cursor: 'pointer',
-                      boxShadow: '0 6px 20px rgba(2,119,189,0.3)',
-                      minWidth: 150
+                      boxShadow: '0 4px 12px rgba(2,119,189,0.25)',
+                      minWidth: 120
                     }} 
                     disabled={loading}
                   >
@@ -615,13 +515,13 @@ const TeacherAddSubject = () => {
                       background: 'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)', 
                       color: '#fff', 
                       border: 'none', 
-                      padding: '12px 30px', 
-                      borderRadius: 25, 
+                      padding: '8px 18px', 
+                      borderRadius: 18, 
                       fontWeight: 600, 
-                      fontSize: '1rem',
+                      fontSize: typeScale.xl,
                       cursor: 'pointer',
-                      boxShadow: '0 6px 20px rgba(144,164,174,0.3)',
-                      minWidth: 150
+                      boxShadow: '0 4px 12px rgba(144,164,174,0.25)',
+                      minWidth: 120
                     }} 
                     onClick={() => { 
                       setShowModal(false); 

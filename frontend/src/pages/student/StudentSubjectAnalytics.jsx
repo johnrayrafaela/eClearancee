@@ -4,6 +4,7 @@ import { AuthContext } from '../../Context/AuthContext';
 import { Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
 import '../../style/StudentSubjectAnalytics.css';
+import { typeScale } from '../../style/CommonStyles';
 
 const StudentSubjectAnalytics = () => {
   const { user, userType } = useContext(AuthContext);
@@ -137,21 +138,21 @@ const StudentSubjectAnalytics = () => {
   }
 
   return (
-    <div className="student-analytics-root">
+  <div className="student-analytics-root compact">
       <div className="student-analytics-tabs" style={{ marginBottom: 32 }}>
         <button className={`student-analytics-tab-btn${activeTab === 'subject' ? ' active' : ''}`} onClick={() => setActiveTab('subject')}>Subject Analytics</button>
         <button className={`student-analytics-tab-btn${activeTab === 'department' ? ' active' : ''}`} onClick={() => setActiveTab('department')}>Department Analytics</button>
       </div>
 
       <div style={{display:'flex', gap:12, flexWrap:'wrap', marginBottom:24}}>
-        <button onClick={()=> setRefreshToken(t=>t+1)} style={{background:'#0277bd', color:'#fff', border:'none', padding:'8px 16px', borderRadius:8, fontWeight:600, cursor:'pointer'}}>🔄 Refresh Analytics</button>
+  <button onClick={()=> setRefreshToken(t=>t+1)} style={{background:'#0277bd', color:'#fff', border:'none', padding:'6px 12px', borderRadius:8, fontWeight:600, cursor:'pointer', fontSize:typeScale.lg}}>🔄 Refresh</button>
         {activeTab==='subject' && analytics && (
           <div style={{display:'flex', gap:12, flexWrap:'wrap'}}>
             {statusLabels.map(k=>{
               const val = Object.values(analytics||{}).reduce((acc,sem)=>acc+(sem[k]||0),0);
               const delta = subjectDeltas ? subjectDeltas[k] : 0;
               return (
-                <div key={k} style={{background:'#f1f5f9', padding:'8px 14px', borderRadius:10, fontSize:13, fontWeight:700, display:'flex', alignItems:'center', gap:6, color:'#034067'}}>
+                <div key={k} style={{background:'#f1f5f9', padding:'6px 10px', borderRadius:8, fontSize:typeScale.xl, fontWeight:700, display:'flex', alignItems:'center', gap:6, color:'#034067'}}>
                   <span style={{width:10,height:10,borderRadius:3,background:statusColors[k]}}></span>{k}: {val}
                   {delta !== 0 && <span style={{fontSize:11,fontWeight:800,color: delta>0? '#2e7d32':'#c62828'}}> {delta>0?`+${delta}`:delta}</span>}
                 </div>
@@ -165,7 +166,7 @@ const StudentSubjectAnalytics = () => {
               const val = Object.values(deptAnalytics||{}).reduce((acc,sem)=>acc+(sem[k]||0),0);
               const delta = deptDeltas ? deptDeltas[k] : 0;
               return (
-                <div key={k} style={{background:'#f1f5f9', padding:'8px 14px', borderRadius:10, fontSize:13, fontWeight:700, display:'flex', alignItems:'center', gap:6, color:'#034067'}}>
+                <div key={k} style={{background:'#f1f5f9', padding:'6px 10px', borderRadius:8, fontSize:typeScale.xl, fontWeight:700, display:'flex', alignItems:'center', gap:6, color:'#034067'}}>
                   <span style={{width:10,height:10,borderRadius:3,background:statusColors[k]}}></span>{k}: {val}
                   {delta !== 0 && <span style={{fontSize:11,fontWeight:800,color: delta>0? '#2e7d32':'#c62828'}}> {delta>0?`+${delta}`:delta}</span>}
                 </div>
@@ -176,7 +177,7 @@ const StudentSubjectAnalytics = () => {
       </div>
 
       {activeTab === 'subject' && <>
-        <h2 className="student-analytics-heading">📊 Subject Progress Analytics</h2>
+  <h2 className="student-analytics-heading" style={{fontSize:typeScale.xl}}>📊 Subject Progress</h2>
         {analytics && semesters.length > 0 && (
           <div className="student-analytics-tabs">
             <button key="All" className={`student-analytics-tab-btn${activeSemester === 'All' ? ' active' : ''}`} onClick={() => setActiveSemester('All')}>All</button>
@@ -203,7 +204,7 @@ const StudentSubjectAnalytics = () => {
             />)}
         </div>
         {analytics && overallTotal > 0 && activeSemester === 'All' && (
-          <div style={{ margin: '0 auto 24px auto', background: '#e1f5fe', borderRadius: 8, padding: 16, textAlign: 'center', fontWeight: 700, color: overallPercent === 100 ? '#43a047' : '#0277bd', fontSize: 18 }}>
+          <div style={{ margin: '0 auto 16px auto', background: '#e1f5fe', borderRadius: 8, padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: overallPercent === 100 ? '#43a047' : '#0277bd', fontSize: typeScale.xxl }}>
             Overall Cleared: {overallApproved} / {overallTotal} subjects &mdash; <span style={{ fontWeight: 900 }}>{overallPercent}% {overallPercent === 100 ? 'Cleared 🎉' : 'Cleared'}</span>
             {lastUpdated && <div style={{marginTop:6,fontSize:11,fontWeight:500,color:'#0f4c81'}}>Updated {lastUpdated.toLocaleTimeString()}</div>}
           </div>
@@ -214,22 +215,22 @@ const StudentSubjectAnalytics = () => {
               if (!data) return null;
               const percent = data.total ? Math.round((data.Approved || 0) / data.total * 100) : 0;
               return (
-                <div key={semester} style={{background:'#ffffff', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px', boxShadow:'0 2px 6px rgba(0,0,0,0.04)'}}>
+                <div key={semester} style={{background:'#ffffff', border:'1px solid #e2e8f0', borderRadius:10, padding:'12px 14px', boxShadow:'0 2px 6px rgba(0,0,0,0.04)'}}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                    <div style={{ fontWeight:800, fontSize:16, color:'#0f4c81' }}>{semester} Semester</div>
-                    <div style={{ fontSize:12, fontWeight:600, color:'#555' }}>Total: {data.total}</div>
+                    <div style={{ fontWeight:700, fontSize:typeScale.xxl, color:'#0f4c81' }}>{semester}</div>
+                    <div style={{ fontSize:typeScale.lg, fontWeight:600, color:'#555' }}>Total: {data.total}</div>
                   </div>
                   <div style={{display:'flex', flexWrap:'wrap', gap:10}}>
                     {statusLabels.map(k => (
-                      <div key={k} style={{background:'#f1f5f9', padding:'6px 10px', borderRadius:8, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:6, color:'#022c43'}}>
+                      <div key={k} style={{background:'#f1f5f9', padding:'4px 8px', borderRadius:6, fontSize:typeScale.lg, fontWeight:600, display:'flex', alignItems:'center', gap:6, color:'#022c43'}}>
                         <span style={{width:10,height:10,borderRadius:3, background:statusColors[k]}}></span>{k}: {data[k] || 0}
                       </div>
                     ))}
                   </div>
-                  <div style={{ marginTop:12, fontSize:13, fontWeight:600, color: percent===100 ? '#2e7d32' : '#0277bd' }}>
+                  <div style={{ marginTop:10, fontSize:typeScale.xl, fontWeight:600, color: percent===100 ? '#2e7d32' : '#0277bd' }}>
                     Cleared (Approved): {data.Approved || 0} / {data.total} ({percent}%)
                   </div>
-                  <div style={{ marginTop:6, height:8, background:'#e2e8f0', borderRadius:6, overflow:'hidden' }}>
+                  <div style={{ marginTop:6, height:6, background:'#e2e8f0', borderRadius:4, overflow:'hidden' }}>
                     <div style={{width: `${percent}%`, background:'linear-gradient(90deg,#43a047,#66bb6a)', height:'100%'}}></div>
                   </div>
                 </div>
@@ -240,7 +241,7 @@ const StudentSubjectAnalytics = () => {
       </>}
 
       {activeTab === 'department' && <>
-        <h2 className="student-analytics-heading">🏢 Department Progress Analytics</h2>
+  <h2 className="student-analytics-heading" style={{fontSize:typeScale.xl}}>🏢 Department Progress</h2>
         {deptAnalytics && semesterOrder.filter(sem => deptAnalytics[sem]).length > 0 && (
           <div className="student-analytics-tabs">
             <button key="All" className={`student-analytics-tab-btn${deptActiveSemester === 'All' ? ' active' : ''}`} onClick={() => setDeptActiveSemester('All')}>All</button>
@@ -267,7 +268,7 @@ const StudentSubjectAnalytics = () => {
             />)}
         </div>
         {deptAnalytics && deptOverallTotal > 0 && deptActiveSemester === 'All' && (
-          <div style={{ margin: '0 auto 24px auto', background: '#e1f5fe', borderRadius: 8, padding: 16, textAlign: 'center', fontWeight: 700, color: deptOverallPercent === 100 ? '#43a047' : '#0277bd', fontSize: 18 }}>
+          <div style={{ margin: '0 auto 16px auto', background: '#e1f5fe', borderRadius: 8, padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: deptOverallPercent === 100 ? '#43a047' : '#0277bd', fontSize: typeScale.xxl }}>
             Overall Cleared: {deptOverallApproved} / {deptOverallTotal} departments &mdash; <span style={{ fontWeight: 900 }}>{deptOverallPercent}% {deptOverallPercent === 100 ? 'Cleared 🎉' : 'Cleared'}</span>
             {lastUpdated && <div style={{marginTop:6,fontSize:11,fontWeight:500,color:'#0f4c81'}}>Updated {lastUpdated.toLocaleTimeString()}</div>}
           </div>
@@ -278,22 +279,22 @@ const StudentSubjectAnalytics = () => {
               if (!data) return null;
               const percent = data.total ? Math.round((data.Approved || 0) / data.total * 100) : 0;
               return (
-                <div key={semester} style={{background:'#ffffff', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px', boxShadow:'0 2px 6px rgba(0,0,0,0.04)'}}>
+                <div key={semester} style={{background:'#ffffff', border:'1px solid #e2e8f0', borderRadius:10, padding:'12px 14px', boxShadow:'0 2px 6px rgba(0,0,0,0.04)'}}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                    <div style={{ fontWeight:800, fontSize:16, color:'#0f4c81' }}>{semester} Semester</div>
-                    <div style={{ fontSize:12, fontWeight:600, color:'#555' }}>Total: {data.total}</div>
+                    <div style={{ fontWeight:700, fontSize:typeScale.xxl, color:'#0f4c81' }}>{semester}</div>
+                    <div style={{ fontSize:typeScale.lg, fontWeight:600, color:'#555' }}>Total: {data.total}</div>
                   </div>
                   <div style={{display:'flex', flexWrap:'wrap', gap:10}}>
                     {statusLabels.map(k => (
-                      <div key={k} style={{background:'#f1f5f9', padding:'6px 10px', borderRadius:8, fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:6, color:'#022c43'}}>
+                      <div key={k} style={{background:'#f1f5f9', padding:'4px 8px', borderRadius:6, fontSize:typeScale.lg, fontWeight:600, display:'flex', alignItems:'center', gap:6, color:'#022c43'}}>
                         <span style={{width:10,height:10,borderRadius:3, background:statusColors[k]}}></span>{k}: {data[k] || 0}
                       </div>
                     ))}
                   </div>
-                  <div style={{ marginTop:12, fontSize:13, fontWeight:600, color: percent===100 ? '#2e7d32' : '#0277bd' }}>
+                  <div style={{ marginTop:10, fontSize:typeScale.xl, fontWeight:600, color: percent===100 ? '#2e7d32' : '#0277bd' }}>
                     Cleared (Approved): {data.Approved || 0} / {data.total} ({percent}%)
                   </div>
-                  <div style={{ marginTop:6, height:8, background:'#e2e8f0', borderRadius:6, overflow:'hidden' }}>
+                  <div style={{ marginTop:6, height:6, background:'#e2e8f0', borderRadius:4, overflow:'hidden' }}>
                     <div style={{width: `${percent}%`, background:'linear-gradient(90deg,#43a047,#66bb6a)', height:'100%'}}></div>
                   </div>
                 </div>

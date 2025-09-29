@@ -7,7 +7,7 @@ import AdminDashboard from './pages/admin/Admindashboard';
 
 
 import FacultyDepartmentRequests from './pages/staff/FacultyDepartmentRequests';
-import FacultyDepartmentRequirements from './pages/faculty/FacultyDepartmentRequirements';
+import FacultyDepartmentRequirements from './pages/staff/FacultyDepartmentRequirements';
 import StaffDashboard from './pages/staff/Staffdashboard';
 
 import TeacherAnalyticsPage from './pages/teacher/TeacherAnalyticsPage'; // Import Teacher Analytics Page
@@ -32,6 +32,7 @@ import StudentManagement from './pages/admin/StudentManagement';
 import TeacherManagement from './pages/admin/TeacherManagement'; // Import Teacher Management
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import StudentSubjectAnalytics from './pages/student/StudentSubjectAnalytics';
+import StaffAnalytics from './pages/staff/StaffAnalytics';
 
 function App() {
   return (
@@ -46,9 +47,10 @@ function App() {
 
 
           {/* Faculty routes */}
+          <Route path="/staff/analytics" element={<StaffAnalytics />} />
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/staff/department-requests" element={<FacultyDepartmentRequests />} />
-          <Route path="/staff/department-requirements" element={<FacultyDepartmentRequirements />} /> 
+          <Route path="staff/department-requirements" element={<FacultyDepartmentRequirements />} /> 
 
           {/* Student routes */}
           <Route path='/student/clearancestatus' element={<ClearanceStatusPage/>}/>

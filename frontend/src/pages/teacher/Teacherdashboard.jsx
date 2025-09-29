@@ -11,7 +11,8 @@ import {
   cardStyles, 
   headerStyles, 
   buttonStyles,
-  injectKeyframes
+  injectKeyframes,
+  typeScale,
 } from '../../style/CommonStyles';
 
 const TeacherDashboard = () => {
@@ -46,6 +47,85 @@ const TeacherDashboard = () => {
     ...fadeInUp
   };
 
+  // Helper to safely extract counts for a semester key (e.g., '1st', '2nd')
+  const getSemCounts = (sem) => {
+    const data = analytics?.[sem] || {};
+    return {
+      Approved: data.Approved || 0,
+      Requested: data.Requested || 0,
+      Rejected: data.Rejected || 0
+    };
+  };
+
+  const sem1 = getSemCounts('1st');
+  const sem2 = getSemCounts('2nd');
+  const totalApproved = sem1.Approved + sem2.Approved;
+  const totalRequested = sem1.Requested + sem2.Requested;
+  const totalRejected = sem1.Rejected + sem2.Rejected;
+  const grandTotal = totalApproved + totalRequested + totalRejected;
+  const overallApprovalRate = grandTotal ? ((totalApproved / grandTotal) * 100).toFixed(1) : '0.0';
+  const overallRejectionRate = grandTotal ? ((totalRejected / grandTotal) * 100).toFixed(1) : '0.0';
+
+  const buildBar = (counts) => {
+    const { Approved, Requested, Rejected } = counts;
+    const sum = Approved + Requested + Rejected || 1; // avoid div by zero
+    const seg = (val) => (val / sum) * 100;
+    return (
+      <div style={{ display:'flex', width:'100%', height:10, borderRadius:6, overflow:'hidden', background:'#eceff1', boxShadow:'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
+        <div style={{ width: seg(Approved)+'%', background:'linear-gradient(90deg,#4caf50,#2e7d32)', transition:'width .4s', display: Approved? 'block':'none' }} />
+        <div style={{ width: seg(Requested)+'%', background:'linear-gradient(90deg,#ffb300,#ff9800)', transition:'width .4s', display: Requested? 'block':'none' }} />
+        <div style={{ width: seg(Rejected)+'%', background:'linear-gradient(90deg,#e53935,#c62828)', transition:'width .4s', display: Rejected? 'block':'none' }} />
+      </div>
+    );
+  };
+
+  const StatLine = ({ label, value, color }) => (
+    <div style={{ display:'flex', justifyContent:'space-between', fontSize: typeScale.base, color:'#455a64', lineHeight:1.2 }}>
+      <span style={{ display:'flex', alignItems:'center', gap:4 }}>
+        <span style={{ width:10, height:10, borderRadius:3, background: color, boxShadow:'0 0 0 1px rgba(0,0,0,0.05)' }} />
+        {label}
+      </span>
+      <strong style={{ fontWeight:600 }}>{value}</strong>
+    </div>
+  );
+
+  const SemesterCard = ({ title, counts, delay }) => {
+    const sum = counts.Approved + counts.Requested + counts.Rejected;
+    const approvalRate = sum ? ((counts.Approved / sum) * 100).toFixed(1) : '0.0';
+    const rejectionRate = sum ? ((counts.Rejected / sum) * 100).toFixed(1) : '0.0';
+    return (
+      <div style={{
+        background: gradients.light,
+        padding: '12px 14px',
+        borderRadius: 14,
+        border:'1px solid #e1f5fe',
+        boxShadow:'0 4px 10px rgba(2,119,189,0.05)',
+        display:'flex',
+        flexDirection:'column',
+        gap:6,
+        animation:'fadeInUp .6s ease',
+        animationDelay: delay,
+        animationFillMode:'backwards'
+      }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <h4 style={{ margin:0, fontSize: typeScale.xl, fontWeight:600, color:'#0277bd', letterSpacing:'.25px' }}>{title}</h4>
+          <span style={{ fontSize: typeScale.base, background:'#0277bd', color:'#fff', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>{approvalRate}% ✓</span>
+        </div>
+        {buildBar(counts)}
+        <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+          <StatLine label="Approved" value={counts.Approved} color="#4caf50" />
+          <StatLine label="Requested" value={counts.Requested} color="#ff9800" />
+          <StatLine label="Rejected" value={counts.Rejected} color="#e53935" />
+        </div>
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:4 }}>
+            <span style={{ fontSize: typeScale.xxs, background:'#e8f5e9', color:'#2e7d32', padding:'3px 6px', borderRadius:12, fontWeight:600 }}>✓ {approvalRate}% approved</span>
+            <span style={{ fontSize: typeScale.xxs, background:'#ffebee', color:'#c62828', padding:'3px 6px', borderRadius:12, fontWeight:600 }}>✗ {rejectionRate}% rejected</span>
+            <span style={{ fontSize: typeScale.xxs, background:'#fff8e1', color:'#ef6c00', padding:'3px 6px', borderRadius:12, fontWeight:600 }}>Σ {sum}</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={pageStyles.container}>
       <style>{keyframes}</style>
@@ -54,32 +134,35 @@ const TeacherDashboard = () => {
         {/* Hero Header */}
         <div style={{ 
           ...pageStyles.hero,
-          ...fadeInUp
+          ...fadeInUp,
+          padding: 24
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: 15 }}>👨‍🏫</div>
+          <div style={{ fontSize: '1.4rem', marginBottom: 8 }}>👨‍🏫</div>
           <h1 style={{ 
             ...headerStyles.pageTitle,
             color: '#fff',
-            fontSize: '2.2rem',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+            fontSize: typeScale.xxl,
+            textShadow: '1px 1px 2px rgba(0,0,0,0.25)',
+            marginBottom: 4
           }}>
             Teacher Dashboard
           </h1>
           <p style={{ 
-            fontSize: '1.1rem', 
+            fontSize: typeScale.md, 
             opacity: 0.9,
-            margin: '10px 0 0 0'
+            margin: 0,
+            lineHeight: 1.3
           }}>
-            Welcome back, {user?.name || 'Teacher'}! Manage your subjects and track student progress
+            Welcome back, {user?.name || 'Teacher'}! Manage your subjects and track student progress.
           </p>
         </div>
 
         {/* Analytics Cards */}
         <div style={{ 
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 25,
-          marginBottom: 25
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 16,
+          marginBottom: 18
         }}>
           {/* Student Statistics */}
           <div style={{ ...cardShadow, ...slideInLeft }}>
@@ -92,58 +175,52 @@ const TeacherDashboard = () => {
               <h3 style={{ 
                 ...headerStyles.sectionTitle,
                 margin: 0,
-                fontSize: '1.2rem'
+                fontSize: typeScale.xl,
+                fontWeight: 600
               }}>
                 📊 Student Analytics
               </h3>
-              <div style={{ fontSize: '2rem' }}>📈</div>
+              <div style={{ fontSize: '1.2rem' }}>📈</div>
             </div>
             
             {loading ? (
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: 10 
-              }}>
-                {[1,2,3].map(i => (
-                  <div key={i} style={{
-                    background: '#f0f0f0',
-                    borderRadius: 8,
-                    height: 30,
-                    animation: 'shimmer 1.5s infinite'
-                  }} />
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {[1,2].map(i => (
+                  <div key={i} style={{ background:'#eceff1', borderRadius:12, height:78, animation:'shimmer 1.5s infinite' }} />
                 ))}
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 15,
-                marginBottom: 15
-              }}>
-                {['1st', '2nd'].map(sem => (
-                  <div key={sem} style={{
-                    background: gradients.light,
-                    padding: 12,
-                    borderRadius: 10,
-                    border: '1px solid #e1f5fe'
-                  }}>
-                    <h4 style={{ 
-                      color: '#0277bd', 
-                      margin: '0 0 8px 0',
-                      fontSize: '0.9rem',
-                      fontWeight: 600
-                    }}>
-                      {sem} Semester
-                    </h4>
-                    <div style={{ fontSize: '0.85rem', color: '#546e7a' }}>
-                      <div>✅ Approved: {analytics[sem]?.Approved || 0}</div>
-                      <div>⏳ Requested: {analytics[sem]?.Requested || 0}</div>
-                      <div>❌ Rejected: {analytics[sem]?.Rejected || 0}</div>
+              <>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:12, width:'100%', marginBottom:12 }}>
+                  <SemesterCard title="1st Semester" counts={sem1} delay="0s" />
+                  <SemesterCard title="2nd Semester" counts={sem2} delay=".1s" />
+                </div>
+                <div style={{
+                  background:'linear-gradient(135deg,#0277bd 0%,#01579b 100%)',
+                  color:'#fff',
+                  padding:'10px 14px',
+                  borderRadius:14,
+                  display:'flex',
+                  flexDirection:'column',
+                  gap:6,
+                  boxShadow:'0 6px 16px rgba(2,119,189,0.25)'
+                }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+                    <strong style={{ fontSize: typeScale.xl, letterSpacing:'.5px' }}>Overall Summary</strong>
+                    <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                      <span style={{ fontSize:typeScale.xxs, background:'rgba(255,255,255,0.15)', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>✓ {overallApprovalRate}% approved</span>
+                      <span style={{ fontSize:typeScale.xxs, background:'rgba(255,255,255,0.15)', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>✗ {overallRejectionRate}% rejected</span>
+                      <span style={{ fontSize:typeScale.xxs, background:'rgba(255,255,255,0.15)', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>Σ {grandTotal || 0}</span>
                     </div>
                   </div>
-                ))}
-              </div>
+                  {buildBar({ Approved: totalApproved, Requested: totalRequested, Rejected: totalRejected })}
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:6, marginTop:4 }}>
+                    <StatLine label="Approved" value={totalApproved} color="#c8e6c9" />
+                    <StatLine label="Requested" value={totalRequested} color="#ffe0b2" />
+                    <StatLine label="Rejected" value={totalRejected} color="#ffcdd2" />
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
@@ -158,17 +235,18 @@ const TeacherDashboard = () => {
               <h3 style={{ 
                 ...headerStyles.sectionTitle,
                 margin: 0,
-                fontSize: '1.2rem'
+                fontSize: typeScale.xl,
+                fontWeight: 600
               }}>
                 🚀 Quick Actions
               </h3>
-              <div style={{ fontSize: '2rem' }}>⚡</div>
+              <div style={{ fontSize: '1.2rem' }}>⚡</div>
             </div>
             
             <div style={{ 
               display: 'flex',
               flexDirection: 'column',
-              gap: 15
+              gap: 10
             }}>
               <a 
                 href="/teacher/subject-requests" 
@@ -177,19 +255,19 @@ const TeacherDashboard = () => {
               >
                 <div style={{
                   ...buttonStyles.primary,
-                  padding: '15px 20px',
-                  borderRadius: 12,
+                  padding: '8px 14px',
+                  borderRadius: 18,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'flex-start',
-                  gap: 12,
-                  fontSize: '1rem',
+                  gap: 8,
+                  fontSize: typeScale.lg,
                   fontWeight: 600,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.25s ease',
                   border: 'none',
-                  boxShadow: '0 4px 12px rgba(2, 119, 189, 0.2)'
+                  boxShadow: '0 3px 8px rgba(2, 119, 189, 0.18)'
                 }}>
-                  <span style={{ fontSize: '1.2rem' }}>📋</span>
+                  <span style={{ fontSize: '1rem' }}>📋</span>
                   View Subject Requests
                 </div>
               </a>
@@ -201,19 +279,19 @@ const TeacherDashboard = () => {
               >
                 <div style={{
                   ...buttonStyles.success,
-                  padding: '15px 20px',
-                  borderRadius: 12,
+                  padding: '8px 14px',
+                  borderRadius: 18,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'flex-start',
-                  gap: 12,
-                  fontSize: '1rem',
+                  gap: 8,
+                  fontSize: typeScale.lg,
                   fontWeight: 600,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.25s ease',
                   border: 'none',
-                  boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)'
+                  boxShadow: '0 3px 8px rgba(76, 175, 80, 0.18)'
                 }}>
-                  <span style={{ fontSize: '1.2rem' }}>➕</span>
+                  <span style={{ fontSize: '1rem' }}>➕</span>
                   Manage Subjects
                 </div>
               </a>
@@ -225,19 +303,19 @@ const TeacherDashboard = () => {
               >
                 <div style={{
                   ...buttonStyles.info,
-                  padding: '15px 20px',
-                  borderRadius: 12,
+                  padding: '8px 14px',
+                  borderRadius: 18,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'flex-start',
-                  gap: 12,
-                  fontSize: '1rem',
+                  gap: 8,
+                  fontSize: typeScale.lg,
                   fontWeight: 600,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.25s ease',
                   border: 'none',
-                  boxShadow: '0 4px 12px rgba(33, 150, 243, 0.2)'
+                  boxShadow: '0 3px 8px rgba(33, 150, 243, 0.18)'
                 }}>
-                  <span style={{ fontSize: '1.2rem' }}>📊</span>
+                  <span style={{ fontSize: '1rem' }}>📊</span>
                   View Analytics
                 </div>
               </a>
@@ -249,42 +327,42 @@ const TeacherDashboard = () => {
         <div style={{ 
           ...cardStyles.default,
           ...fadeInUp,
-          animationDelay: '0.3s'
+          animationDelay: '0.25s'
         }}>
           <div style={{ 
             background: gradients.primary,
-            padding: 25,
+            padding: '14px 16px',
             color: '#fff',
             display: 'flex',
             alignItems: 'center',
-            gap: 15
+            gap: 10
           }}>
-            <div style={{ fontSize: '2.5rem' }}>📚</div>
+            <div style={{ fontSize: '1.4rem' }}>📚</div>
             <div>
               <h3 style={{ 
                 margin: 0,
-                fontWeight: 700,
-                fontSize: '1.5rem',
-                letterSpacing: '0.5px'
+                fontWeight: 600,
+                fontSize: typeScale.xl,
+                letterSpacing: '.25px'
               }}>
                 Subject Management Hub
               </h3>
               <p style={{ 
-                margin: '5px 0 0 0',
+                margin: '2px 0 0 0',
                 opacity: 0.9,
-                fontSize: '0.9rem'
+                fontSize: typeScale.md
               }}>
                 Manage student subject requests and approvals efficiently
               </p>
             </div>
           </div>
           
-          <div style={{ padding: 30 }}>
+          <div style={{ padding: '16px 18px' }}>
             <p style={{ 
               color: '#546e7a',
-              fontSize: '1rem',
-              lineHeight: 1.6,
-              marginBottom: 20,
+              fontSize: typeScale.base,
+              lineHeight: 1.3,
+              marginBottom: 12,
               textAlign: 'center'
             }}>
               Review and process student subject clearance requests. Track approval status 
@@ -294,7 +372,7 @@ const TeacherDashboard = () => {
             <div style={{ 
               display: 'flex',
               justifyContent: 'center',
-              gap: 15,
+              gap: 10,
               flexWrap: 'wrap'
             }}>
               <a 
@@ -304,8 +382,9 @@ const TeacherDashboard = () => {
               >
                 <div style={{
                   ...buttonStyles.primary,
-                  fontSize: '1rem',
-                  padding: '15px 30px'
+                  fontSize: typeScale.lg,
+                  padding: '8px 18px',
+                  borderRadius: 18
                 }}>
                   📋 Process Requests
                 </div>
@@ -318,8 +397,9 @@ const TeacherDashboard = () => {
               >
                 <div style={{
                   ...buttonStyles.secondary,
-                  fontSize: '1rem',
-                  padding: '15px 30px'
+                  fontSize: typeScale.lg,
+                  padding: '8px 18px',
+                  borderRadius: 18
                 }}>
                   📊 View Reports
                 </div>

@@ -18,5 +18,7 @@ router.post('/request', upload.single('file'), departmentStatusController.reques
 router.get('/statuses', departmentStatusController.getDepartmentStatuses);
 router.get('/file/:id', departmentStatusController.serveUploadedFile);
 router.get('/analytics/student', departmentStatusController.getStudentDepartmentStatusAnalytics);
+router.get('/analytics/staff', departmentStatusController.getStaffDepartmentStatusAnalytics);
+router.patch('/:id/respond', departmentStatusController.respondDepartmentStatus);
 
 module.exports = router;

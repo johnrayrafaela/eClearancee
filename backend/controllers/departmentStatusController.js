@@ -7,8 +7,10 @@ const fs = require('fs');
 // POST /api/department-status/request
 exports.requestDepartmentApproval = async (req, res) => {
   try {
-    const { student_id, department_id, semester, requirements } = req.body;
-    let file_path = null;
+  const { student_id, department_id, semester, requirements, link, checklist } = req.body;
+  let file_path = null;
+  let submittedLink = null;
+  let submittedChecklist = null;
     // Only one request per student per department per semester, unless previous is rejected
     const existing = await DepartmentStatus.findOne({ where: { student_id, department_id, semester } });
     if (existing) {
@@ -20,21 +22,45 @@ exports.requestDepartmentApproval = async (req, res) => {
       }
     }
 
-    // Get requirements from Department model if not provided
+    // Determine structured requirement type if JSON
     let deptRequirements = requirements;
     if (typeof deptRequirements !== 'string') deptRequirements = '';
-    if (deptRequirements.trim() === '') {
-      // If requirements are empty, file is optional
-      if (req.file) file_path = req.file.filename;
-    } else {
-      // If requirements are present, file is required
-      if (!req.file) {
-        return res.status(400).json({ message: 'File is required for departments with requirements.' });
+    let parsedReq = null;
+    try { parsedReq = JSON.parse(deptRequirements); } catch { /* ignore */ }
+    const reqType = parsedReq?.type || 'Text';
+
+    if (reqType === 'Link') {
+      if (!link || !/^https?:\/\//.test(link)) {
+        return res.status(400).json({ message: 'Valid link is required for Link requirement type.' });
       }
-      file_path = req.file.filename;
+      submittedLink = link;
+    } else if (reqType === 'Checklist') {
+      // checklist expected as JSON array of booleans (or convertible)
+      if (!checklist) {
+        return res.status(400).json({ message: 'Checklist completion array is required for Checklist requirement type.' });
+      }
+      try {
+        const arr = Array.isArray(checklist) ? checklist : JSON.parse(checklist);
+        if (!Array.isArray(arr)) throw new Error('Not array');
+        submittedChecklist = JSON.stringify(arr.map(v => !!v));
+      } catch {
+        return res.status(400).json({ message: 'Invalid checklist format.' });
+      }
+    } else if (reqType === 'File' || reqType === 'Text' || reqType === 'Other') {
+      if (reqType === 'File' || reqType === 'Text' || reqType === 'Other') {
+        if (!req.file) {
+          return res.status(400).json({ message: 'File is required for this requirement type.' });
+        }
+        file_path = req.file.filename;
+      }
+    } else {
+      // Default treat as file-based
+      if (req.file) file_path = req.file.filename;
     }
     const status = 'Requested';
-    const newStatus = await DepartmentStatus.create({ student_id, department_id, semester, status, file_path, requirements: deptRequirements });
+    const newStatus = await DepartmentStatus.create({ 
+      student_id, department_id, semester, status, file_path, requirements: deptRequirements, link: submittedLink, checklist: submittedChecklist, remarks: null 
+    });
     res.json(newStatus);
   } catch (err) {
     res.status(500).json({ message: 'Error requesting department approval', error: err.message });
@@ -59,7 +85,8 @@ exports.getDepartmentStatuses = async (req, res) => {
             }
           ]
         }
-      ]
+      ],
+  attributes: ['id','student_id','department_id','semester','status','file_path','requirements','link','checklist','remarks','createdAt']
     });
     res.json({ statuses });
   } catch (err) {
@@ -119,5 +146,53 @@ exports.getStudentDepartmentStatusAnalytics = async (req, res) => {
     res.json(analytics);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching department analytics', error: err.message });
+  }
+};
+
+// GET /api/department-status/analytics/staff?staff_id=...
+// Aggregates statuses for departments owned by a particular staff member.
+// Returns: { '1st': { Requested, Approved, Rejected }, '2nd': { ... } }
+exports.getStaffDepartmentStatusAnalytics = async (req, res) => {
+  const { staff_id } = req.query;
+  if (!staff_id) return res.status(400).json({ message: 'staff_id is required' });
+  try {
+    // Find all departments belonging to this staff
+    const departments = await require('../models/Department').findAll({ where: { staff_id } });
+    const deptIds = departments.map(d => d.department_id);
+    if (!deptIds.length) {
+      return res.json({ '1st': { Requested: 0, Approved: 0, Rejected: 0 }, '2nd': { Requested: 0, Approved: 0, Rejected: 0 } });
+    }
+    const statuses = await DepartmentStatus.findAll({ where: { department_id: deptIds } });
+    const analytics = { '1st': { Requested: 0, Approved: 0, Rejected: 0 }, '2nd': { Requested: 0, Approved: 0, Rejected: 0 } };
+    statuses.forEach(s => {
+      const sem = s.semester === '2nd' ? '2nd' : '1st';
+      if (analytics[sem][s.status] !== undefined) analytics[sem][s.status]++;
+    });
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching staff department analytics', error: err.message });
+  }
+};
+
+// PATCH /api/department-status/:id/respond  (shared simple handler if staff uses this base controller)
+exports.respondDepartmentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, remarks } = req.body;
+    if (!['Approved', 'Rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    const record = await DepartmentStatus.findByPk(id);
+    if (!record) return res.status(404).json({ message: 'Request not found' });
+    record.status = status;
+    if (status === 'Rejected') {
+      record.remarks = remarks?.trim() || null;
+    } else if (status === 'Approved') {
+      record.remarks = null;
+    }
+    await record.save();
+    res.json({ message: `Request ${status.toLowerCase()}.`, record });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating department status', error: err.message });
   }
 };
