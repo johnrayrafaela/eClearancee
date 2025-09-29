@@ -314,19 +314,19 @@ export const pageStyles = {
   container: {
     minHeight: '100vh',
     background: gradients.background,
-    padding: 20
+    padding: 10
   },
   content: {
     maxWidth: 1200,
     margin: '0 auto',
     display: 'flex',
     flexDirection: 'column',
-    gap: 25
+    gap: 10
   },
   hero: {
     textAlign: 'center',
     marginBottom: 30,
-    padding: 40,
+    padding: 25,
     background: gradients.hero,
     borderRadius: 20,
     color: '#fff',
@@ -337,7 +337,7 @@ export const pageStyles = {
 // Common form styles
 export const formStyles = {
   group: {
-    marginBottom: 20
+    marginBottom: 10
   },
   label: {
     display: 'block',
