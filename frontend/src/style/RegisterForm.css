@@ -10,17 +10,13 @@
 /* Global box-sizing for this scope */
 *, *::before, *::after { box-sizing: border-box; }
 
-.register-container { background:#fff; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.07); padding:2.5rem 2rem; max-width:500px; margin:2rem auto; font-family:'Segoe UI',sans-serif; animation:fadeIn .7s ease; }
+.register-container { background:#ffffff; border-radius:26px; border:1px solid #dce7ef; box-shadow:0 10px 40px -8px rgba(0,0,0,0.12),0 4px 14px -4px rgba(2,119,189,0.18); padding:2.8rem 2.4rem 2.5rem; max-width:520px; margin:3.5rem auto 2rem; font-family:'Segoe UI',sans-serif; animation:fadeIn .6s ease; backdrop-filter:blur(6px); }
 .compact-register { padding:1.5rem 1.2rem; max-width:440px; }
 
-.register-title { text-align:center; color:#0288d1; font-weight:bold; margin-bottom:1.5rem; font-size:1.7rem; }
+.register-title { text-align:center; color:#01579b; font-weight:800; margin-bottom:1.4rem; font-size:2rem; letter-spacing:.5px; }
 .compact-register .register-title { font-size:1rem; margin-bottom:.9rem; }
 
-.register-title-bar {
-  color: #ffc107;
-  font-weight: 700;
-  margin-right: 8px;
-}
+.register-title-bar { color:#ffb300; font-weight:800; margin-right:8px; text-shadow:0 2px 8px rgba(255,179,0,0.4); }
 .register-title-light {
   font-weight: 400;
 }
@@ -37,10 +33,12 @@
   display: block;
 }
 
-.register-select, .register-input { width:100%; max-width:100%; padding:.6rem; border-radius:6px; border:1px solid #b3e5fc; margin-bottom:1.2rem; font-size:1rem; box-sizing:border-box; display:block; }
+.register-select, .register-input { width:100%; max-width:100%; padding:.75rem .85rem; border-radius:14px; border:1px solid #c5e6f5; background:#f8fcff; margin-bottom:1.1rem; font-size:.95rem; font-weight:500; color:#103446; transition:border .25s, background .25s; }
+.register-select:focus, .register-input:focus { outline:none; border-color:#0288d1; background:#ffffff; box-shadow:0 0 0 3px rgba(2,136,209,0.15); }
 .compact-input { padding:.45rem .55rem !important; font-size:.7rem !important; margin-bottom:.6rem !important; border-radius:5px !important; }
 
-.register-button { width:100%; max-width:100%; background:#0288d1; color:#fff; border:none; border-radius:6px; padding:.7rem; font-weight:bold; font-size:1.1rem; cursor:pointer; margin-top:1rem; transition:background .2s; box-sizing:border-box; }
+.register-button { width:100%; max-width:100%; background:linear-gradient(135deg,#ffb300,#ff9800); color:#ffffff; border:none; border-radius:18px; padding:.95rem 1rem; font-weight:700; font-size:1rem; cursor:pointer; margin-top:.3rem; transition:background .25s, transform .25s; box-shadow:0 8px 24px -8px rgba(255,152,0,0.55); letter-spacing:.5px; }
+.register-button:hover { background:linear-gradient(135deg,#ffb300,#ff8c00); transform:translateY(-2px); }
 .compact-btn { font-size:.75rem !important; padding:.5rem .6rem !important; }
 
 .register-message {
@@ -70,9 +68,9 @@
 .register-option:hover {
   transform: translateY(-6px) scale(1.04);
 }
-.register-option-img { width:110px; height:110px; margin-bottom:10px; }
+.register-option-img { width:110px; height:110px; margin-bottom:10px; background:#ffffff; border:1px solid #d9e7ef; border-radius:24px; padding:10px; box-shadow:0 4px 16px -6px rgba(0,0,0,0.12); }
 .compact-option .register-option-img { width:70px; height:70px; margin-bottom:6px; }
-.register-option-label { color:#006eae; font-weight:700; text-align:center; font-size:1.1rem; letter-spacing:.5px; }
+.register-option-label { color:#01579b; font-weight:700; text-align:center; font-size:1.05rem; letter-spacing:.5px; }
 .compact-option .register-option-label { font-size:.65rem; line-height:1.1; }
 .success-text {
   color: #0277bd;

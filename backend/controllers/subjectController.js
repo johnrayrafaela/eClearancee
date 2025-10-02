@@ -122,8 +122,8 @@ exports.getSubjects = async (req, res) => {
       include: [
         {
           model: require('../models/Teacher'),
-          as: 'teacher',
-          attributes: ['teacher_id', 'firstname', 'lastname', 'email']
+            as: 'teacher',
+            attributes: ['teacher_id', 'firstname', 'lastname', 'email', 'signature']
         }
       ]
     });
@@ -185,7 +185,7 @@ exports.getSubjectsForStudent = async (req, res) => {
 exports.getSubjectsForTeacher = async (req, res) => {
   try {
     const { teacher_id } = req.params;
-    const subjects = await Subject.findAll({ where: { teacher_id } });
+  const subjects = await Subject.findAll({ where: { teacher_id }, include: [{ model: require('../models/Teacher'), as: 'teacher', attributes: ['teacher_id','firstname','lastname','email','signature'] }] });
     res.json(subjects);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching subjects', error: err.message });

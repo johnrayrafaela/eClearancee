@@ -24,6 +24,11 @@ const Staff = sequelize.define('Staff', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  signature: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Electronic signature image (base64 or file path)'
+  },
 });
 
 

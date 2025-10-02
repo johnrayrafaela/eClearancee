@@ -36,6 +36,11 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  signature: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Electronic signature image (base64 or file path)'
+  },
 }, {
   timestamps: false
 });

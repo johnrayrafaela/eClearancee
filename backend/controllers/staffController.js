@@ -5,12 +5,12 @@ const jwt = require('jsonwebtoken');
 // Register Staff
 exports.registerStaff = async (req, res) => {
   try {
-    const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password, signature } = req.body;
     const existing = await Staff.findOne({ where: { email } });
     if (existing) return res.status(400).json({ message: 'Email already registered' });
     const hashedPassword = await bcrypt.hash(password, 10);
-    const staff = await Staff.create({ firstname, lastname, email, password: hashedPassword });
-    res.status(201).json({ message: 'Staff registered', staff: { staff_id: staff.staff_id, firstname, lastname, email } });
+  const staff = await Staff.create({ firstname, lastname, email, password: hashedPassword, signature: signature || null });
+  res.status(201).json({ message: 'Staff registered', staff: { staff_id: staff.staff_id, firstname, lastname, email, signature: staff.signature } });
   } catch (err) {
     res.status(500).json({ message: 'Error registering staff', error: err.message });
   }
@@ -32,6 +32,7 @@ exports.loginStaff = async (req, res) => {
         firstname: staff.firstname,
         lastname: staff.lastname,
         email: staff.email,
+        signature: staff.signature,
       }
     });
   } catch (err) {

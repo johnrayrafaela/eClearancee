@@ -19,6 +19,7 @@ const RegisterForm = () => {
     course: '',
     year_level: '',
     block: '',
+    signature: '',
   });
 
   const [message, setMessage] = useState('');
@@ -54,6 +55,7 @@ const RegisterForm = () => {
           course: '',
           year_level: '',
           block: '',
+          signature: '',
         });
         setAccountType('');
         setShowForm(false);
@@ -198,6 +200,12 @@ const RegisterForm = () => {
             className="register-input compact-input"
           />
 
+          {/* Signature Pad (all account types) */}
+          <SignaturePad
+            value={formData.signature}
+            onChange={(dataUrl) => setFormData(prev => ({ ...prev, signature: dataUrl }))}
+          />
+
           {/* Only show course/year/block for students */}
           {accountType === 'user' && (
             <>
@@ -260,3 +268,88 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+
+// Lightweight inline signature pad component (no external dependency)
+const SignaturePad = ({ value, onChange }) => {
+  const canvasRef = React.useRef(null);
+  const [drawing, setDrawing] = React.useState(false);
+  const [empty, setEmpty] = React.useState(!value);
+
+  React.useEffect(() => {
+    if (value && canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
+        ctx.drawImage(img,0,0);
+        setEmpty(false);
+      };
+      img.src = value;
+    }
+  }, [value]);
+
+  const getPos = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    if (e.touches && e.touches[0]) {
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const start = (e) => {
+    e.preventDefault();
+    setDrawing(true);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#0d47a1';
+    const { x, y } = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+  const move = (e) => {
+    if (!drawing) return;
+    const ctx = canvasRef.current.getContext('2d');
+    const { x, y } = getPos(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setEmpty(false);
+  };
+  const end = () => {
+    if (!drawing) return;
+    setDrawing(false);
+    const dataUrl = canvasRef.current.toDataURL('image/png');
+    onChange(dataUrl);
+  };
+  const clear = (e) => {
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
+    onChange('');
+    setEmpty(true);
+  };
+
+  return (
+    <div style={{ margin:'12px 0 18px', padding:'12px 14px', background:'#f1f9ff', border:'1px solid #cfe8f7', borderRadius:14 }}>
+      <div style={{ fontWeight:700, fontSize:'0.75rem', color:'#01579b', marginBottom:6, letterSpacing:'.5px' }}>Electronic Signature</div>
+      <canvas
+        ref={canvasRef}
+        width={340}
+        height={120}
+        style={{ width:'100%', maxWidth:'340px', height:'120px', background:'#fff', border:'1px solid #90caf9', borderRadius:8, boxShadow:'inset 0 2px 4px rgba(0,0,0,0.06)', touchAction:'none', cursor:'crosshair' }}
+        onMouseDown={start}
+        onMouseMove={move}
+        onMouseUp={end}
+        onMouseLeave={end}
+        onTouchStart={start}
+        onTouchMove={move}
+        onTouchEnd={end}
+      />
+      <div style={{ display:'flex', justifyContent:'space-between', marginTop:8 }}>
+        <button onClick={clear} type="button" style={{ background:'#e53935', color:'#fff', border:'none', padding:'6px 12px', borderRadius:8, fontSize:'0.65rem', fontWeight:700, cursor:'pointer' }}>Clear</button>
+        <div style={{ fontSize:'0.55rem', color:'#546e7a', alignSelf:'center' }}>{ empty ? 'Draw your signature inside the box' : 'Signature captured' }</div>
+      </div>
+    </div>
+  );
+};

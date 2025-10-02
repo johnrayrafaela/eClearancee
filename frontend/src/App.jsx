@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Navbar from './components/Navbar';
 import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
@@ -39,7 +38,6 @@ function App() {
   return (
     <Router>
       <Layout>
-        <Navbar/>
         <Routes>
           <Route path="/" element={< LandingPage/>} />
           <Route path="/profile" element={<ProfilePage />} />

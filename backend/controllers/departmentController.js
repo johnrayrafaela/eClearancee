@@ -30,7 +30,7 @@ exports.getDepartments = async (req, res) => {
         {
           model: Staff,
           as: 'staff',
-          attributes: ['staff_id', 'firstname', 'lastname', 'email']
+          attributes: ['staff_id', 'firstname', 'lastname', 'email', 'signature']
         }
       ]
     });
@@ -48,7 +48,7 @@ exports.getDepartment = async (req, res) => {
         {
           model: Staff,
           as: 'staff',
-          attributes: ['staff_id', 'firstname', 'lastname', 'email']
+          attributes: ['staff_id', 'firstname', 'lastname', 'email', 'signature']
         }
       ]
     });

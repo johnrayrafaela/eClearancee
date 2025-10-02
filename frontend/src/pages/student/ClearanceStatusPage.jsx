@@ -1,23 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import axios from 'axios';
 import { AuthContext } from '../../Context/AuthContext';
-import { 
-  gradients, 
-  buttonStyles, 
-  fadeInUp, 
-  keyframes,
-  typeScale
-} from '../../style/CommonStyles';
-
-// Inject keyframes
-if (typeof document !== 'undefined' && !document.querySelector('#common-keyframes')) {
-  const style = document.createElement('style');
-  style.id = 'common-keyframes';
-  style.textContent = keyframes;
-  document.head.appendChild(style);
-}
-
-
+import { gradients, buttonStyles, fadeInUp, typeScale } from '../../style/CommonStyles';
 
 const styles = {
   container: { padding: '24px 20px', margin: '0 auto 60px', background: gradients.light, borderRadius: 24, boxShadow: '0 10px 30px -6px rgba(2,119,189,0.15)', fontFamily: 'Segoe UI, Arial, sans-serif', maxWidth: '1600px', ...fadeInUp },
@@ -36,53 +22,81 @@ const styles = {
   input: { padding: '8px 12px', borderRadius: 14, border: '2px solid #cae9f9', width: '100%', maxWidth: 240, fontSize: '0.75rem', color: '#1e3a5f', background: '#f5fbff', transition: 'all 0.25s ease', outline: 'none', fontWeight: 600 },
   checklistItem: { display: 'flex', alignItems: 'center', marginBottom: 4, padding: '6px 8px', borderRadius: 10, background: 'linear-gradient(135deg,#ffffff 0%,#f2faff 100%)', border: '1px solid #d9eefb', boxShadow:'0 2px 4px rgba(2,119,189,0.06)' },
   instructionBox: { fontSize: typeScale.xs, marginTop: 4, padding: '6px 8px', background: '#e3f2fd', borderRadius: 6, color: '#1976d2', border: '1px solid #bbdefb' },
-  badge: { display:'inline-flex', alignItems:'center', gap:4, color:'#fff', padding:'4px 10px', fontSize:'0.63rem', fontWeight:700, letterSpacing:'.5px', borderRadius:24, boxShadow:'0 2px 4px rgba(0,0,0,0.2)' }
-  ,checklistScroll: { maxHeight: 110, overflowY: 'auto', paddingRight: 4, scrollbarWidth: 'thin' }
+  badge: { display:'inline-flex', alignItems:'center', gap:4, color:'#fff', padding:'4px 10px', fontSize:'0.63rem', fontWeight:700, letterSpacing:'.5px', borderRadius:24, boxShadow:'0 2px 4px rgba(0,0,0,0.2)' },
+  checklistScroll: { maxHeight: 110, overflowY: 'auto', paddingRight: 4, scrollbarWidth: 'thin' }
 };
 
 const semesters = ['1st', '2nd'];
 
-
 const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
-  // Track checklist submissions per subject
-  const [submittedChecklists, setSubmittedChecklists] = useState({});
-  // Track submitted link per subject (for Link requirements)
-  const [submittedLinks, setSubmittedLinks] = useState({});
   const { user, userType } = useContext(AuthContext);
   const [clearance, setClearance] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [subjectStatuses, setSubjectStatuses] = useState([]);
-  // Loading state removed (no longer showing loader)
-  // const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [requesting, setRequesting] = useState({}); // { [subject_id]: boolean }
-  // Removed requirements state
-  const [files, setFiles] = useState({}); // { [subject_id]: File[] | [] }
-  // Default semester auto-selected so user can request without manual selection
-  const [selectedSemester, setSelectedSemester] = useState('1st');
   const [departments, setDepartments] = useState([]);
+  const [departmentStatuses, setDepartmentStatuses] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState('1st');
+  const [error, setError] = useState('');
+  const [requesting, setRequesting] = useState({});
+  const [files, setFiles] = useState({});
+  const [deptFiles, setDeptFiles] = useState({});
+  const [deptLinks, setDeptLinks] = useState({});
+  const [deptChecklists, setDeptChecklists] = useState({});
+  const [deptRequesting, setDeptRequesting] = useState({});
+  // Restored missing state used throughout JSX/actions
+  const [submittedChecklists, setSubmittedChecklists] = useState({}); // { [subject_id]: boolean[] }
+  const [submittedLinks, setSubmittedLinks] = useState({}); // { [subject_id]: string }
   const [instructionModal, setInstructionModal] = useState(null); // { subjectId, name, type, instructions }
   const [remarksModal, setRemarksModal] = useState(null); // { subjectId, name, remarks }
+  const printingRef = useRef(false);
+  const downloadingRef = useRef(false);
 
-  // Department file upload state and request (moved inside component)
-  const [deptFiles, setDeptFiles] = useState({}); // { [department_id]: File[] }
-  const [deptRequesting, setDeptRequesting] = useState({}); // { [department_id]: boolean }
-  const [departmentStatuses, setDepartmentStatuses] = useState([]); // [{ department_id, status, file_path, remarks }]
-  const [deptLinks, setDeptLinks] = useState({}); // { [department_id]: string }
-  const [deptChecklists, setDeptChecklists] = useState({}); // { [department_id]: boolean[] }
-
-  // ---- Helpers: Subject Status Upsert & Dedup (prevents duplicate counting) ----
+  // Upsert helper to avoid duplicate subject statuses
   const upsertSubjectStatus = React.useCallback((prev, newEntry) => {
     const map = new Map();
-    // Build map from existing (last one wins) to keep latest data
-    prev.forEach(s => {
-      map.set(s.subject_id, s);
-    });
+    prev.forEach(s => map.set(s.subject_id, s));
     const existing = map.get(newEntry.subject_id) || {};
-    // Preserve semester explicitly (newEntry.semester preferred)
     map.set(newEntry.subject_id, { ...existing, ...newEntry, semester: newEntry.semester || existing.semester || selectedSemester || '1st' });
     return Array.from(map.values());
   }, [selectedSemester]);
+
+  // Load clearance/subjects/departments & statuses
+  useEffect(() => {
+    if (!user || userType !== 'user') return;
+    const effectiveSemester = selectedSemester || '1st';
+    Promise.all([
+      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${effectiveSemester}`),
+      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`),
+      axios.get('http://localhost:5000/api/departments')
+    ])
+      .then(([clearanceRes, statusRes, deptRes]) => {
+        if (!clearanceRes.data.clearance) {
+          setClearance(null);
+          setSubjects([]);
+          setSubjectStatuses([]);
+          setDepartments([]);
+          setError('You have not created a clearance for this semester yet.');
+        } else {
+          setClearance(clearanceRes.data.clearance);
+          setSubjects(clearanceRes.data.subjects || []);
+          setSubjectStatuses(statusRes.data.statuses || []);
+          setDepartments(deptRes.data || []);
+          setError('');
+          onStatusesUpdate && onStatusesUpdate({ subjects: clearanceRes.data.subjects, statuses: statusRes.data.statuses || [] });
+        }
+      })
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setClearance(null);
+          setSubjects([]);
+          setSubjectStatuses([]);
+          setDepartments([]);
+          setError('No clearance found for this semester.');
+        } else {
+          setError('Failed to load clearance or related data.');
+        }
+      });
+  }, [user, userType, selectedSemester, onStatusesUpdate]);
 
   // One-time dedupe after initial load of subject statuses (in case historical duplicates exist)
   useEffect(() => {
@@ -163,10 +177,8 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           checklist: checklistVals
         });
         setDeptChecklists(prev => ({ ...prev, [departmentId]: [] }));
-      } else { // File/Text/Other treat as multipart with file
+      } else { // File/Text/Other treat as multipart
         const formData = new FormData();
-        formData.append('student_id', user.student_id);
-        formData.append('department_id', departmentId);
         formData.append('semester', effectiveSemester);
         formData.append('requirements', reqRaw);
         if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
@@ -175,7 +187,6 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
         await axios.post('http://localhost:5000/api/department-status/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         setDeptFiles(prev => ({ ...prev, [departmentId]: null }));
       }
-      // Refresh statuses
       const res = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`);
       setDepartmentStatuses(res.data.statuses || []);
       onStatusChange && onStatusChange();
@@ -185,47 +196,6 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     }
     setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
   };
-
-  // Fetch clearance, subjects, and subject statuses
-  useEffect(() => {
-    if (!user || userType !== 'user') return;
-    const effectiveSemester = selectedSemester || '1st';
-  // loading removed
-    Promise.all([
-      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${effectiveSemester}`),
-      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`),
-      axios.get('http://localhost:5000/api/departments')
-    ])
-      .then(([clearanceRes, statusRes, deptRes]) => {
-        if (!clearanceRes.data.clearance) {
-          // No clearance created for this semester: clear lists and show instruction message
-          setClearance(null);
-            setSubjects([]);
-            setSubjectStatuses([]);
-            setDepartments([]);
-            setError('You have not created a clearance for this semester yet. Please create a clearance first to manage subjects and department requirements.');
-        } else {
-          setClearance(clearanceRes.data.clearance);
-          setSubjects(clearanceRes.data.subjects);
-          setSubjectStatuses(statusRes.data.statuses || []);
-          setDepartments(deptRes.data || []);
-          setError('');
-          onStatusesUpdate && onStatusesUpdate({ subjects: clearanceRes.data.subjects, statuses: statusRes.data.statuses || [] });
-        }
-      })
-      .catch(err => {
-        if (err.response && err.response.status === 404) {
-          setClearance(null);
-          setSubjects([]);
-          setSubjectStatuses([]);
-          setDepartments([]);
-          setError('You have not created a clearance for this semester yet. Please create a clearance first to manage subjects and department requirements.');
-        } else {
-          setError('Failed to load clearance, subject statuses, or departments.');
-        }
-      })
-  .finally(() => {/* loading removed */});
-  }, [user, userType, selectedSemester, onStatusesUpdate]);
 
   // Request approval for a subject
   const requestApproval = async (subjectId) => {
@@ -349,12 +319,413 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     return <span style={{ ...styles.badge, background: cfg.bg }}>{cfg.icon} {status}</span>;
   };
 
+  // Build Half-Letter (5.5in x 8.5in) compressed clearance HTML for printing
+  const buildHalfLetterHTML = () => {
+    const genDate = new Date();
+    const fmtDate = genDate.toLocaleDateString();
+    const fmtTime = genDate.toLocaleTimeString();
+    // Map statuses for quick lookup
+    const subjStatusMap = new Map(subjectStatuses.map(s=>[s.subject_id,s]));
+    const deptStatusMap = new Map(departmentStatuses.map(s=>[s.department_id,s]));
+    const esc = (str='') => String(str).replace(/[&<>]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
+    const subjectItems = subjects.map(sub => {
+      const st = subjStatusMap.get(sub.subject_id)?.status || 'Pending';
+      const approved = st === 'Approved';
+      const teacherName = approved && sub.teacher ? `${sub.teacher.firstname||''} ${sub.teacher.lastname||''}`.trim() : '';
+      const sigImg = approved && sub.teacher?.signature ? `<img src='${sub.teacher.signature}' alt='sig' style='max-height:22px;max-width:54px;display:block;margin:0 auto;' />` : '';
+      const sigCell = approved ? (sigImg || `<span class="sig">${esc(teacherName)}</span>`) : '<span class="line" />';
+      return `<li class="it s-${st[0]}"><span class="n">${esc(sub.name)}</span><span class="st">${st}</span>${sigCell}</li>`;
+    }).join('');
+    const deptItems = departments.map(dept => {
+      const st = deptStatusMap.get(dept.department_id)?.status || 'Pending';
+      const approved = st === 'Approved';
+      const staffName = approved && dept.staff ? `${dept.staff.firstname||''} ${dept.staff.lastname||''}`.trim() : '';
+      const sigImg = approved && dept.staff?.signature ? `<img src='${dept.staff.signature}' alt='sig' style='max-height:22px;max-width:54px;display:block;margin:0 auto;' />` : '';
+      const sigCell = approved ? (sigImg || `<span class="sig">${esc(staffName)}</span>`) : '<span class="line" />';
+      return `<li class="it s-${st[0]}"><span class="n">${esc(dept.name)}</span><span class="st">${st}</span>${sigCell}</li>`;
+    }).join('');
+    const clearanceStatus = clearance?.status || '—';
+  return `<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Clearance</title>
+      <style>
+        @page { size: 5.5in 8.5in; margin:0.35in; }
+        html,body { padding:0; margin:0; }
+        body { width:5.5in; height:8.5in; overflow:hidden; font-family:'Segoe UI',Arial,sans-serif; font-size:10px; color:#0f172a; }
+        * { box-sizing:border-box; }
+        .hdr { display:flex; align-items:center; gap:8px; margin:0 0 2px; }
+        .hdr img { height:26px; width:auto; display:block; object-fit:contain; }
+        .hdr-title { flex:1; text-align:center; font-size:13px; font-weight:700; letter-spacing:.6px; color:#013352; }
+        h1 { font-size:14px; margin:0 0 2px; text-align:center; font-weight:700; letter-spacing:.5px; }
+        .sub { text-align:center; font-size:8px; margin:0 0 4px; color:#475569; }
+        .bar { height:4px; width:100%; background:linear-gradient(90deg,#01579b,#0288d1,#43a047); border-radius:3px; margin:2px 0 4px; }
+        .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:2px 8px; margin:2px 0 4px; }
+        .meta div { font-size:8.5px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sections { display:flex; gap:6px; margin-top:2px; height: calc(8.5in - 0.35in - 0.35in - 115px); }
+        .col { flex:1; display:flex; flex-direction:column; min-width:0; }
+  h2 { font-size:9.5px; margin:4px 0 4px; padding:4px 6px; background:#0277bd !important; color:#fff; border-radius:6px; letter-spacing:.55px; text-align:center; box-shadow:0 1px 2px rgba(0,0,0,0.15); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @media print { h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        ul.list { list-style:none; padding:0; margin:0; column-count:1; column-gap:0; }
+        /* Multi-column if large */
+        ul.list.large { column-count:2; }
+        li.it { break-inside:avoid; border:1px solid #cfe8f7; background:#f8fcff; margin:0 0 2px; padding:2px 3px 2px 4px; display:grid; grid-template-columns: 1fr auto 54px; align-items:center; border-radius:4px; }
+        li.it:nth-child(even){ background:#eef7fd; }
+        .n { font-size:7.5px; line-height:1.1; padding-right:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .st { font-size:7px; font-weight:600; padding:2px 4px; border-radius:10px; background:#e0f2fe; color:#0369a1; letter-spacing:.3px; }
+        .s-A .st { background:#e6f6ec; color:#1b5e20; }
+        .s-R .st { background:#fde7e7; color:#b71c1c; }
+        .s-P .st { background:#e0f2fe; color:#01579b; }
+        .s-Rj .st { background:#fff4e5; color:#b45309; }
+        .sig { font-family:"Brush Script MT","Segoe Script",cursive; font-size:9px; text-align:center; color:#2e7d32; }
+        .line { display:block; height:10px; border-bottom:1px solid #64748b; margin:0 6px; }
+        footer { position:absolute; left:0; right:0; bottom:0.25in; text-align:center; font-size:7px; color:#64748b; }
+        .legend { display:flex; gap:4px; justify-content:center; margin:2px 0 4px; flex-wrap:wrap; }
+        .legend span { font-size:6.5px; padding:2px 5px; border-radius:10px; background:#e2e8f0; }
+        .legend .A { background:#c8ead2; }
+        .legend .P { background:#cbe7f7; }
+        .legend .R { background:#f8d4d4; }
+        .legend .Rj { background:#ffe2bf; }
+        .sign-row { display:flex; gap:10px; margin-top:2px; }
+        .sign-slot { flex:1; text-align:center; font-size:7px; }
+        .sign-slot .line { height:12px; }
+        /* Scaling wrapper */
+        #scaleWrap { transform-origin: top left; }
+        .print-bar { position:sticky; top:0; background:#012d4a; color:#fff; padding:6px 10px; display:flex; align-items:center; gap:10px; font-size:9px; z-index:50; }
+        .print-bar button { background:#ffb300; border:none; color:#012d4a; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:9px; }
+        .print-bar button:hover { background:#ffa000; }
+      </style>
+      <script>
+        (function(){
+          let printed=false;
+          function fit(){
+            const wrap=document.getElementById('scaleWrap');
+            if(!wrap) return;
+            const availH= (window.innerHeight - 10);
+            const h= wrap.scrollHeight;
+            if(h>availH){
+              const scale= Math.max(0.42, availH / h);
+              wrap.style.transform='scale('+scale+')';
+            }
+          }
+          window.addEventListener('load',()=>{
+            fit();
+            setTimeout(()=>{ if(!printed){ printed=true; try{ window.print(); }catch(e){} } }, 180);
+          });
+          window.addEventListener('afterprint',()=>{ printed=true; });
+        })();
+      </script>
+  </head><body><base href="${window.location.origin}/"><div id='scaleWrap'>
+      <div class='hdr'>
+        <img src='/eClearance.png' alt='eClearance Logo' />
+        <div class='hdr-title'>OFFICIAL CLEARANCE</div>
+      </div>
+      <div class='sub'>Generated: ${fmtDate} ${fmtTime}</div>
+      <div class='bar'></div>
+      <div class='meta'>
+        <div><strong>Student:</strong> ${esc(user?.firstname)} ${esc(user?.lastname)}</div>
+        <div><strong>ID:</strong> ${esc(user?.student_id)}</div>
+        <div><strong>Course:</strong> ${esc(user?.course||'—')}</div>
+        <div><strong>Year:</strong> ${esc(user?.year_level||'—')}</div>
+        <div><strong>Semester:</strong> ${esc(selectedSemester||'1st')}</div>
+        <div><strong>Clr ID:</strong> ${esc(clearance?.clearance_id||'')}</div>
+        <div><strong>Status:</strong> ${esc(clearanceStatus)}</div>
+        <div><strong>Subjects:</strong> ${subjects.length}</div>
+        <div><strong>Depts:</strong> ${departments.length}</div>
+      </div>
+      <div class='legend'><span class='A'>Approved</span><span class='P'>Pending/Requested</span><span class='R'>Rejected</span><span class='Rj'>Re-eval</span></div>
+      <div class='sections'>
+        <div class='col'>
+          <h2>Subjects</h2>
+          <ul class='list ${subjects.length>8?'large':''}'>${subjectItems||'<li class="it"><span class="n">None</span></li>'}</ul>
+        </div>
+        <div class='col'>
+          <h2>Departments</h2>
+          <ul class='list ${departments.length>8?'large':''}'>${deptItems||'<li class="it"><span class="n">None</span></li>'}</ul>
+        </div>
+      </div>
+      <div class='sign-row'>
+        <div class='sign-slot'><span class='line'></span> Student</div>
+        <div class='sign-slot'><span class='line'></span> Registrar</div>
+        <div class='sign-slot'><span class='line'></span> Dean</div>
+      </div>
+      <footer>Compressed half-letter format. Signatures show only for approved items. System generated.</footer>
+    </div></body></html>`;
+  };
+
+  // Build Full Letter (8.5in x 11in) readable clearance HTML with adaptive scaling
+  const buildFullLetterHTML = () => {
+    const now = new Date();
+    const fmtDate = now.toLocaleDateString();
+    const fmtTime = now.toLocaleTimeString();
+    const subjStatusMap = new Map(subjectStatuses.map(s=>[s.subject_id,s]));
+    const deptStatusMap = new Map(departmentStatuses.map(s=>[s.department_id,s]));
+    const esc = (str='') => String(str).replace(/[&<>]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
+    // Helper to parse requirement type
+    const parseReqType = (raw) => {
+      if(!raw) return 'Text';
+      try { const o = JSON.parse(raw); return o.type || 'Text'; } catch { return 'Text'; }
+    };
+  // (Action items removed from output per request)
+    const subjectRows = subjects.map(sub => {
+      const st = subjStatusMap.get(sub.subject_id)?.status || 'Pending';
+      const approved = st === 'Approved';
+      const teacherName = (approved && sub.teacher) ? `${sub.teacher.firstname||''} ${sub.teacher.lastname||''}`.trim() : '';
+      const cls = st === 'Approved' ? 'A' : (st === 'Rejected' ? 'R' : (st === 'Pending' ? 'P' : 'Re'));
+      const reqType = parseReqType(sub.requirements);
+      const sigImg = approved && sub.teacher?.signature ? `<img src='${sub.teacher.signature}' alt='sig' style='max-height:30px;max-width:110px;display:block;margin:0 auto;' />` : '';
+      const sigCell = approved ? (sigImg || `<span class='sig'>${esc(teacherName)}</span>`) : '<span class="line"></span>';
+      return `<tr class="r ${cls}"><td class="nm">${esc(sub.name)}</td><td class="tp">${esc(reqType)}</td><td class="st">${esc(st)}</td><td class="sg">${sigCell}</td></tr>`;
+    }).join('');
+    const deptRows = departments.map(dept => {
+      const st = deptStatusMap.get(dept.department_id)?.status || 'Pending';
+      const approved = st === 'Approved';
+      const staffName = (approved && dept.staff) ? `${dept.staff.firstname||''} ${dept.staff.lastname||''}`.trim() : '';
+      const cls = st === 'Approved' ? 'A' : (st === 'Rejected' ? 'R' : (st === 'Pending' ? 'P' : 'Re'));
+      const reqType = parseReqType(dept.requirements);
+      const sigImg = approved && dept.staff?.signature ? `<img src='${dept.staff.signature}' alt='sig' style='max-height:30px;max-width:110px;display:block;margin:0 auto;' />` : '';
+      const sigCell = approved ? (sigImg || `<span class='sig'>${esc(staffName)}</span>`) : '<span class="line"></span>';
+      return `<tr class="r ${cls}"><td class="nm">${esc(dept.name)}</td><td class="tp">${esc(reqType)}</td><td class="st">${esc(st)}</td><td class="sg">${sigCell}</td></tr>`;
+    }).join('');
+    const clearanceStatus = clearance?.status || '—';
+    const many = subjects.length + departments.length > 26; // extra column threshold
+    const countBy = (arr, getter) => arr.reduce((m,x)=>{ const k=getter(x); m[k]=(m[k]||0)+1; return m; },{});
+    const subjCounts = countBy(subjects, s=> (subjStatusMap.get(s.subject_id)?.status||'Pending'));
+    const deptCounts = countBy(departments, d=> (deptStatusMap.get(d.department_id)?.status||'Pending'));
+    const val = (o,k) => o[k]||0;
+  // Progress metrics removed (previously: totalNeeded, totalApproved, completionPct)
+  // Removed actionsHTML and Next Steps section
+    return `<!DOCTYPE html><html><head><meta charset='utf-8'/>
+      <style>
+        @page { size: Letter portrait; margin:0.55in; }
+        body { font-family:'Segoe UI',Arial,sans-serif; margin:0; color:#0f172a; font-size:12px; }
+        h1 { text-align:center; margin:0 0 4px; font-size:24px; letter-spacing:.5px; font-weight:700; }
+        .hdr { display:flex; align-items:center; gap:16px; margin:0 0 8px; }
+        .hdr img { height:52px; width:auto; object-fit:contain; display:block; }
+        .hdr-block { flex:1; text-align:center; }
+        .sys-name { font-size:13px; font-weight:600; letter-spacing:1px; color:#01579b; }
+        .doc-title { font-size:22px; font-weight:800; letter-spacing:.75px; color:#012d4a; margin-top:2px; }
+        .sub { text-align:center; font-size:11px; margin:0 0 10px; color:#475569; }
+        .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:4px 16px; margin:0 0 14px; font-size:11px; }
+        .meta div { line-height:1.25; }
+        .legend { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:0 0 10px; }
+        .legend span { font-size:10px; padding:4px 10px; border-radius:16px; background:#e2e8f0; font-weight:600; letter-spacing:.3px; }
+        .legend .A{background:#c8ead2;color:#1b5e20;} .legend .P{background:#cbe7f7;color:#01579b;} .legend .R{background:#f8d4d4;color:#b71c1c;} .legend .Re{background:#ffe2bf;color:#b45309;}
+        .tables { display:flex; gap:24px; align-items:flex-start; }
+        .tbl-wrap { flex:1; min-width:0; }
+  h2 { margin:0 0 10px; font-size:15px; letter-spacing:.4px; color:#fff; background:#0277bd !important; background:linear-gradient(135deg,#0277bd 0%,#015b90 70%); padding:8px 14px; border-radius:10px; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.12); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @media print { h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        table { width:100%; border-collapse:separate; border-spacing:0; font-size:${many? '10px':'11.5px'}; }
+        th { background:linear-gradient(135deg,#0277bd,#01579b); color:#fff; padding:${many? '5px 6px':'7px 8px'}; text-align:left; font-weight:600; font-size:${many? '10px':'12px'}; }
+        td { background:#fff; border-bottom:1px solid #e2ecf3; padding:${many? '4px 6px':'6px 8px'}; vertical-align:middle; }
+        tr:nth-child(even) td { background:#f5fafe; }
+        td.st { font-weight:600; }
+        tr.A td.st { color:#1b5e20; }
+        tr.P td.st { color:#01579b; }
+        tr.R td.st { color:#b71c1c; }
+        tr.Re td.st { color:#b45309; }
+        .sig { font-family:"Brush Script MT","Segoe Script",cursive; font-size:${many? '14px':'16px'}; color:#2e7d32; }
+        .line { display:block; height:${many? '16px':'18px'}; border-bottom:1px solid #475569; }
+        footer { margin-top:18px; text-align:center; font-size:10px; color:#64748b; }
+        .signatures { display:flex; gap:60px; justify-content:center; margin-top:18px; }
+        .sig-slot { text-align:center; font-size:11px; }
+        .sig-slot .line { height:20px; margin-bottom:4px; }
+        #scaleWrap { transform-origin: top left; }
+        .print-bar { position:sticky; top:0; background:#012d4a; color:#fff; padding:8px 12px; display:flex; align-items:center; gap:14px; font-size:11px; z-index:60; }
+        .print-bar button { background:#ffb300; border:none; color:#012d4a; font-weight:700; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:11px; }
+        .print-bar button:hover { background:#ffa000; }
+      </style>
+      <script>
+        (function(){
+          let printed=false;
+          function fit(){
+            const wrap=document.getElementById('scaleWrap');
+            if(!wrap) return; 
+            const limit= (window.innerHeight * 0.98);
+            const h= wrap.scrollHeight; 
+            if(h>limit){
+              const scale=Math.max(0.65, limit/h);
+              wrap.style.transform='scale('+scale.toFixed(3)+')';
+            }
+          }
+          window.addEventListener('load',()=>{ fit(); setTimeout(()=>{ if(!printed){ printed=true; try{window.print();}catch(e){} } },200); });
+          window.addEventListener('afterprint',()=>{ printed=true; });
+        })();
+      </script>
+  </head><body><base href="${window.location.origin}/"><div id='scaleWrap'>
+      <div class='hdr'>
+        <img src='/eClearance.png' alt='eClearance Logo' />
+        <div class='hdr-block'>
+          <div class='sys-name'>eCLEARANCE SYSTEM</div>
+          <div class='doc-title'>OFFICIAL CLEARANCE</div>
+          <div class='sub'>Generated: ${fmtDate} ${fmtTime}</div>
+        </div>
+      </div>
+      <div class='meta'>
+        <div><strong>Student:</strong> ${esc(user?.firstname)} ${esc(user?.lastname)}</div>
+        <div><strong>ID:</strong> ${esc(user?.student_id)}</div>
+        <div><strong>Course:</strong> ${esc(user?.course||'—')}</div>
+        <div><strong>Year:</strong> ${esc(user?.year_level||'—')}</div>
+        <div><strong>Semester:</strong> ${esc(selectedSemester||'1st')}</div>
+        <div><strong>Clearance ID:</strong> ${esc(clearance?.clearance_id||'')}</div>
+        <div><strong>Clearance Status:</strong> ${esc(clearanceStatus)}</div>
+        <div><strong>Subjects:</strong> ${subjects.length} (A:${val(subjCounts,'Approved')} / Rq:${val(subjCounts,'Requested')} / Rej:${val(subjCounts,'Rejected')})</div>
+        <div><strong>Departments:</strong> ${departments.length} (A:${val(deptCounts,'Approved')} / Rq:${val(deptCounts,'Requested')} / Rej:${val(deptCounts,'Rejected')})</div>
+      </div>
+      <!-- Progress and status definition section removed per request -->
+      <!-- Next Steps section removed per user request -->
+      <div class='legend'><span class='A'>Approved</span><span class='P'>Pending / Requested</span><span class='R'>Rejected</span><span class='Re'>Re-eval</span></div>
+      <div class='tables'>
+        <div class='tbl-wrap'>
+          <h2>Subjects</h2>
+          <table>
+            <thead><tr><th style='width:44%'>Subject</th><th style='width:16%'>Type</th><th style='width:20%'>Status</th><th style='width:20%'>Signature</th></tr></thead>
+            <tbody>${subjectRows || '<tr><td colspan=4>No subjects</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div class='tbl-wrap'>
+          <h2>Departments</h2>
+          <table>
+            <thead><tr><th style='width:44%'>Department</th><th style='width:16%'>Type</th><th style='width:20%'>Status</th><th style='width:20%'>Signature</th></tr></thead>
+            <tbody>${deptRows || '<tr><td colspan=4>No departments</td></tr>'}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class='signatures'>
+        <div class='sig-slot'><span class='line'></span>Student</div>
+        <div class='sig-slot'><span class='line'></span>Registrar</div>
+        <div class='sig-slot'><span class='line'></span>Dean</div>
+      </div>
+  <footer>Detailed Letter format. Signatures only appear when status is Approved. System generated.</footer>
+    </div></body></html>`;
+  };
+
+  // ---- Print Helper (Iframe) to avoid about:blank popup window ----
+  // Controlled popup print using data URL (eliminates about:blank & double print in Chrome)
+  const printHTML = (rawHtml) => {
+    if (printingRef.current) return; // guard multiple rapid clicks
+    printingRef.current = true;
+    try {
+      const blob = new Blob([rawHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, 'PRINT_WINDOW', 'noopener,noreferrer,width=950,height=1200');
+      if (!w) { printingRef.current = false; URL.revokeObjectURL(url); return; }
+      // Release guard after a few seconds (auto close removed so user can reprint manually inside popup)
+      setTimeout(()=>{ printingRef.current=false; URL.revokeObjectURL(url); }, 4000);
+    } catch(e) {
+      console.error('Failed to open print window', e);
+      printingRef.current = false;
+    }
+  };
+
+  // Download PDF (render the full letter HTML into a canvas and then PDF)
+  const downloadPDF = async (mode='full') => {
+    if (downloadingRef.current) return;
+    downloadingRef.current = true;
+    try {
+  const html = mode === 'half' ? buildHalfLetterHTML() : buildFullLetterHTML();
+      // Create a sandbox container to render HTML (hidden)
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-10000px';
+      container.style.top = '0';
+      container.style.width = '800px';
+      container.style.background = '#fff';
+      container.innerHTML = html
+        .replace(/<!DOCTYPE[\s\S]*?<body[^>]*>/i,'')
+        .replace(/<\/body>[\s\S]*?<\/html>/i,'');
+      document.body.appendChild(container);
+  const target = container; // entire rendered content
+  const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      // Determine page size (letter portrait)
+      const pdf = new jsPDF('p','pt','letter');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const ratio = canvas.width / canvas.height;
+      let renderWidth = pageWidth - 40; // margins
+      let renderHeight = renderWidth / ratio;
+      if (renderHeight > pageHeight - 40) {
+        renderHeight = pageHeight - 40;
+        renderWidth = renderHeight * ratio;
+      }
+      const x = (pageWidth - renderWidth)/2;
+      const y = 20;
+      pdf.addImage(imgData, 'PNG', x, y, renderWidth, renderHeight, undefined, 'FAST');
+      const fileName = `clearance_${user?.student_id||'student'}_${mode}_${Date.now()}.pdf`;
+      pdf.save(fileName);
+      document.body.removeChild(container);
+    } catch(err) {
+      console.error('PDF generation failed', err);
+      downloadingRef.current = false;
+      return;
+    }
+    downloadingRef.current = false;
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.hero}>
         <h1 style={styles.heroTitle}>📝 Clearance Status</h1>
         <p style={styles.heroSubtitle}>Monitor progress for subjects and departments this semester.</p>
         <div style={{ position:'absolute', inset:0, background:'radial-gradient(circle at 85% 25%, rgba(255,255,255,0.18), transparent 60%)', pointerEvents:'none' }} />
+        {/* Print Button */}
+        {clearance && (
+          <div style={{ position:'absolute', top:14, right:14, display:'flex', gap:8 }}>
+            <button
+              onClick={() => {
+                const html = buildFullLetterHTML();
+                printHTML(html);
+              }}
+              style={{
+                background:'linear-gradient(135deg,#ffb300 0%,#f57c00 100%)',
+                border:'none',
+                color:'#fff',
+                padding:'10px 18px',
+                borderRadius:14,
+                cursor:'pointer',
+                fontWeight:700,
+                fontSize:'0.7rem',
+                boxShadow:'0 4px 12px rgba(245,124,0,0.35)',
+                letterSpacing:'.5px'
+              }}
+            >
+              🖨️ Print Detailed (Letter)
+            </button>
+            <button
+              onClick={() => {
+                const html = buildHalfLetterHTML();
+                printHTML(html);
+              }}
+              style={{
+                background:'linear-gradient(135deg,#0288d1 0%,#01579b 100%)',
+                border:'none',
+                color:'#fff',
+                padding:'10px 14px',
+                borderRadius:14,
+                cursor:'pointer',
+                fontWeight:700,
+                fontSize:'0.65rem',
+                boxShadow:'0 4px 12px rgba(2,119,189,0.35)',
+                letterSpacing:'.5px'
+              }}
+            >
+              � Compact
+            </button>
+            <button
+              onClick={() => downloadPDF('full')}
+              style={{
+                background:'linear-gradient(135deg,#43a047 0%,#2e7d32 100%)',
+                border:'none',
+                color:'#fff',
+                padding:'10px 14px',
+                borderRadius:14,
+                cursor:'pointer',
+                fontWeight:700,
+                fontSize:'0.65rem',
+                boxShadow:'0 4px 12px rgba(56,142,60,0.35)',
+                letterSpacing:'.5px'
+              }}
+            >⬇️ PDF</button>
+          </div>
+        )}
       </div>
       {clearance && (
         <div style={styles.summaryGrid}>
@@ -1108,6 +1479,100 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           )}
           
         </>
+      )}
+      {/* Printable Section (hidden on screen) */}
+      {clearance && (
+        <div id="printable-clearance" style={{ display:'none', padding:0, background:'#fff', color:'#000', fontFamily:'Segoe UI, Arial, sans-serif' }}>
+          <div style={{ padding: 0 }}>
+            <h1>OFFICIAL CLEARANCE</h1>
+            <div style={{ textAlign:'center', fontSize:8, marginTop:0 }}>Generated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
+            <div className="meta-grid">
+              <div className="meta-item"><strong>Student:</strong> {user?.firstname} {user?.lastname}</div>
+              <div className="meta-item"><strong>ID:</strong> {user?.student_id}</div>
+              <div className="meta-item"><strong>Course:</strong> {user?.course || '—'}</div>
+              <div className="meta-item"><strong>Year:</strong> {user?.year_level || '—'}</div>
+              <div className="meta-item"><strong>Semester:</strong> {selectedSemester || '1st'}</div>
+              <div className="meta-item"><strong>Clearance ID:</strong> {clearance?.clearance_id}</div>
+              <div className="meta-item"><strong>Clr Status:</strong> {clearance?.status}</div>
+              <div className="meta-item"><strong>Total Subjects:</strong> {subjects.length}</div>
+            </div>
+            <h2>SUBJECTS</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width:'46%' }}>Subject</th>
+                  <th style={{ width:'18%' }}>Status</th>
+                  <th style={{ width:'36%' }}>Signature</th>
+                </tr>
+              </thead>
+              <tbody>
+                {subjects.map(sub => {
+                  const st = getStatus(sub.subject_id);
+                  const teacherName = sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : '';
+                  const approved = st === 'Approved';
+                  const statusClass = st === 'Approved' ? 'status-A' : (st === 'Pending' ? 'status-P' : (st === 'Rejected' ? 'status-R' : 'status-Re'));
+                  return (
+                    <tr key={sub.subject_id}>
+                      <td>{sub.name}</td>
+                      <td className={statusClass}>{st}</td>
+                      <td style={{ textAlign:'center' }}>
+                        {approved ? (
+                          <div className="signed">{teacherName}</div>
+                        ) : <div className="signature-line" />}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <h2 style={{ marginTop:8 }}>DEPARTMENTS</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width:'46%' }}>Department</th>
+                  <th style={{ width:'18%' }}>Status</th>
+                  <th style={{ width:'36%' }}>Signature</th>
+                </tr>
+              </thead>
+              <tbody>
+                {departments.map(dept => {
+                  const st = getDeptStatus(dept.department_id);
+                  const staffName = dept.staff ? `${dept.staff.firstname || ''} ${dept.staff.lastname || ''}`.trim() : '';
+                  const approved = st === 'Approved';
+                  const statusClass = st === 'Approved' ? 'status-A' : (st === 'Pending' ? 'status-P' : (st === 'Rejected' ? 'status-R' : 'status-Re'));
+                  return (
+                    <tr key={dept.department_id}>
+                      <td>{dept.name}</td>
+                      <td className={statusClass}>{st}</td>
+                      <td style={{ textAlign:'center' }}>
+                        {approved ? (
+                          <div className="signed">{staffName}</div>
+                        ) : <div className="signature-line" />}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="signatures">
+              <div className="sig">
+                <div className="signature-line" />
+                <small>Student</small>
+              </div>
+              <div className="sig">
+                <div className="signature-line" />
+                <small>Registrar</small>
+              </div>
+              <div className="sig">
+                <div className="signature-line" />
+                <small>Dean</small>
+              </div>
+            </div>
+            <footer>
+              System-generated clearance. Approved items show system e-signature. Printed on Letter size.
+            </footer>
+          </div>
+        </div>
       )}
     </div>
   );

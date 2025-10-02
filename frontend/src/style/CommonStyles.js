@@ -313,11 +313,9 @@ export const modalStyles = {
 export const pageStyles = {
   container: {
     minHeight: '100vh',
-    background: gradients.background,
-    padding: 10
   },
   content: {
-    maxWidth: 1200,
+    maxWidth: 1550,
     margin: '0 auto',
     display: 'flex',
     flexDirection: 'column',

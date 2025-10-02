@@ -5,7 +5,7 @@ const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 const Clearance = require('../models/Clearance'); // If you have this model
 
 exports.register = async (req, res) => {
-  const { firstname, lastname, email, phone, password, course, year_level, block } = req.body;
+  const { firstname, lastname, email, phone, password, course, year_level, block, signature } = req.body;
 
   try {
     const existingUser = await User.findOne({ where: { email } });
@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
       course,
       year_level,
       block,
-      // Do NOT set created_at here; Sequelize will handle it
+      signature: signature || null,
     });
 
     res.status(201).json({
@@ -36,6 +36,7 @@ exports.register = async (req, res) => {
         course: user.course,
         year_level: user.year_level,
         block: user.block,
+        signature: user.signature,
       }
     });
   } catch (err) {
@@ -73,6 +74,7 @@ exports.login = async (req, res) => {
         course: user.course,
         year_level: user.year_level,
         block: user.block, // <-- return block
+        signature: user.signature,
       },
     });
   } catch (err) {
@@ -115,6 +117,7 @@ exports.updateProfile = async (req, res) => {
         course: user.course,
         year_level: user.year_level,
         block: user.block,
+        signature: user.signature,
       }
     });
   } catch (err) {

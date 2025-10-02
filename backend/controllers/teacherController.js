@@ -5,7 +5,7 @@ const Subject = require('../models/Subject');
 const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 
 exports.registerTeacher = async (req, res) => {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password, signature } = req.body;
 
   try {
     const existing = await Teacher.findOne({ where: { email } });
@@ -18,6 +18,7 @@ exports.registerTeacher = async (req, res) => {
       lastname,
       email,
       password: hashedPassword,
+      signature: signature || null,
     });
 
     res.status(201).json({ message: 'Teacher registered', teacher_id: teacher.teacher_id });
@@ -45,6 +46,7 @@ exports.loginTeacher = async (req, res) => {
         firstname: teacher.firstname,
         lastname: teacher.lastname,
         email: teacher.email,
+        signature: teacher.signature,
       },
     });
   } catch (err) {

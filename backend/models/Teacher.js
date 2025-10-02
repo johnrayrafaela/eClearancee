@@ -24,6 +24,12 @@ const Teacher = sequelize.define('Teacher', {
     type: DataTypes.TEXT,
     allowNull: false,
   },
+  signature: {
+    // Store a base64 data URL or a file path reference
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Electronic signature image (base64 or file path)'
+  },
   
   created_at: {
     type: DataTypes.DATE,
