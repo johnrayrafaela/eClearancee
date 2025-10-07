@@ -5,7 +5,10 @@ const jwt = require('jsonwebtoken');
 // Register
 exports.registerAdmin = async (req, res) => {
   try {
-    const { firstname, lastname, email, password } = req.body;
+    let { firstname, lastname, email, password } = req.body;
+    email = (email || '').trim().toLowerCase();
+    firstname = firstname?.trim();
+    lastname = lastname?.trim();
     const existing = await Admin.findOne({ where: { email } });
     if (existing) return res.status(400).json({ message: 'Email already registered' });
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -19,12 +22,14 @@ exports.registerAdmin = async (req, res) => {
 // Login
 exports.loginAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    email = (email || '').trim().toLowerCase();
+    password = password || '';
     const admin = await Admin.findOne({ where: { email } });
     if (!admin) return res.status(400).json({ message: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
-    const token = jwt.sign({ id: admin.admin_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ admin_id: admin.admin_id, role: 'admin' }, process.env.JWT_SECRET || 'changeme', { expiresIn: '4h' });
     res.json({
       token,
       admin: {

@@ -5,40 +5,56 @@ const Subject = require('../models/Subject');
 const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 
 exports.registerTeacher = async (req, res) => {
-  const { firstname, lastname, email, password, signature } = req.body;
+  let { firstname, lastname, email, password, signature } = req.body;
+  email = (email || '').trim().toLowerCase();
+  firstname = firstname?.trim();
+  lastname = lastname?.trim();
 
   try {
-    const existing = await Teacher.findOne({ where: { email } });
+  const existing = await Teacher.findOne({ where: { email } });
     if (existing) return res.status(400).json({ message: 'Email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const teacher = await Teacher.create({
-      firstname,
-      lastname,
-      email,
-      password: hashedPassword,
-      signature: signature || null,
-    });
-
-    res.status(201).json({ message: 'Teacher registered', teacher_id: teacher.teacher_id });
+    const teacher = await Teacher.create({ firstname, lastname, email, password: hashedPassword, signature: signature || null });
+    res.status(201).json({ message: 'Teacher registered', teacher: { teacher_id: teacher.teacher_id, firstname, lastname, email, signature: teacher.signature } });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 };
 
 exports.loginTeacher = async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  email = (email || '').trim();
+  password = password || '';
+  const normalized = email.toLowerCase();
 
   try {
-    const teacher = await Teacher.findOne({ where: { email } });
-    if (!teacher) return res.status(400).json({ message: 'Invalid credentials' });
+    // Case-insensitive lookup
+    const { fn, col } = require('sequelize');
+    let teacher = await Teacher.findOne({
+      where: Teacher.sequelize.where(fn('LOWER', col('email')), normalized)
+    });
+
+    if (!teacher) {
+      // Fallback scan (handles any legacy formatting)
+      const probe = await Teacher.findAll({ attributes: ['teacher_id','email','password','firstname','lastname','signature'] });
+      teacher = probe.find(t => (t.email || '').trim().toLowerCase() === normalized);
+    }
+
+    if (!teacher) {
+      console.log(`[TEACHER LOGIN] Email not found: raw='${email}' normalized='${normalized}'`);
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     const isMatch = await bcrypt.compare(password, teacher.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      console.log(`[TEACHER LOGIN] Password mismatch for teacher_id=${teacher.teacher_id}`);
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
-    const token = jwt.sign({ id: teacher.teacher_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
+    const token = jwt.sign({ teacher_id: teacher.teacher_id, role: 'teacher' }, process.env.JWT_SECRET || 'changeme', { expiresIn: '4h' });
+    console.log(`[TEACHER LOGIN] Success teacher_id=${teacher.teacher_id}`);
     res.json({
       token,
       teacher: {
@@ -47,9 +63,10 @@ exports.loginTeacher = async (req, res) => {
         lastname: teacher.lastname,
         email: teacher.email,
         signature: teacher.signature,
-      },
+      }
     });
   } catch (err) {
+    console.error('[TEACHER LOGIN] Unexpected error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };

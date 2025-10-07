@@ -5,10 +5,14 @@ const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 const Clearance = require('../models/Clearance'); // If you have this model
 
 exports.register = async (req, res) => {
-  const { firstname, lastname, email, phone, password, course, year_level, block, signature } = req.body;
+  let { firstname, lastname, email, phone, password, course, year_level, block, signature } = req.body;
+  // Basic normalization
+  email = (email || '').trim().toLowerCase();
+  firstname = firstname?.trim();
+  lastname = lastname?.trim();
 
   try {
-    const existingUser = await User.findOne({ where: { email } });
+  const existingUser = await User.findOne({ where: { email } });
     if (existingUser) return res.status(400).json({ message: 'Email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -48,19 +52,26 @@ exports.register = async (req, res) => {
 
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  email = (email || '').trim().toLowerCase();
+  password = password || '';
 
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
+    // Use correct primary key field (student_id) instead of user.id (undefined in this model)
     const token = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { student_id: user.student_id, role: 'student' },
+      process.env.JWT_SECRET || 'changeme',
+      { expiresIn: '4h' }
     );
 
     res.json({

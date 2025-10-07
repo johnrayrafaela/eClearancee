@@ -160,9 +160,12 @@ exports.deleteSubject = async (req, res) => {
   try {
     const subject = await Subject.findByPk(id);
     if (!subject) return res.status(404).json({ message: 'Subject not found' });
-
+    // Clean up dependent student statuses first to avoid FK constraint errors
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    const deletedStatuses = await StudentSubjectStatus.destroy({ where: { subject_id: id } });
+    console.log(`Deleted ${deletedStatuses} dependent StudentSubjectStatus rows for subject ${id}`);
     await subject.destroy();
-    res.status(200).json({ message: 'Subject deleted' });
+    res.status(200).json({ message: 'Subject deleted', removedStatuses: deletedStatuses });
   } catch (err) {
     console.error(err);  // Check terminal logs for the real cause
     res.status(500).json({ message: 'Server error' });

@@ -44,11 +44,21 @@ const AuthProvider = ({ children }) => {
 
   const register = async (formData, type = 'user') => {
     try {
+      // Normalize incoming type (support legacy 'faculty')
+      let normalized = (type || 'user').toLowerCase().trim();
+      if (normalized === 'faculty') normalized = 'staff';
+      const allowed = ['user','teacher','admin','staff'];
+      if (!allowed.includes(normalized)) {
+        return { success: false, message: `Unsupported account type: ${type}` };
+      }
+
       let endpoint;
-      if (type === 'teacher') endpoint = 'http://localhost:5000/api/teachers/register';
-      else if (type === 'admin') endpoint = 'http://localhost:5000/api/admins/register';
-      else if (type === 'staff') endpoint = 'http://localhost:5000/api/staff/register';
-      else endpoint = 'http://localhost:5000/api/users/register';
+      switch (normalized) {
+        case 'teacher': endpoint = 'http://localhost:5000/api/teachers/register'; break;
+        case 'admin': endpoint = 'http://localhost:5000/api/admins/register'; break;
+        case 'staff': endpoint = 'http://localhost:5000/api/staff/register'; break;
+        default: endpoint = 'http://localhost:5000/api/users/register';
+      }
 
       const res = await axios.post(endpoint, formData);
       return { success: true, message: res.data.message };

@@ -24,6 +24,7 @@ const User = require('./models/User');
 const Teacher = require('./models/Teacher');
 const Subject = require('./models/Subject');
 const DepartmentStatus = require('./models/DepartmentStatus');
+// (Removed duplicate StudentSubjectStatus require to prevent Identifier redeclaration)
 
 
 
@@ -40,6 +41,15 @@ Department.hasMany(Subject, { foreignKey: 'department_id' });
 
 Teacher.hasMany(Subject, { foreignKey: 'teacher_id' });
 Subject.belongsTo(Teacher, { foreignKey: 'teacher_id', as: 'teacher' });
+// Add reverse association with cascade for student subject statuses to allow subject deletion
+if (!Subject.associations.studentStatuses) {
+  Subject.hasMany(StudentSubjectStatus, {
+    foreignKey: 'subject_id',
+    as: 'studentStatuses',
+    onDelete: 'CASCADE',
+    hooks: true
+  });
+}
 
 StudentSubjectStatus.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 StudentSubjectStatus.belongsTo(Subject, { foreignKey: 'subject_id', as: 'subject' });

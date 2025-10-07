@@ -88,7 +88,7 @@ const RegisterForm = () => {
   <div className="register-options-row compact-options">
           <div
             className="register-option compact-option"
-            onClick={() => { setAccountType('faculty'); setShowForm(true); }}
+            onClick={() => { setAccountType('staff'); setShowForm(true); }}
           >
             <img
               src={logo}
@@ -96,7 +96,7 @@ const RegisterForm = () => {
               className="register-option-img"
             />
             <div className="register-option-label">
-              FACULTY<br />REGISTRATION
+              STAFF / FACULTY<br />REGISTRATION
             </div>
           </div>
           <div

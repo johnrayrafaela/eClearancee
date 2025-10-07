@@ -328,13 +328,15 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     const subjStatusMap = new Map(subjectStatuses.map(s=>[s.subject_id,s]));
     const deptStatusMap = new Map(departmentStatuses.map(s=>[s.department_id,s]));
     const esc = (str='') => String(str).replace(/[&<>]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
+    // Subjects list: show teacher name (always) beneath subject; signature only if Approved
     const subjectItems = subjects.map(sub => {
       const st = subjStatusMap.get(sub.subject_id)?.status || 'Pending';
       const approved = st === 'Approved';
-      const teacherName = approved && sub.teacher ? `${sub.teacher.firstname||''} ${sub.teacher.lastname||''}`.trim() : '';
+      const teacherName = sub.teacher ? `${sub.teacher.firstname||''} ${sub.teacher.lastname||''}`.trim() : '';
       const sigImg = approved && sub.teacher?.signature ? `<img src='${sub.teacher.signature}' alt='sig' style='max-height:22px;max-width:54px;display:block;margin:0 auto;' />` : '';
       const sigCell = approved ? (sigImg || `<span class="sig">${esc(teacherName)}</span>`) : '<span class="line" />';
-      return `<li class="it s-${st[0]}"><span class="n">${esc(sub.name)}</span><span class="st">${st}</span>${sigCell}</li>`;
+      const teacherLine = teacherName ? `<br/><em style='font-size:6.2px;color:#334155;'>${esc(teacherName)}</em>` : '';
+      return `<li class="it s-${st[0]}"><span class="n">${esc(sub.name)}${teacherLine}</span><span class="st">${st}</span>${sigCell}</li>`;
     }).join('');
     const deptItems = departments.map(dept => {
       const st = deptStatusMap.get(dept.department_id)?.status || 'Pending';
@@ -442,7 +444,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
         </div>
       </div>
       <div class='sign-row'>
-        <div class='sign-slot'><span class='line'></span> Student</div>
+        <div class='sign-slot'>${(clearanceStatus==='Approved' && user?.signature) ? `<img src='${user.signature}' alt='Student Signature' style='max-height:24px;max-width:70px;display:block;margin:0 auto 2px;' />` : `<span class='line'></span>`} ${esc(user?.firstname||'')} ${esc(user?.lastname||'')}<div style='font-size:6px;color:#475569;'>Student</div></div>
         <div class='sign-slot'><span class='line'></span> Registrar</div>
         <div class='sign-slot'><span class='line'></span> Dean</div>
       </div>
@@ -458,31 +460,26 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     const subjStatusMap = new Map(subjectStatuses.map(s=>[s.subject_id,s]));
     const deptStatusMap = new Map(departmentStatuses.map(s=>[s.department_id,s]));
     const esc = (str='') => String(str).replace(/[&<>]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
-    // Helper to parse requirement type
-    const parseReqType = (raw) => {
-      if(!raw) return 'Text';
-      try { const o = JSON.parse(raw); return o.type || 'Text'; } catch { return 'Text'; }
-    };
+    // (Removed requirement type parsing; table now shows Teacher and Staff names instead.)
   // (Action items removed from output per request)
+    // Subjects table: replace Requirement Type column with Teacher name column
     const subjectRows = subjects.map(sub => {
       const st = subjStatusMap.get(sub.subject_id)?.status || 'Pending';
       const approved = st === 'Approved';
-      const teacherName = (approved && sub.teacher) ? `${sub.teacher.firstname||''} ${sub.teacher.lastname||''}`.trim() : '';
+      const teacherName = sub.teacher ? `${sub.teacher.firstname||''} ${sub.teacher.lastname||''}`.trim() : '—';
       const cls = st === 'Approved' ? 'A' : (st === 'Rejected' ? 'R' : (st === 'Pending' ? 'P' : 'Re'));
-      const reqType = parseReqType(sub.requirements);
       const sigImg = approved && sub.teacher?.signature ? `<img src='${sub.teacher.signature}' alt='sig' style='max-height:30px;max-width:110px;display:block;margin:0 auto;' />` : '';
       const sigCell = approved ? (sigImg || `<span class='sig'>${esc(teacherName)}</span>`) : '<span class="line"></span>';
-      return `<tr class="r ${cls}"><td class="nm">${esc(sub.name)}</td><td class="tp">${esc(reqType)}</td><td class="st">${esc(st)}</td><td class="sg">${sigCell}</td></tr>`;
+      return `<tr class="r ${cls}"><td class="nm">${esc(sub.name)}</td><td class="tp">${esc(teacherName)}</td><td class="st">${esc(st)}</td><td class="sg">${sigCell}</td></tr>`;
     }).join('');
     const deptRows = departments.map(dept => {
       const st = deptStatusMap.get(dept.department_id)?.status || 'Pending';
       const approved = st === 'Approved';
-      const staffName = (approved && dept.staff) ? `${dept.staff.firstname||''} ${dept.staff.lastname||''}`.trim() : '';
+      const staffName = dept.staff ? `${dept.staff.firstname||''} ${dept.staff.lastname||''}`.trim() : '—';
       const cls = st === 'Approved' ? 'A' : (st === 'Rejected' ? 'R' : (st === 'Pending' ? 'P' : 'Re'));
-      const reqType = parseReqType(dept.requirements);
       const sigImg = approved && dept.staff?.signature ? `<img src='${dept.staff.signature}' alt='sig' style='max-height:30px;max-width:110px;display:block;margin:0 auto;' />` : '';
       const sigCell = approved ? (sigImg || `<span class='sig'>${esc(staffName)}</span>`) : '<span class="line"></span>';
-      return `<tr class="r ${cls}"><td class="nm">${esc(dept.name)}</td><td class="tp">${esc(reqType)}</td><td class="st">${esc(st)}</td><td class="sg">${sigCell}</td></tr>`;
+      return `<tr class="r ${cls}"><td class="nm">${esc(dept.name)}</td><td class="tp">${esc(staffName)}</td><td class="st">${esc(st)}</td><td class="sg">${sigCell}</td></tr>`;
     }).join('');
     const clearanceStatus = clearance?.status || '—';
     const many = subjects.length + departments.length > 26; // extra column threshold
@@ -576,20 +573,20 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
         <div class='tbl-wrap'>
           <h2>Subjects</h2>
           <table>
-            <thead><tr><th style='width:44%'>Subject</th><th style='width:16%'>Type</th><th style='width:20%'>Status</th><th style='width:20%'>Signature</th></tr></thead>
+            <thead><tr><th style='width:44%'>Subject</th><th style='width:16%'>Teacher</th><th style='width:20%'>Status</th><th style='width:20%'>Signature</th></tr></thead>
             <tbody>${subjectRows || '<tr><td colspan=4>No subjects</td></tr>'}</tbody>
           </table>
         </div>
         <div class='tbl-wrap'>
           <h2>Departments</h2>
           <table>
-            <thead><tr><th style='width:44%'>Department</th><th style='width:16%'>Type</th><th style='width:20%'>Status</th><th style='width:20%'>Signature</th></tr></thead>
+            <thead><tr><th style='width:44%'>Department</th><th style='width:16%'>Staff</th><th style='width:20%'>Status</th><th style='width:20%'>Signature</th></tr></thead>
             <tbody>${deptRows || '<tr><td colspan=4>No departments</td></tr>'}</tbody>
           </table>
         </div>
       </div>
       <div class='signatures'>
-        <div class='sig-slot'><span class='line'></span>Student</div>
+        <div class='sig-slot'>${(clearanceStatus==='Approved' && user?.signature) ? `<img src='${user.signature}' alt='Student Signature' style='max-height:40px;max-width:150px;display:block;margin:0 auto 4px;' />` : `<span class='line'></span>`}<div>${esc(user?.firstname||'')} ${esc(user?.lastname||'')}</div><div style='font-size:10px;color:#475569;'>Student</div></div>
         <div class='sig-slot'><span class='line'></span>Registrar</div>
         <div class='sig-slot'><span class='line'></span>Dean</div>
       </div>
@@ -779,8 +776,28 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
         <div style={styles.error}>
           {error}
           { /No clearance for this semester/i.test(error) && (
-            <div style={{ marginTop: 8, fontSize: 13 }}>
-              👉 You have not created a clearance for this semester yet. Go to the Clearance creation page to start.
+            <div style={{ marginTop: 8, fontSize: 13, display:'flex', flexDirection:'column', gap:10, alignItems:'center' }}>
+              <span>👉 You have not created a clearance for this semester yet.</span>
+              <button
+                onClick={() => window.location.href = '/student/clearance'}
+                style={{
+                  background:'linear-gradient(135deg,#0277bd 0%,#01579b 100%)',
+                  color:'#fff',
+                  border:'none',
+                  padding:'10px 18px',
+                  fontSize:typeScale.lg,
+                  borderRadius:28,
+                  cursor:'pointer',
+                  fontWeight:700,
+                  letterSpacing:'.5px',
+                  boxShadow:'0 6px 18px rgba(2,119,189,0.35)',
+                  display:'inline-flex',
+                  alignItems:'center',
+                  gap:8
+                }}
+              >
+                ✨ Create Clearance Now
+              </button>
             </div>
           )}
         </div>
@@ -789,21 +806,45 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
       {/* If no clearance for selected semester, show instruction and hide subjects/departments */}
       {!clearance && (
         <div style={{
-          background: '#fff3e0',
+          background: 'linear-gradient(135deg,#fff8e1 0%,#ffecb3 100%)',
           border: '1px solid #ffcc80',
-          padding: '18px 20px',
-          borderRadius: 14,
-          marginTop: 10,
-          color: '#bf6516',
+          padding: '22px 24px',
+          borderRadius: 18,
+          marginTop: 14,
+          color: '#8d560c',
           fontWeight: 600,
           textAlign: 'center',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          boxShadow: '0 8px 24px -6px rgba(255,171,0,0.35)',
+          display:'flex',
+          flexDirection:'column',
+          gap:14,
+          alignItems:'center'
         }}>
-          <div style={{ fontSize: '1rem', marginBottom: 6 }}>⚠️ Clearance Not Created</div>
-          <div style={{ fontSize: '0.8rem', fontWeight: 500, lineHeight: 1.5 }}>
-            You haven't created a clearance for the {selectedSemester || '1st'} semester yet.<br/>
-            Go to the clearance creation page and create one first. Once created, your subjects and department requirements will be shown here.
+          <div style={{ fontSize: '1.1rem', marginBottom: 0, letterSpacing:'.5px', fontWeight:800 }}>⚠️ Clearance Not Created</div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.55 }}>
+            You haven't created a clearance for the <strong>{selectedSemester || '1st'}</strong> semester yet.<br/>
+            Click the button below to create one. After creation, your subjects and department requirements will appear here automatically.
           </div>
+          <button
+            onClick={() => window.location.href = '/student/clearance'}
+            style={{
+              background:'linear-gradient(135deg,#0277bd 0%,#01579b 100%)',
+              color:'#fff',
+              border:'none',
+              padding:'12px 28px',
+              fontSize:typeScale.xl,
+              borderRadius:30,
+              cursor:'pointer',
+              fontWeight:800,
+              letterSpacing:'.75px',
+              boxShadow:'0 10px 28px -6px rgba(2,119,189,0.45)',
+              display:'inline-flex',
+              alignItems:'center',
+              gap:10
+            }}
+          >
+            🚀 Create Clearance Now
+          </button>
         </div>
       )}
       {clearance && (

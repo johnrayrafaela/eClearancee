@@ -24,6 +24,8 @@ const StaffManagement = () => {
     password: '',
   });
   const [message, setMessage] = useState('');
+  const [blockingDepartments, setBlockingDepartments] = useState([]); // departments preventing delete
+  const [reassignTarget, setReassignTarget] = useState(''); // staff id to reassign to
   const [search, setSearch] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -90,11 +92,36 @@ const StaffManagement = () => {
       await axios.delete(`${API_URL}/${id}`);
       setMessage('Staff deleted!');
       setShowSuccess(true);
+      setBlockingDepartments([]);
       setTimeout(() => setShowSuccess(false), 1800);
       fetchStaffs();
     } catch (err) {
       console.error(err);
-      setMessage('Failed to delete staff');
+      if (err.response?.status === 400 && err.response?.data?.blockingDepartments) {
+        setBlockingDepartments(err.response.data.blockingDepartments);
+        setMessage('Cannot delete: staff is assigned to departments. Reassign departments below then retry.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setMessage(err.response?.data?.message || 'Failed to delete staff');
+      }
+    }
+  };
+
+  const handleReassign = async () => {
+    if (!reassignTarget) {
+      alert('Select a staff to reassign the departments to first.');
+      return;
+    }
+    try {
+      // For each blocking department, update staff_id
+      await Promise.all(blockingDepartments.map(dep => axios.put(`http://localhost:5000/api/departments/${dep.department_id}`, { staff_id: reassignTarget }))); 
+      setMessage('Departments reassigned. You may now delete the staff.');
+      setBlockingDepartments([]);
+      setReassignTarget('');
+      fetchStaffs();
+    } catch (err) {
+      console.error(err);
+      setMessage('Failed to reassign departments');
     }
   };
 
@@ -251,6 +278,27 @@ const StaffManagement = () => {
       <style>{keyframes}</style>
       <h2 style={styles.title}>Staff Management</h2>
       <p style={styles.subtitle}>Manage staff accounts here.</p>
+      {blockingDepartments.length > 0 && (
+        <div style={{ background:'#fffbe6', padding:'12px 14px', border:'1px solid #ffe58f', borderRadius:8, marginBottom:16 }}>
+          <strong style={{ display:'block', marginBottom:6 }}>Blocking Departments ({blockingDepartments.length})</strong>
+          <ul style={{ margin:0, paddingLeft:16, fontSize:'.85rem' }}>
+            {blockingDepartments.map(d => (
+              <li key={d.department_id}>{d.name} (ID: {d.department_id})</li>
+            ))}
+          </ul>
+          <div style={{ marginTop:10, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+            <label style={{ fontSize:'.8rem', fontWeight:600 }}>Reassign to:</label>
+            <select value={reassignTarget} onChange={e=>setReassignTarget(e.target.value)} style={{ padding:'4px 8px', borderRadius:6, border:'1px solid #b3e5fc' }}>
+              <option value="">Select Staff</option>
+              {staffs.map(s => (
+                <option key={s.staff_id} value={s.staff_id}>{s.firstname} {s.lastname}</option>
+              ))}
+            </select>
+            <button type="button" onClick={handleReassign} style={{ background:'#0277bd', color:'#fff', border:'none', padding:'6px 14px', borderRadius:6, cursor:'pointer', fontWeight:600 }}>Reassign Departments</button>
+          </div>
+          <div style={{ marginTop:8, fontSize:'.7rem', color:'#555' }}>After reassignment, try deleting the staff again.</div>
+        </div>
+      )}
       {showSuccess && (
         <div style={styles.successAnim}>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
