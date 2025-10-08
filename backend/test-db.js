@@ -1,22 +1,29 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-console.log('Environment variables:');
-console.log('DB_NAME:', process.env.DB_NAME);
-console.log('DB_USER:', process.env.DB_USER);
-console.log('DB_PASS:', process.env.DB_PASS);
-console.log('DB_HOST:', process.env.DB_HOST);
+console.log('Environment variables (sanitized):');
+console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+console.log('DB_NAME (fallback):', process.env.DB_NAME);
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: process.env.DB_HOST,
+let sequelize;
+if (process.env.DATABASE_URL) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     logging: console.log,
-  }
-);
+    dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }
+  });
+} else {
+  sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASS,
+    {
+      host: process.env.DB_HOST,
+      dialect: 'postgres',
+      logging: console.log,
+    }
+  );
+}
 
 async function testConnection() {
   try {
