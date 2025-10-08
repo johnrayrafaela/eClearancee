@@ -1,4 +1,9 @@
-require('dotenv').config();
+// Gracefully attempt to load .env (Render may already inject env vars and if dotenv isn't installed we don't want to crash)
+try {
+  require('dotenv').config();
+} catch (e) {
+  console.warn('[startup] dotenv not loaded (module missing) – continuing with injected environment variables');
+}
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/config');
@@ -58,6 +63,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Basic request logger (can remove later)
+app.use((req, res, next) => {
+  console.log(`[REQ] ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 app.use('/api/admins', adminRoutes);
 app.use('/api/users', userRoutes);
