@@ -18,7 +18,20 @@ function normalizeBase(raw) {
   return url;
 }
 
-const base = normalizeBase(import.meta?.env?.VITE_API_BASE) || 'http://localhost:5000/api';
+let base = normalizeBase(import.meta?.env?.VITE_API_BASE) || 'http://localhost:5000/api';
+
+// Emergency fallback: if we detect we're in production on Vercel hitting the frontend domain
+// and user forgot to set VITE_API_BASE, force a known backend origin if provided here.
+// Update FORCED_BACKEND_ORIGIN if your backend domain changes.
+const FORCED_BACKEND_ORIGIN = 'https://eclearancee.onrender.com';
+try {
+  const feOrigin = window.location.origin.replace(/\/$/, '');
+  const baseOrigin = new URL(base).origin.replace(/\/$/, '');
+  if (feOrigin === baseOrigin && /vercel\.app$/i.test(feOrigin) && FORCED_BACKEND_ORIGIN) {
+    base = normalizeBase(FORCED_BACKEND_ORIGIN);
+    console.warn('[API FALLBACK] Overriding API base to', base);
+  }
+} catch { /* ignore */ }
 
 export const api = axios.create({
   baseURL: base.replace(/\/$/, ''),
@@ -49,7 +62,7 @@ try {
   const BASE_ORIGIN = new URL(base).origin.replace(/\/$/, '');
   const mode = import.meta?.env?.MODE || 'production';
   if (mode === 'production' && FE_ORIGIN === BASE_ORIGIN && !/onrender\.com$/i.test(BASE_ORIGIN)) {
-    console.warn('[API WARNING] API base is the frontend domain. Set VITE_API_BASE to your backend (e.g. https://<service>.onrender.com) then redeploy.');
+    console.warn('[API WARNING] API base is the frontend domain. Set VITE_API_BASE to your backend (e.g. https://<service>.onrender.com) then redeploy. (Fallback may apply)');
   }
 } catch { /* ignore URL parsing errors */ }
 
