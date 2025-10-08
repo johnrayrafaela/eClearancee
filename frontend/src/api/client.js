@@ -1,8 +1,24 @@
 // Centralized Axios client for deployment flexibility
 import axios from 'axios';
 
-// Use Vite env if provided, fallback to window origin (same-domain) else localhost (dev)
-const base = import.meta?.env?.VITE_API_BASE || `${window.location.origin}/api` || 'http://localhost:5000/api';
+// Build a normalized base URL.
+// If VITE_API_BASE is provided but missing trailing /api we append it.
+// Guarantees we end up with exactly one /api segment (no double /api/api).
+function normalizeBase(raw) {
+  if (!raw) return `${window.location.origin}/api`;
+  let url = raw.trim();
+  // Remove trailing slash for consistency
+  url = url.replace(/\/$/, '');
+  const lower = url.toLowerCase();
+  if (!lower.endsWith('/api')) {
+    url += '/api';
+  }
+  // Avoid accidental double /api/api
+  url = url.replace(/\/api\/api$/i, '/api');
+  return url;
+}
+
+const base = normalizeBase(import.meta?.env?.VITE_API_BASE) || 'http://localhost:5000/api';
 
 export const api = axios.create({
   baseURL: base.replace(/\/$/, ''),
