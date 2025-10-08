@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import api, { buildFileUrl } from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { fadeInUp, slideInLeft, slideInRight, bounceIn, keyframes, pageStyles, cardStyles, headerStyles, buttonStyles, injectKeyframes, gradients } from '../../style/CommonStyles';
 
@@ -37,7 +37,7 @@ export default function TeacherSubjectRequests() {
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
     setLoading(true);
-    axios.get('http://localhost:5000/api/student-subject-status/teacher', { params: { teacher_id: user.teacher_id } })
+  api.get('/student-subject-status/teacher', { params: { teacher_id: user.teacher_id } })
       .then(res => setRequests(Array.isArray(res.data) ? res.data : []))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
@@ -46,7 +46,7 @@ export default function TeacherSubjectRequests() {
   // Fetch teacher subjects for subject filter
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
-    axios.get(`http://localhost:5000/api/subject/teacher/${user.teacher_id}`)
+  api.get(`/subject/teacher/${user.teacher_id}`)
       .then(res => setTeacherSubjects(Array.isArray(res.data) ? res.data : []))
       .catch(() => setTeacherSubjects([]));
   }, [user, userType]);
@@ -55,7 +55,7 @@ export default function TeacherSubjectRequests() {
   const handleRespond = async (id, status, remarksValue) => {
     const payload = { status };
     if (status === 'Rejected' && remarksValue?.trim()) payload.remarks = remarksValue.trim();
-  await axios.patch(`http://localhost:5000/api/student-subject-status/${id}/respond`, payload);
+  await api.patch(`/student-subject-status/${id}/respond`, payload);
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status, remarks: payload.remarks || (status === 'Approved' ? null : r.remarks) } : r));
     setSelectedRequestIds(prev => prev.filter(x => x !== id));
   };
@@ -195,7 +195,7 @@ export default function TeacherSubjectRequests() {
                   <td style={tableStyles.td}><span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 12, fontSize: '.65rem', fontWeight: 600 }}>{r.subject?.semester || r.semester}</span></td>
                   <td style={tableStyles.td}><span style={{ background: r.status === 'Approved' ? '#dcfce7' : r.status === 'Rejected' ? '#fee2e2' : '#fef9c3', color: r.status === 'Approved' ? '#166534' : r.status === 'Rejected' ? '#b91c1c' : '#92400e', padding: '4px 10px', borderRadius: 16, fontSize: '.65rem', fontWeight: 700 }}>{r.status}</span></td>
                   <td style={tableStyles.td}>{renderRequirements(r)}</td>
-                  <td style={tableStyles.td}>{files.length ? files.map((f, idx) => <div key={idx}><a href={`http://localhost:5000/api/student-subject-status/file/${r.id}?file=${encodeURIComponent(f)}`} target="_blank" rel="noreferrer" style={{ color: '#0369a1', textDecoration: 'none', fontSize: '.65rem', fontWeight: 600 }}>File {idx + 1}</a></div>) : <span style={{ color: '#9ca3af' }}>-</span>}</td>
+                  <td style={tableStyles.td}>{files.length ? files.map((f, idx) => <div key={idx}><a href={buildFileUrl(`/student-subject-status/file/${r.id}?file=${encodeURIComponent(f)}`)} target="_blank" rel="noreferrer" style={{ color: '#0369a1', textDecoration: 'none', fontSize: '.65rem', fontWeight: 600 }}>File {idx + 1}</a></div>) : <span style={{ color: '#9ca3af' }}>-</span>}</td>
                   <td style={tableStyles.td}>{r.link ? <a href={r.link} target="_blank" rel="noreferrer" style={{ color: '#0369a1', fontSize: '.65rem' }}>Open</a> : <span style={{ color: '#9ca3af' }}>-</span>}</td>
                   <td style={tableStyles.td}>{r.status === 'Rejected' && r.remarks ? <div style={{ whiteSpace: 'pre-wrap', fontSize: '.6rem', color: '#b91c1c' }}>{r.remarks}</div> : r.status === 'Approved' ? <span style={{ fontSize: '.55rem', color: '#166534', fontStyle: 'italic' }}>No remarks</span> : <span style={{ color: '#9ca3af', fontSize: '.55rem' }}>-</span>}</td>
                   <td style={tableStyles.td}>

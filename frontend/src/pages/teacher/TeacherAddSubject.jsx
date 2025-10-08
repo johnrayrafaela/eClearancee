@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { typeScale, fadeInUp, slideIn, slideInLeft, bounceIn, keyframes } from '../../style/CommonStyles';
 
@@ -47,7 +47,7 @@ const TeacherAddSubject = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(`http://localhost:5000/api/subjects?teacher_id=${user.teacher_id}`);
+  const res = await api.get(`/subjects?teacher_id=${user.teacher_id}`);
       setSubjects(res.data || []);
     } catch {
       setSubjects([]);
@@ -57,7 +57,7 @@ const TeacherAddSubject = () => {
 
   const fetchUnclaimedSubjects = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/subjects/unclaimed');
+  const res = await api.get('/subjects/unclaimed');
       setUnclaimedSubjects(res.data || []);
       setFilteredUnclaimedSubjects(res.data || []);
     } catch (err) {
@@ -72,7 +72,7 @@ const TeacherAddSubject = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.patch(`http://localhost:5000/api/subjects/${subjectId}/claim`, {
+  await api.patch(`/subjects/${subjectId}/claim`, {
         teacher_id: user.teacher_id
       });
       setSuccess('Subject claimed successfully! A copy has been added to your subjects.');
@@ -89,7 +89,7 @@ const TeacherAddSubject = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.delete(`http://localhost:5000/api/subjects/${subjectId}/unclaim`, {
+  await api.delete(`/subjects/${subjectId}/unclaim`, {
         data: { teacher_id: user.teacher_id }
       });
       setSuccess('Subject unclaimed successfully! It is now available for other teachers.');
@@ -106,7 +106,7 @@ const TeacherAddSubject = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.delete(`http://localhost:5000/api/subjects/${subjectId}/teacher-delete`, {
+  await api.delete(`/subjects/${subjectId}/teacher-delete`, {
         data: { teacher_id: user.teacher_id }
       });
       setSuccess('Subject deleted successfully!');
@@ -128,13 +128,13 @@ const TeacherAddSubject = () => {
     setSuccess('');
     try {
       if (editing) {
-        await axios.patch(`http://localhost:5000/api/subjects/${editing.subject_id}/teacher-update`, {
+  await api.patch(`/subjects/${editing.subject_id}/teacher-update`, {
           ...form,
           teacher_id: user.teacher_id
         });
         setSuccess('Subject updated successfully!');
       } else {
-        await axios.post('http://localhost:5000/api/subjects/teacher-add', {
+  await api.post('/subjects/teacher-add', {
           ...form,
           teacher_id: user.teacher_id
         });

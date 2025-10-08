@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const styles = {
   container: {
@@ -137,7 +137,7 @@ const AdminClearanceRequests = () => {
 
   const fetchRequests = async () => {
     setLoading(true);
-    const res = await axios.get('http://localhost:5000/api/clearance/all');
+  const res = await api.get('/clearance/all');
     setRequests(res.data);
     setLoading(false);
   };
@@ -147,7 +147,7 @@ const AdminClearanceRequests = () => {
   }, []);
 
   const handleStatus = async (clearance_id, status) => {
-    await axios.patch(`http://localhost:5000/api/clearance/${clearance_id}/status`, { status });
+  await api.patch(`/clearance/${clearance_id}/status`, { status });
     fetchRequests();
   };
 
@@ -183,13 +183,13 @@ const AdminClearanceRequests = () => {
 
   const openSubjectsModal = async (req) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/clearance/status?student_id=${req.student?.student_id}&semester=${req.semester}`);
+  const res = await api.get(`/clearance/status?student_id=${req.student?.student_id}&semester=${req.semester}`);
       const subjects = res.data.subjects || [];
       // Fetch department statuses for this student and semester
-      const deptRes = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${req.student?.student_id}&semester=${req.semester}`);
+  const deptRes = await api.get(`/department-status/statuses?student_id=${req.student?.student_id}&semester=${req.semester}`);
       const statusList = deptRes.data.statuses || [];
       // Fetch all departments
-      const allDeptRes = await axios.get('http://localhost:5000/api/departments');
+  const allDeptRes = await api.get('/departments');
       const allDepartments = allDeptRes.data || [];
       // Merge: for each department, find status for this student/semester
       const departments = allDepartments.map(dept => {
@@ -292,7 +292,7 @@ const AdminClearanceRequests = () => {
                     <button
                       style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
                       onClick={async () => {
-                        await axios.delete('http://localhost:5000/api/clearance/admin/delete', {
+                        await api.delete('/clearance/admin/delete', {
                           data: { student_id: req.student?.student_id }
                         });
                         fetchRequests();
@@ -307,7 +307,7 @@ const AdminClearanceRequests = () => {
                   <button
                     style={{ ...styles.button, background: '#b0bec5', color: '#263238' }}
                     onClick={async () => {
-                      await axios.delete('http://localhost:5000/api/clearance/admin/delete', {
+                      await api.delete('/clearance/admin/delete', {
                         data: { student_id: req.student?.student_id }
                       });
                       fetchRequests();

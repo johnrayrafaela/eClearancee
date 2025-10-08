@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 
 const styles = {
@@ -60,7 +60,7 @@ function Facultydashboard() {
   useEffect(() => {
     if (!user || userType !== 'faculty') return;
     setLoading(true);
-    axios.get('http://localhost:5000/api/clearance/analytics/faculty', {
+  api.get('/clearance/analytics/faculty', {
       params: { staff_id: user.staff_id }
     })
       .then(res => setAnalytics(res.data))

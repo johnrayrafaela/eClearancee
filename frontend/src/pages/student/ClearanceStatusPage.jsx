@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import axios from 'axios';
+import api, { buildFileUrl } from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { gradients, buttonStyles, fadeInUp, typeScale } from '../../style/CommonStyles';
 
@@ -65,9 +65,9 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     if (!user || userType !== 'user') return;
     const effectiveSemester = selectedSemester || '1st';
     Promise.all([
-      axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${effectiveSemester}`),
-      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`),
-      axios.get('http://localhost:5000/api/departments')
+  api.get(`/clearance/status?student_id=${user.student_id}&semester=${effectiveSemester}`),
+  api.get(`/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`),
+  api.get('/departments')
     ])
       .then(([clearanceRes, statusRes, deptRes]) => {
         if (!clearanceRes.data.clearance) {
@@ -116,7 +116,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
   // Fetch department statuses
   useEffect(() => {
     if (!user || userType !== 'user' || !selectedSemester) return;
-    axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`)
+  api.get(`/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`)
       .then(res => {
         setDepartmentStatuses(res.data.statuses || []);
       })
@@ -154,7 +154,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
           return;
         }
-        await axios.post('http://localhost:5000/api/department-status/request', {
+  await api.post('/department-status/request', {
           student_id: user.student_id,
           department_id: departmentId,
             semester: effectiveSemester,
@@ -169,7 +169,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           setDeptRequesting(prev => ({ ...prev, [departmentId]: false }));
           return;
         }
-        await axios.post('http://localhost:5000/api/department-status/request', {
+  await api.post('/department-status/request', {
           student_id: user.student_id,
           department_id: departmentId,
           semester: effectiveSemester,
@@ -184,10 +184,10 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
         if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
           formData.append('file', deptFiles[departmentId][0]);
         }
-        await axios.post('http://localhost:5000/api/department-status/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  await api.post('/department-status/request', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         setDeptFiles(prev => ({ ...prev, [departmentId]: null }));
       }
-      const res = await axios.get(`http://localhost:5000/api/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`);
+  const res = await api.get(`/department-status/statuses?student_id=${user.student_id}&semester=${selectedSemester}`);
       setDepartmentStatuses(res.data.statuses || []);
       onStatusChange && onStatusChange();
     } catch (e) {
@@ -218,7 +218,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
           formData.append('files', file); // backend should accept array under 'files'
         });
       }
-      await axios.post('http://localhost:5000/api/student-subject-status/request', formData, {
+  await api.post('/student-subject-status/request', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       // Upsert status locally (no duplicates)
@@ -255,7 +255,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
     let cancelled = false;
     const interval = setInterval(() => {
       const effectiveSemester = selectedSemester || '1st';
-      axios.get(`http://localhost:5000/api/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`)
+  api.get(`/student-subject-status/requested-statuses?student_id=${user.student_id}&semester=${effectiveSemester}`)
         .then(res => {
           if (cancelled) return;
             const incoming = (res.data.statuses || []).map(s => ({ ...s, semester: s.semester || effectiveSemester }));
@@ -1075,7 +1075,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                                 {fileList.map((fp, i) => (
                                   <li key={i}>
                                     <a
-                                      href={`http://localhost:5000/api/student-subject-status/file/${subject.subject_id}?file=${encodeURIComponent(fp)}`}
+                                      href={buildFileUrl(`/student-subject-status/file/${subject.subject_id}?file=${encodeURIComponent(fp)}`)}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                     >
@@ -1103,7 +1103,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                               if (reqObj.type === 'Link') {
                                 setRequesting(prev => ({ ...prev, [subject.subject_id]: true }));
                                 try {
-                                  const resp = await axios.post('http://localhost:5000/api/student-subject-status/request', {
+                                  const resp = await api.post('/student-subject-status/request', {
                                     student_id: user.student_id,
                                     subject_id: subject.subject_id,
                                     semester: selectedSemester,
@@ -1132,7 +1132,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                               } else if (reqObj.type === 'Checklist') {
                                 setRequesting(prev => ({ ...prev, [subject.subject_id]: true }));
                                 try {
-                                  await axios.post('http://localhost:5000/api/student-subject-status/request', {
+                                  await api.post('/student-subject-status/request', {
                                     student_id: user.student_id,
                                     subject_id: subject.subject_id,
                                     semester: selectedSemester,
@@ -1467,7 +1467,7 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                         ) : <span>-</span>}
                         {(deptStatus === 'Requested' || deptStatus === 'Approved') && uploadedFile && (
                           <a
-                            href={`http://localhost:5000/api/department-status/file/${dept.department_id}?file=${uploadedFile}`}
+                            href={buildFileUrl(`/department-status/file/${dept.department_id}?file=${uploadedFile}`)}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

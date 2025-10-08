@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api, { buildFileUrl } from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 
 const styles = {
@@ -106,14 +106,14 @@ const FacultyDepartmentRequests = () => {
   useEffect(() => {
     if (!user || userType !== 'staff') return;
     setLoading(true);
-    axios.get('http://localhost:5000/api/clearance/faculty', { params: { staff_id: user.staff_id } })
+  api.get('/clearance/faculty', { params: { staff_id: user.staff_id } })
       .then(res => setRequests(res.data))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
   }, [user, userType]);
 
   const handleRespond = async (id, status) => {
-    await axios.patch(`http://localhost:5000/api/clearance/${id}/faculty-respond`, { status });
+  await api.patch(`/clearance/${id}/faculty-respond`, { status });
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
   };
 
@@ -167,7 +167,7 @@ const FacultyDepartmentRequests = () => {
                   return files.map((file, idx) => (
                     <div key={idx}>
                       <a
-                        href={`http://localhost:5000/api/clearance/file/${req.id}?file=${encodeURIComponent(file)}`}
+                        href={buildFileUrl(`/clearance/file/${req.id}?file=${encodeURIComponent(file)}`)}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: '#0277bd', textDecoration: 'underline' }}

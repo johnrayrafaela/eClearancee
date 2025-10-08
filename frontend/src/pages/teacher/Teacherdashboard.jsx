@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { 
   fadeInUp, 
@@ -28,7 +28,7 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
     setLoading(true);
-    axios.get('http://localhost:5000/api/student-subject-status/analytics/teacher', {
+  api.get('/student-subject-status/analytics/teacher', {
       params: { teacher_id: user.teacher_id }
     })
       .then(res => setAnalytics(res.data))

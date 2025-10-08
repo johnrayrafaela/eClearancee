@@ -21,7 +21,7 @@ const fieldRow = (label, value) => (
 const UnifiedProfileCard = ({ role, user, editable=false, onEdit, extraFields=[] }) => {
   if (!user) return null;
   const fullName = `${user.firstname || ''} ${user.lastname || ''}`.trim();
-  const avatarUrl = user.avatar ? `http://localhost:5000/${user.avatar}` : `https://ui-avatars.com/api/?background=0D8ABC&color=fff&name=${encodeURIComponent(fullName)}`;
+  const avatarUrl = user.avatar ? (user.avatar.startsWith('http') ? user.avatar : (window.location.origin + '/' + user.avatar.replace(/^\//,''))) : `https://ui-avatars.com/api/?background=0D8ABC&color=fff&name=${encodeURIComponent(fullName)}`;
   const roleLabel = role.charAt(0).toUpperCase()+role.slice(1);
   const baseFields = [];
   if (role === 'student') {

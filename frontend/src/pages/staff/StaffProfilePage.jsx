@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import UnifiedProfileCard from '../../components/profiles/UnifiedProfileCard';
 import ProfileEditModal from '../../components/profiles/ProfileEditModal';
@@ -22,7 +22,7 @@ const StaffProfilePage = () => {
     (async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/staff/${staffId}`);
+  const res = await api.get(`/staff/${staffId}`);
         if(!active) return;
         setUser(prev => {
           // Only update if data actually changed to prevent unnecessary re-renders
@@ -41,7 +41,7 @@ const StaffProfilePage = () => {
     try {
       const payload = { firstname:form.firstname, lastname:form.lastname, email:form.email };
       if(form.password) payload.password = form.password; // optional password change
-      const res = await axios.put(`http://localhost:5000/api/staff/${user.staff_id}`, payload);
+  const res = await api.put(`/staff/${user.staff_id}`, payload);
       setUser({ ...user, ...res.data });
       localStorage.setItem('user', JSON.stringify({ ...user, ...res.data }));
       return true;

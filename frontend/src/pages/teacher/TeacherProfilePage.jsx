@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import UnifiedProfileCard from '../../components/profiles/UnifiedProfileCard';
 import ProfileEditModal from '../../components/profiles/ProfileEditModal';
@@ -22,7 +22,7 @@ const TeacherProfilePage = () => {
     (async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/teachers/${teacherId}`);
+  const res = await api.get(`/teachers/${teacherId}`);
         if(!active) return;
         setUser(prev => {
           const merged = { ...prev, ...res.data };
@@ -40,7 +40,7 @@ const TeacherProfilePage = () => {
     try {
       const payload = { firstname:form.firstname, lastname:form.lastname, email:form.email };
       if(form.password) payload.password = form.password;
-      await axios.put(`http://localhost:5000/api/teachers/${user.teacher_id}`, payload);
+  await api.put(`/teachers/${user.teacher_id}`, payload);
       setUser(prev => ({ ...prev, ...payload }));
       localStorage.setItem('user', JSON.stringify({ ...user, ...payload }));
       return true;

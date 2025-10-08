@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
-import axios from 'axios';
+import api from '../../api/client';
 import '../../style/AnalyticsPage.css';
 
 const statusColors = {
@@ -31,7 +31,7 @@ const AnalyticsPage = () => {
   const [tab, setTab] = useState('Clearance');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/clearance/analytics/status')
+  api.get('/clearance/analytics/status').then(r=> r.data)
       .then(res => res.json())
       .then(data => setClearanceData({
         Pending: data.Pending || 0,
@@ -39,19 +39,19 @@ const AnalyticsPage = () => {
         Rejected: data.Rejected || 0,
       }));
 
-    fetch('http://localhost:5000/api/users/getAll/students')
+  api.get('/users/getAll/students').then(r=> r.data)
       .then(res => res.json())
       .then(data => setStudentCount(data.length || 0));
 
-    fetch('http://localhost:5000/api/staff')
+  api.get('/staff').then(r=> r.data)
       .then(res => res.json())
       .then(data => setStaffCount(data.length || 0));
 
-    fetch('http://localhost:5000/api/teachers')
+  api.get('/teachers').then(r=> r.data)
       .then(res => res.json())
       .then(data => setTeacherCount(data.length || 0));
 
-    axios.get('http://localhost:5000/api/student-subject-status/all-statuses')
+  api.get('/student-subject-status/all-statuses')
       .then(res => {
         setSubjectStatusCounts({
           Pending: res.data.Pending || 0,
@@ -62,7 +62,7 @@ const AnalyticsPage = () => {
       });
 
     // Fetch department status counts
-    axios.get('http://localhost:5000/api/department-status/all-statuses')
+  api.get('/department-status/all-statuses')
       .then(res => {
         setDepartmentStatusCounts({
           Pending: res.data.Pending || 0,

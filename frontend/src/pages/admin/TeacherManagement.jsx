@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 // Animation
 const fadeInAnim = {
@@ -12,7 +12,7 @@ const keyframes = `
 }
 `;
 
-const API_URL = 'http://localhost:5000/api/teachers';
+const API_URL = '/teachers';
 
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState([]);
@@ -31,7 +31,7 @@ const TeacherManagement = () => {
   // Fetch all teachers
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get(API_URL);
+  const res = await api.get(API_URL);
       setTeachers(res.data);
     } catch (err) {
       console.error(err);
@@ -56,10 +56,10 @@ const TeacherManagement = () => {
         delete submitForm.password;
       }
       if (editing) {
-        await axios.put(`${API_URL}/${editing.teacher_id}`, submitForm);
+  await api.put(`${API_URL}/${editing.teacher_id}`, submitForm);
         setMessage('Teacher updated!');
       } else {
-        await axios.post(`${API_URL}/register`, submitForm);
+  await api.post(`${API_URL}/register`, submitForm);
         setMessage('Teacher added!');
       }
       setShowSuccess(true);
@@ -95,7 +95,7 @@ const TeacherManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Are you sure you want to delete this teacher?')) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+  await api.delete(`${API_URL}/${id}`);
       setMessage('Teacher deleted!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);

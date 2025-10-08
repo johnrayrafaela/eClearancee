@@ -1,6 +1,6 @@
 
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import ClearanceStatusPage from './ClearanceStatusPage';
 import {
@@ -34,7 +34,7 @@ const StudentDashboard = () => {
     if (!user || userType !== 'user') return;
     // Only show skeleton on very first load to avoid flicker "popping up"
     if (refreshToken === 0 && initialRender) setLoading(true);
-    axios.get(`http://localhost:5000/api/student-subject-status/analytics/student`, { params: { student_id: user.student_id }})
+  api.get(`/student-subject-status/analytics/student`, { params: { student_id: user.student_id }})
       .then(res => setAnalytics(res.data || {}))
       .catch(() => setAnalytics({}))
       .finally(()=> setLoading(false));

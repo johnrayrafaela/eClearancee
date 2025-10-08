@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 // Animation
 const fadeInAnim = {
@@ -12,7 +12,7 @@ const keyframes = `
 }
 `;
 
-const API_URL = 'http://localhost:5000/api/staff';
+const API_URL = '/staff';
 
 const StaffManagement = () => {
   const [staffs, setStaffs] = useState([]);
@@ -32,7 +32,7 @@ const StaffManagement = () => {
   // Fetch all staff
   const fetchStaffs = async () => {
     try {
-      const res = await axios.get(API_URL);
+  const res = await api.get(API_URL);
       setStaffs(res.data);
     } catch (err) {
       console.error(err);
@@ -52,10 +52,10 @@ const StaffManagement = () => {
     e.preventDefault();
     try {
       if (editing) {
-        await axios.put(`${API_URL}/${editing.staff_id}`, form);
+  await api.put(`${API_URL}/${editing.staff_id}`, form);
         setMessage('Staff updated!');
       } else {
-        await axios.post(`${API_URL}/register`, form);
+  await api.post(`${API_URL}/register`, form);
         setMessage('Staff added!');
       }
       setShowSuccess(true);
@@ -89,7 +89,7 @@ const StaffManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Are you sure you want to delete this staff?')) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+  await api.delete(`${API_URL}/${id}`);
       setMessage('Staff deleted!');
       setShowSuccess(true);
       setBlockingDepartments([]);
@@ -114,7 +114,7 @@ const StaffManagement = () => {
     }
     try {
       // For each blocking department, update staff_id
-      await Promise.all(blockingDepartments.map(dep => axios.put(`http://localhost:5000/api/departments/${dep.department_id}`, { staff_id: reassignTarget }))); 
+  await Promise.all(blockingDepartments.map(dep => api.put(`/departments/${dep.department_id}`, { staff_id: reassignTarget }))); 
       setMessage('Departments reassigned. You may now delete the staff.');
       setBlockingDepartments([]);
       setReassignTarget('');

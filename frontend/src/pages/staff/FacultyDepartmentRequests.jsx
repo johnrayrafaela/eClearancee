@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api, { buildFileUrl } from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import {
   pageStyles,
@@ -50,7 +50,7 @@ const FacultyDepartmentRequests = () => {
   useEffect(() => {
     if (!user || userType !== 'staff') return;
     setLoading(true);
-    axios.get('http://localhost:5000/api/department-status/staff-requests', { params: { staff_id: user.staff_id } })
+  api.get('/department-status/staff-requests', { params: { staff_id: user.staff_id } })
       .then(res => setRequests(res.data))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
@@ -85,7 +85,7 @@ const FacultyDepartmentRequests = () => {
   const handleRespond = async (id, status, remarksValue) => {
     const payload = { status };
     if (status === 'Rejected' && remarksValue?.trim()) payload.remarks = remarksValue.trim();
-    await axios.patch(`http://localhost:5000/api/department-status/${id}/respond`, payload);
+  await api.patch(`/department-status/${id}/respond`, payload);
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status, remarks: payload.remarks || (status === 'Approved' ? null : r.remarks) } : r));
     setSelectedRequestIds(prev => prev.filter(x => x !== id));
   };
@@ -256,7 +256,7 @@ const FacultyDepartmentRequests = () => {
                   <td style={tableStyles.td}>
                     {req.file_path ? (
                       <a
-                        href={`http://localhost:5000/api/department-status/file/${req.department_id}?file=${encodeURIComponent(req.file_path)}`}
+                        href={buildFileUrl(`/department-status/file/${req.department_id}?file=${encodeURIComponent(req.file_path)}`)}
                         target="_blank" rel="noopener noreferrer" style={{ color:'#0369a1', textDecoration:'none', fontSize:'.55rem', fontWeight:600 }}>
                         View File
                       </a>

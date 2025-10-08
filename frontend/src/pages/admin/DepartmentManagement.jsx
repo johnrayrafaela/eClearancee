@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 // Animation
 const fadeInAnim = {
@@ -12,7 +12,7 @@ const keyframes = `
 }
 `;
 
-const API_URL = 'http://localhost:5000/api/departments';
+const API_URL = '/departments';
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
@@ -30,7 +30,7 @@ const DepartmentManagement = () => {
   // Fetch all departments
   const fetchDepartments = async () => {
     try {
-      const res = await axios.get(API_URL);
+  const res = await api.get(API_URL);
       setDepartments(res.data);
     } catch (err) {
       console.error(err);
@@ -41,7 +41,7 @@ const DepartmentManagement = () => {
   // Fetch all staffs
   const fetchStaffs = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/staff');
+  const res = await api.get('/staff');
       setStaffs(res.data);
     } catch (err) {
       console.error(err);
@@ -62,10 +62,10 @@ const DepartmentManagement = () => {
     e.preventDefault();
     try {
       if (editing) {
-        await axios.put(`${API_URL}/${editing.department_id}`, form);
+        await api.put(`${API_URL}/${editing.department_id}`, form);
         setMessage('Department updated!');
       } else {
-        await axios.post(API_URL, form);
+        await api.post(API_URL, form);
         setMessage('Department added!');
       }
       setShowSuccess(true);
@@ -97,7 +97,7 @@ const DepartmentManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Are you sure you want to delete this department?')) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await api.delete(`${API_URL}/${id}`);
       setMessage('Department deleted!');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1800);

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import UnifiedProfileCard from '../../components/profiles/UnifiedProfileCard';
 import ProfileEditModal from '../../components/profiles/ProfileEditModal';
@@ -20,7 +20,7 @@ const ProfilePage = () => {
       if(!user?.student_id) return;
       setFetching(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/users/get/${user.student_id}`);
+  const res = await api.get(`/users/get/${user.student_id}`);
         setUser(res.data);
   } catch{ /* silent */ }
       finally { setFetching(false); }
@@ -34,7 +34,7 @@ const ProfilePage = () => {
     try {
       const payload = {};
       editableFields.forEach(f=> { if(form[f] !== undefined) payload[f]=form[f]; });
-      const res = await axios.put(`http://localhost:5000/api/users/${user.student_id}`, payload);
+  const res = await api.put(`/users/${user.student_id}`, payload);
       if(res.data?.user){
         setUser(res.data.user);
         localStorage.setItem('user', JSON.stringify(res.data.user));

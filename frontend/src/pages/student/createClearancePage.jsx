@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { injectKeyframes, gradients, cardStyles, modalStyles, composeButton, colors, badgeStyles } from '../../style/theme';
 
@@ -101,7 +101,7 @@ const CreateClearancePage = () => {
     // Immediately clear stale data while loading new semester
     setClearance(null); setStudent(null); setSubjects([]); setCreated(false); setShowConfirm(false);
     setLoading(true);
-    axios.get(`http://localhost:5000/api/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`)
+  api.get(`/clearance/status?student_id=${user.student_id}&semester=${selectedSemester}`)
       .then(cRes => {
         if (cRes.data.clearance){
           setClearance(cRes.data.clearance);
@@ -121,7 +121,7 @@ const CreateClearancePage = () => {
         }
       })
       .finally(()=> {
-        axios.get('http://localhost:5000/api/departments')
+  api.get('/departments')
           .then(dRes => setDepartments(dRes.data||[]))
           .catch(()=> setDepartments([]))
           .finally(()=> setLoading(false));
@@ -131,7 +131,7 @@ const CreateClearancePage = () => {
   const handlePrecheck = async ()=>{
     setLoading(true); setError('');
     try {
-      const resp = await axios.get(`http://localhost:5000/api/clearance/precheck?student_id=${user.student_id}&semester=${selectedSemester}`);
+  const resp = await api.get(`/clearance/precheck?student_id=${user.student_id}&semester=${selectedSemester}`);
       setStudent(resp.data.student); setSubjects(resp.data.subjects); setSelectedSubjects([]); setShowConfirm(true); addToast('Precheck complete. Select subjects to include.','info');
     } catch (e){ setError(e.response?.data?.message || 'Failed to load student info.'); }
     finally { setLoading(false); }
@@ -140,7 +140,7 @@ const CreateClearancePage = () => {
   const handleCreateClearance = async ()=>{
     setShowConfirm(false); setLoading(true); setError('');
     try {
-      const resp = await axios.post('http://localhost:5000/api/clearance/create',{ student_id: user.student_id, semester: selectedSemester, subject_ids: selectedSubjects.map(s=>s.subject_id)});
+  const resp = await api.post('/clearance/create',{ student_id: user.student_id, semester: selectedSemester, subject_ids: selectedSubjects.map(s=>s.subject_id)});
       setClearance(resp.data.clearance); setStudent(resp.data.student); setSubjects(resp.data.subjects); setDepartments(resp.data.departments||[]); setCreated(true);
       addToast('Clearance created successfully.','success');
     } catch(e){ setError(e.response?.data?.message || 'Something went wrong.'); }
@@ -149,7 +149,7 @@ const CreateClearancePage = () => {
 
   const handleDeleteClearance = async ()=>{
     setLoading(true); setDeleteError('');
-    try { await axios.delete('http://localhost:5000/api/clearance/delete',{ data: { student_id: user.student_id, password: deletePassword, semester: selectedSemester }}); setCreated(false); setClearance(null); setStudent(null); setSubjects([]); setShowConfirm(false); setShowDeleteConfirm(false); setDeletePassword(''); addToast('Clearance deleted. You may start again.','warn'); }
+  try { await api.delete('/clearance/delete',{ data: { student_id: user.student_id, password: deletePassword, semester: selectedSemester }}); setCreated(false); setClearance(null); setStudent(null); setSubjects([]); setShowConfirm(false); setShowDeleteConfirm(false); setDeletePassword(''); addToast('Clearance deleted. You may start again.','warn'); }
     catch(e){ setDeleteError(e.response?.data?.message || 'Failed to delete clearance.'); addToast('Failed to delete clearance.','error'); }
     finally { setLoading(false); }
   };

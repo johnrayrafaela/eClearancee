@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { buildFileUrl } from '../api/client';
 import { AuthContext } from '../Context/AuthContext';
 import logo from '../assets/image/logo/eClearance.png';
 import { typeScale, colors, gradients } from '../style/CommonStyles';
@@ -86,7 +87,7 @@ const Navbar = () => {
           {user && (
             <div style={styles.avatarContainer}>
               <img
-                src={user.avatar ? `http://localhost:5000/${user.avatar}` : 'https://ui-avatars.com/api/?name=' + user.firstname + '+' + user.lastname}
+                src={user.avatar ? buildFileUrl('/'+user.avatar) : 'https://ui-avatars.com/api/?name=' + user.firstname + '+' + user.lastname}
                 alt="User Avatar"
                 style={styles.avatar}
                 onClick={handleAvatarClick}

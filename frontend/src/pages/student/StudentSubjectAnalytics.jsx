@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
@@ -28,7 +28,7 @@ const StudentSubjectAnalytics = () => {
   useEffect(() => {
     if (!user || userType !== 'user') return;
     setLoading(true);
-    axios.get(`http://localhost:5000/api/student-subject-status/analytics/student?student_id=${user.student_id}`)
+  api.get(`/student-subject-status/analytics/student?student_id=${user.student_id}`)
       .then(res => {
         prevAnalyticsRef.current = analytics;
         setAnalytics(res.data);
@@ -43,7 +43,7 @@ const StudentSubjectAnalytics = () => {
   useEffect(() => {
     if (!user || userType !== 'user') return;
     setDeptLoading(true);
-    axios.get(`http://localhost:5000/api/department-status/analytics/student?student_id=${user.student_id}`)
+  api.get(`/department-status/analytics/student?student_id=${user.student_id}`)
       .then(res => {
         prevDeptAnalyticsRef.current = deptAnalytics;
         setDeptAnalytics(res.data);

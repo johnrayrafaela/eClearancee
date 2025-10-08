@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import {
   fadeInUp,
@@ -26,7 +26,7 @@ const StaffDashboard = () => {
   useEffect(() => {
     if (!user || userType !== 'staff') return;
     setLoading(true);
-    axios.get('http://localhost:5000/api/department-status/staff-requests', {
+  api.get('/department-status/staff-requests', {
       params: { staff_id: user.staff_id }
     })
       .then(res => {

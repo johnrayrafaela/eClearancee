@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/client';
 import { AuthContext } from './AuthContext';
 
 const AuthProvider = ({ children }) => {
@@ -18,13 +18,13 @@ const AuthProvider = ({ children }) => {
 
   const login = async (formData, type = 'user') => {
     try {
-      let endpoint;
-      if (type === 'teacher') endpoint = 'http://localhost:5000/api/teachers/login';
-      else if (type === 'admin') endpoint = 'http://localhost:5000/api/admins/login';
-      else if (type === 'staff') endpoint = 'http://localhost:5000/api/staff/login';
-      else endpoint = 'http://localhost:5000/api/users/login';
+  let endpoint;
+  if (type === 'teacher') endpoint = '/teachers/login';
+  else if (type === 'admin') endpoint = '/admins/login';
+  else if (type === 'staff') endpoint = '/staff/login';
+  else endpoint = '/users/login';
 
-      const res = await axios.post(endpoint, formData);
+  const res = await api.post(endpoint, formData);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('userType', type);
       const userObj =
@@ -52,15 +52,15 @@ const AuthProvider = ({ children }) => {
         return { success: false, message: `Unsupported account type: ${type}` };
       }
 
-      let endpoint;
+  let endpoint;
       switch (normalized) {
-        case 'teacher': endpoint = 'http://localhost:5000/api/teachers/register'; break;
-        case 'admin': endpoint = 'http://localhost:5000/api/admins/register'; break;
-        case 'staff': endpoint = 'http://localhost:5000/api/staff/register'; break;
-        default: endpoint = 'http://localhost:5000/api/users/register';
+        case 'teacher': endpoint = '/teachers/register'; break;
+        case 'admin': endpoint = '/admins/register'; break;
+        case 'staff': endpoint = '/staff/register'; break;
+        default: endpoint = '/users/register';
       }
 
-      const res = await axios.post(endpoint, formData);
+      const res = await api.post(endpoint, formData);
       return { success: true, message: res.data.message };
     } catch (err) {
       return { success: false, message: err.response?.data?.message || 'Registration failed' };

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -28,7 +28,7 @@ const StaffAnalytics = () => {
   useEffect(() => {
     if (!user || userType !== 'staff') return;
     setLoading(true); setError(null);
-    axios.get('http://localhost:5000/api/department-status/analytics/staff', { params: { staff_id: user.staff_id } })
+    api.get('/department-status/analytics/staff', { params: { staff_id: user.staff_id } })
       .then(res => setAnalytics(res.data))
       .catch(err => setError(err.response?.data?.message || 'Failed to load analytics'))
       .finally(() => setLoading(false));

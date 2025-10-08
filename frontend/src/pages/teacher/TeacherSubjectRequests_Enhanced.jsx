@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api, { buildFileUrl } from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { 
   fadeInUp, 
@@ -47,14 +47,14 @@ const TeacherSubjectRequests = () => {
     if (selectedSemester) {
       params.semester = selectedSemester.startsWith('1st') ? '1st' : '2nd';
     }
-    axios.get('http://localhost:5000/api/student-subject-status/teacher', { params })
+  api.get('/student-subject-status/teacher', { params })
       .then(res => setRequests(res.data))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
   }, [user, userType, selectedSemester]);
 
   const handleRespond = async (id, status) => {
-    await axios.patch(`http://localhost:5000/api/student-subject-status/${id}/respond`, { status });
+  await api.patch(`/student-subject-status/${id}/respond`, { status });
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
   };
 
@@ -211,7 +211,7 @@ const TeacherSubjectRequests = () => {
                     return files.map((file, idx) => (
                       <div key={idx} style={{ marginBottom: 4 }}>
                         <a
-                          href={`http://localhost:5000/api/student-subject-status/file/${req.id}?file=${encodeURIComponent(file)}`}
+                          href={buildFileUrl(`api/student-subject-status/file/${req.id}?file=${encodeURIComponent(file)}`)}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{ 

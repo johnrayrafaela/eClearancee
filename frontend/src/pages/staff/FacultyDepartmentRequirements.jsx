@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { typeScale, fadeInUp, slideInLeft, bounceIn, keyframes } from '../../style/CommonStyles';
 
@@ -21,7 +21,7 @@ const FacultyDepartmentRequirements = () => {
   useEffect(() => {
     if (!user || userType !== 'staff') return;
     setLoading(true);
-    axios.get(`http://localhost:5000/api/departments/staff/${user.staff_id}`)
+  api.get(`/departments/staff/${user.staff_id}`)
       .then(res => {
         setDepartments(res.data);
         const reqs = {};
@@ -55,7 +55,7 @@ const FacultyDepartmentRequirements = () => {
         checklist: reqObj.type === 'Checklist' ? (Array.isArray(reqObj.checklist) ? reqObj.checklist : []) : undefined
       };
 
-      await axios.patch(`http://localhost:5000/api/departments/${department_id}/requirements`, {
+  await api.patch(`/departments/${department_id}/requirements`, {
         requirements: JSON.stringify(payload)
       });
 

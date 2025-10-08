@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { AuthContext } from '../../Context/AuthContext';
 import { typeScale, fadeInUp, slideInLeft, bounceIn, keyframes } from '../../style/CommonStyles';
 
@@ -28,7 +28,7 @@ const TeacherSubjectRequirements = () => {
   useEffect(() => {
     if (!user || userType !== 'teacher') return;
     setLoading(true);
-    axios.get(`http://localhost:5000/api/subject/teacher/${user.teacher_id}`)
+  api.get(`/subject/teacher/${user.teacher_id}`)
       .then(res => {
         setSubjects(res.data);
         const reqs = {};
@@ -66,7 +66,7 @@ const TeacherSubjectRequirements = () => {
         checklist: reqObj.type === 'Checklist' ? (Array.isArray(reqObj.checklist) ? reqObj.checklist : []) : undefined
       };
       
-      await axios.patch(`http://localhost:5000/api/subject/${subject_id}/requirements`, {
+  await api.patch(`/subject/${subject_id}/requirements`, {
         requirements: JSON.stringify(requirementData)
       });
       

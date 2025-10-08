@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 // Animation
 const fadeInAnim = {
@@ -12,7 +12,7 @@ const keyframes = `
 }
 `;
 
-const API_URL = 'http://localhost:5000/api/subjects';
+const API_URL = '/subjects';
 
 const courses = ['BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'];
 const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
@@ -40,7 +40,7 @@ const SubjectManagement = () => {
   // Fetch all subjects
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get(API_URL);
+  const res = await api.get(API_URL);
       setSubjects(res.data);
     } catch (err) {
       console.error(err);
@@ -52,7 +52,7 @@ const SubjectManagement = () => {
     // Fetch teachers for dropdown
     const fetchTeachers = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/teachers');
+  const res = await api.get('/teachers');
         setTeachers(res.data);
       } catch (err) {
         console.error('Failed to fetch teachers', err);
@@ -70,9 +70,9 @@ const SubjectManagement = () => {
     setErrorMsg('');
     try {
       if (editing) {
-        await axios.put(`${API_URL}/${editing.subject_id}`, form);
+  await api.put(`${API_URL}/${editing.subject_id}`, form);
       } else {
-        await axios.post(API_URL, form);
+  await api.post(API_URL, form);
       }
       setForm({
         name: '',
@@ -98,7 +98,7 @@ const SubjectManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Are you sure you want to delete this subject?')) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+  await api.delete(`${API_URL}/${id}`);
       fetchSubjects();
     } catch (err) {
       console.error(err);

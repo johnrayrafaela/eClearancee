@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import api from '../../api/client';
 import { Link } from 'react-router-dom';
 import { Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
@@ -16,15 +17,12 @@ import {
   typeScale,
 } from '../../style/CommonStyles';
 
-// Helper fetch wrapper with safe fallback
+// Helper fetch wrapper with safe fallback using api client
 const safeFetch = async (url) => {
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('bad status');
-    return await res.json();
-  } catch {
-    return [];
-  }
+    const res = await api.get(url);
+    return res.data;
+  } catch { return []; }
 };
 
 const Admindashboard = () => {
@@ -42,24 +40,22 @@ const Admindashboard = () => {
     (async () => {
       setLoading(true);
       const [u, st, t] = await Promise.all([
-        safeFetch('http://localhost:5000/api/users'),
-        safeFetch('http://localhost:5000/api/staff'),
-        safeFetch('http://localhost:5000/api/teachers'),
+  safeFetch('/users'),
+  safeFetch('/staff'),
+  safeFetch('/teachers'),
       ]);
       if (!mounted) return;
       setUsers(Array.isArray(u) ? u : []);
       setStaffs(Array.isArray(st) ? st : []);
       setTeachers(Array.isArray(t) ? t : []);
       try {
-        const r = await fetch('http://localhost:5000/api/clearance/analytics/status');
-        if (r.ok) {
-          const data = await r.json();
-          setClearance({
-            Pending: data.Pending || 0,
+        const r = await api.get('/clearance/analytics/status');
+        const data = r.data || {};
+        setClearance({
+          Pending: data.Pending || 0,
             Approved: data.Approved || 0,
             Rejected: data.Rejected || 0,
-          });
-        }
+        });
   } catch { /* ignore */ }
       setLoading(false);
     })();
