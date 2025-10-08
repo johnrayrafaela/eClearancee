@@ -1,0 +1,14 @@
+{
+  "name": "eclearance-root",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root package to orchestrate backend deployment on Render (frontend deployed separately).",
+  "scripts": {
+    "postinstall": "npm --prefix backend install",
+    "build": "npm --prefix backend run build",
+    "start": "npm --prefix backend run start"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

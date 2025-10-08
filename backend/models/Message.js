@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+// Use the centralized sequelize instance (previous path was wrong and prevented table creation)
+const sequelize = require('../config/config');
 
 const Message = sequelize.define('Message', {
   userMessage: {

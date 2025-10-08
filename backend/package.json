@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "build": "echo 'No build step for backend'",
-    "start": "NODE_ENV=production node index.js"
+  "start": "NODE_ENV=production node index.js",
+  "seed": "node seed.js"
   },
   "engines": {
     "node": "20.x"
