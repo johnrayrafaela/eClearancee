@@ -71,15 +71,32 @@ app.use('/api/department-status', departmentStatusRoutes);
 app.use('/api/department-status', staffDepartmentRequestsRoutes);
 app.use('/api/subject', require('./routes/subjectRoutes'));
 
+// Serve uploaded files (signatures/avatars) if stored locally
+try {
+  const path = require('path');
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+} catch (e) {
+  // optional; ignore if path not present
+}
+
+// Basic health check for Render/Vercel uptime checks
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: Date.now() });
+});
+
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ alter: true }).then(() => {
-  console.log('Database connected and tables updated');
-  console.log('OpenAI Key Loaded:', process.env.OPENAI_API_KEY?.slice(0, 8));
+// In production we avoid destructive/alter migrations automatically.
+// Use migrations (recommended) or run a one-time sync without alter.
+const isProd = process.env.NODE_ENV === 'production';
+const syncOptions = isProd ? {} : { alter: true };
 
+sequelize.sync(syncOptions).then(() => {
+  console.log('Database connected' + (isProd ? '' : ' (dev alter sync applied)'));
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }).catch(err => {
   console.error('Unable to connect to DB:', err);
+  process.exit(1);
 });

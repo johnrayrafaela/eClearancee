@@ -4,7 +4,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build": "echo 'No build step for backend'",
+    "start": "NODE_ENV=production node index.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "keywords": [],
   "author": "",
