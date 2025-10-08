@@ -43,4 +43,14 @@ export const buildFileUrl = (path) => `${base.replace(/\/$/, '')}/${path.replace
 // Helpful for debugging which base the frontend actually compiled with.
 console.log('[API BASE]', base);
 
+// Warn if the API base is the same as the frontend origin in production (likely missing VITE_API_BASE pointing to backend)
+try {
+  const FE_ORIGIN = window.location.origin.replace(/\/$/, '');
+  const BASE_ORIGIN = new URL(base).origin.replace(/\/$/, '');
+  const mode = import.meta?.env?.MODE || 'production';
+  if (mode === 'production' && FE_ORIGIN === BASE_ORIGIN && !/onrender\.com$/i.test(BASE_ORIGIN)) {
+    console.warn('[API WARNING] API base is the frontend domain. Set VITE_API_BASE to your backend (e.g. https://<service>.onrender.com) then redeploy.');
+  }
+} catch { /* ignore URL parsing errors */ }
+
 export default api;
