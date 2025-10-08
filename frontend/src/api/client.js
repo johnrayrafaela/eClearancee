@@ -8,6 +8,23 @@ export const api = axios.create({
   baseURL: base.replace(/\/$/, ''),
 });
 
+// Attach a simple response interceptor for debugging 4xx/5xx issues in production
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error?.response) {
+      const { status, data } = error.response;
+      // Log minimal diagnostic info (won't expose secrets)
+  console.warn('[API ERROR]', status, error.config?.method?.toUpperCase(), error.config?.url, data?.message || data);
+    } else {
+  console.error('[API NETWORK ERROR]', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const buildFileUrl = (path) => `${base.replace(/\/$/, '')}/${path.replace(/^\//,'')}`;
+// Helpful for debugging which base the frontend actually compiled with.
+console.log('[API BASE]', base);
 
 export default api;
