@@ -31,25 +31,32 @@ const AnalyticsPage = () => {
   const [tab, setTab] = useState('Clearance');
 
   useEffect(() => {
-  api.get('/clearance/analytics/status').then(r=> r.data)
-      .then(res => res.json())
-      .then(data => setClearanceData({
-        Pending: data.Pending || 0,
-        Approved: data.Approved || 0,
-        Rejected: data.Rejected || 0,
-      }));
+    // Clearance distribution
+    api.get('/clearance/analytics/status')
+      .then(res => {
+        const data = res.data || {};
+        setClearanceData({
+          Pending: data.Pending || 0,
+          Approved: data.Approved || 0,
+          Rejected: data.Rejected || 0,
+        });
+      })
+      .catch(err => console.warn('Failed to fetch clearance analytics', err));
 
-  api.get('/users/getAll/students').then(r=> r.data)
-      .then(res => res.json())
-      .then(data => setStudentCount(data.length || 0));
+    // Student count
+    api.get('/users/getAll/students')
+      .then(res => setStudentCount((res.data && res.data.length) || 0))
+      .catch(err => console.warn('Failed to fetch students', err));
 
-  api.get('/staff').then(r=> r.data)
-      .then(res => res.json())
-      .then(data => setStaffCount(data.length || 0));
+    // Staff count
+    api.get('/staff')
+      .then(res => setStaffCount((res.data && res.data.length) || 0))
+      .catch(err => console.warn('Failed to fetch staff', err));
 
-  api.get('/teachers').then(r=> r.data)
-      .then(res => res.json())
-      .then(data => setTeacherCount(data.length || 0));
+    // Teacher count
+    api.get('/teachers')
+      .then(res => setTeacherCount((res.data && res.data.length) || 0))
+      .catch(err => console.warn('Failed to fetch teachers', err));
 
   api.get('/student-subject-status/all-statuses')
       .then(res => {
