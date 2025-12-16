@@ -179,6 +179,8 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
         setDeptChecklists(prev => ({ ...prev, [departmentId]: [] }));
       } else { // File/Text/Other treat as multipart
         const formData = new FormData();
+        formData.append('student_id', user.student_id);
+        formData.append('department_id', departmentId);
         formData.append('semester', effectiveSemester);
         formData.append('requirements', reqRaw);
         if (deptFiles[departmentId] && deptFiles[departmentId].length > 0) {
