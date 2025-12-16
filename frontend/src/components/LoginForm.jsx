@@ -44,7 +44,7 @@ const LoginForm = () => {
         {accountType === 'admin' ? (
           <>Administrator <span style={{ fontWeight: 400 }}>Access</span></>
         ) : accountType === 'staff' ? (
-          <>Faculty <span style={{ fontWeight: 400 }}>Access</span></>
+          <>Staff <span style={{ fontWeight: 400 }}>Access</span></>
           ) : accountType === 'teacher' ? (
           <>Teacher <span style={{ fontWeight: 400 }}>Access</span></>
         ) : (
@@ -98,7 +98,7 @@ const LoginForm = () => {
               <option value="user">Student Access</option>
               <option value="teacher">Teacher Access</option>
               <option value="admin">Administrator Access</option>
-              <option value="staff">Faculty Access</option>
+              <option value="staff">Staff Access</option>
             </select>
           </div>
 
