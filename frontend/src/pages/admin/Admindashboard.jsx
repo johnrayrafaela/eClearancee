@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../Context/AuthContext';
 import api from '../../api/client';
 import { Link } from 'react-router-dom';
 import { Pie } from 'react-chartjs-2';
@@ -26,12 +28,23 @@ const safeFetch = async (url) => {
 };
 
 const Admindashboard = () => {
+  const { userType } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [staffs, setStaffs] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [clearance, setClearance] = useState({ Pending: 0, Approved: 0, Rejected: 0 });
   const [loading, setLoading] = useState(true);
   const [distMode, setDistMode] = useState('counts'); // 'counts' | 'percent'
+
+  // Admin-only protection
+  useEffect(() => {
+    console.log('[AdminDashboard] userType:', userType);
+    if (userType && userType !== 'admin') {
+      console.warn('[AdminDashboard] Access denied for:', userType);
+      navigate('/', { replace: true });
+    }
+  }, [userType, navigate]);
 
   useEffect(() => { injectKeyframes(); }, []);
 
