@@ -28,7 +28,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     console.warn('[ProtectedRoute] Access denied for user type:', userType, 'allowed:', allowedRoles);
     return (
       <div style={{ padding: '3rem 2rem', textAlign: 'center', minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(135deg,#fee2e2,#fecaca)', borderRadius: '12px', margin: '2rem' }}>
-        <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '500px' }}>
+        <div style={{ padding: '2.5rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '500px' }}>
           <h1 style={{ margin: '0 0 1rem', fontSize: '2.5rem', color: '#dc2626' }}>🔒 Admin Access Only</h1>
           <p style={{ margin: '0.5rem 0', fontSize: '1.1rem', color: '#374151', fontWeight: '600' }}>Only administrators can access this page.</p>
           <p style={{ margin: '1rem 0 0.5rem', fontSize: '0.95rem', color: '#6b7280' }}>Your current role: <strong style={{ color: '#1f2937' }}>{userType || 'Signed‑in (unknown role)'}</strong></p>
