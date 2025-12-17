@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/Landingpage'; // Import Landing Page
 import ProfilePage from './pages/student/Profilepage';
 import AdminDashboard from './pages/admin/Admindashboard';
@@ -59,14 +60,14 @@ function App() {
           <Route path="/student/analytics" element={<StudentSubjectAnalytics />} />
 
           {/* Admin routes */}
-          <Route path="/admin/departmentmanagement" element={<DepartmentManagement />} />
-          <Route path="/admin/clearancerequest" element={<AdminClearanceRequests />} />
-          <Route path="/admin/subjectmanagement" element={<SubjectManagement />} />
-          <Route path="/admin/teachermanagement" element={<TeacherManagement />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/staffmanagement" element={<StaffManagement />} />
-          <Route path="/studentmanagement" element={<StudentManagement />} /> 
-          <Route path="/admin/analytics" element={<AnalyticsPage />} />
+          <Route path="/admin/departmentmanagement" element={<ProtectedRoute allowedRoles={['admin']}><DepartmentManagement /></ProtectedRoute>} />
+          <Route path="/admin/clearancerequest" element={<ProtectedRoute allowedRoles={['admin']}><AdminClearanceRequests /></ProtectedRoute>} />
+          <Route path="/admin/subjectmanagement" element={<ProtectedRoute allowedRoles={['admin']}><SubjectManagement /></ProtectedRoute>} />
+          <Route path="/admin/teachermanagement" element={<ProtectedRoute allowedRoles={['admin']}><TeacherManagement /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/staffmanagement" element={<ProtectedRoute allowedRoles={['admin']}><StaffManagement /></ProtectedRoute>} />
+          <Route path="/studentmanagement" element={<ProtectedRoute allowedRoles={['admin']}><StudentManagement /></ProtectedRoute>} /> 
+          <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={['admin']}><AnalyticsPage /></ProtectedRoute>} />
 
           {/* Teacher routes */}
           <Route path="/teacher/add-subject" element={<TeacherAddSubject />} />
