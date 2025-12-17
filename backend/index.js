@@ -20,6 +20,9 @@ const departmentRoutes = require('./routes/departmentRoutes');
 const departmentStatusRoutes = require('./routes/departmentStatusRoutes');
 const staffDepartmentRequestsRoutes = require('./routes/staffDepartmentRequestsRoutes');
 
+const Admin = require('./models/Admin');
+const bcrypt = require('bcrypt');
+
 
 //associations
 const StudentSubjectStatus = require('./models/StudentSubjectStatus');
@@ -102,8 +105,22 @@ const PORT = process.env.PORT || 5000;
 const isProd = process.env.NODE_ENV === 'production';
 const syncOptions = isProd ? {} : { alter: true };
 
-sequelize.sync(syncOptions).then(() => {
+sequelize.sync(syncOptions).then(async () => {
   console.log('Database connected' + (isProd ? '' : ' (dev alter sync applied)'));
+  
+  // Ensure default admin exists
+  try {
+    const passwordHash = await bcrypt.hash('123', 10);
+    const [admin, created] = await Admin.findOrCreate({
+      where: { email: 'admin@cctc.com' },
+      defaults: { firstname: 'admin', lastname: '1', password: passwordHash }
+    });
+    if (created) console.log('[STARTUP] Default admin created:', admin.email);
+    else console.log('[STARTUP] Default admin exists:', admin.email);
+  } catch (e) {
+    console.error('[STARTUP] Failed to ensure default admin:', e.message || e);
+  }
+
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
