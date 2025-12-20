@@ -62,7 +62,6 @@ const CreateClearancePage = () => {
   // Enhancements
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('nameAsc');
-  const [yearFilter, setYearFilter] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
   const [showDepartments, setShowDepartments] = useState(true);
   const [toasts, setToasts] = useState([]);
@@ -160,21 +159,10 @@ const CreateClearancePage = () => {
   const filteredSubjects = useMemo(()=>{
     let list = [...subjects];
 
-    // Specific year selection takes precedence (e.g., '1st', '2nd')
+    // Specific year selection (exact match)
     if (selectedYear && selectedYear !== 'all') {
-      // Treat selectedYear as an upper bound: include all years <= selectedYear
-      const max = parseYear(selectedYear);
-      list = list.filter(s => parseYear(s.year_level) <= max);
+      list = list.filter(s => String(s.year_level) === String(selectedYear));
       return list;
-    }
-
-    // Year filter: all / current / previous (for irregular students)
-    if (yearFilter && yearFilter !== 'all' && student) {
-      if (yearFilter === 'current') {
-        list = list.filter(s => s.year_level === student.year_level);
-      } else if (yearFilter === 'previous') {
-        list = list.filter(s => s.year_level !== student.year_level);
-      }
     }
 
     if (search.trim()){
@@ -197,7 +185,7 @@ const CreateClearancePage = () => {
       default: list.sort((a,b)=> a.name.localeCompare(b.name));
     }
     return list;
-  },[subjects, search, sort, yearFilter, student]);
+  },[subjects, search, sort, selectedYear, student]);
 
   const parseYear = (y) => {
     if (!y) return 0;
@@ -400,13 +388,8 @@ const CreateClearancePage = () => {
                           style={styles.searchInput}
                           autoFocus
                         />
-                        <select value={yearFilter} onChange={e=> setYearFilter(e.target.value)} style={{ ...styles.selectSmall, width:160 }}>
-                          <option value="all">All years</option>
-                          <option value="current">Current year</option>
-                          <option value="previous">Previous years</option>
-                        </select>
-                        <select value={selectedYear} onChange={e=> setSelectedYear(e.target.value)} style={{ ...styles.selectSmall, width:150 }}>
-                          <option value="all">— Specific year —</option>
+                        <select value={selectedYear} onChange={e=> setSelectedYear(e.target.value)} style={{ ...styles.selectSmall, width:180 }}>
+                          <option value="all">All years (select below)</option>
                           {yearOptions.map(y=> <option key={y} value={y}>{y}</option>)}
                         </select>
                         <select value={sort} onChange={e=> setSort(e.target.value)} style={styles.selectSmall}>
@@ -428,9 +411,7 @@ const CreateClearancePage = () => {
                         }} disabled={selectedYear === 'all' || !subjects.length}>
                           Select Year
                         </button>
-                        <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> setSelectedSubjects(subjects.filter(s=> s.year_level !== student.year_level))} disabled={!subjects.length || selectedSubjects.length === subjects.filter(s=> s.year_level !== student.year_level).length}>
-                          Select Previous Years
-                        </button>
+                        
                         <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} / {subjects.length} SELECTED</div>
                       </div>
                       <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>✅ Tip: You can select subjects from all year levels in {student.course}. Click "Select All" to add all {subjects.length} subjects, or toggle individual rows. Your current year level: <strong>{student.year_level}</strong></p>
@@ -450,14 +431,13 @@ const CreateClearancePage = () => {
                                       return [...prev, sub];
                                     });
                                   }}
-                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : (isCurrentYear ? 'rgba(2,119,189,0.03)' : undefined) }}
-                                >
-                                                                    <td style={{ ...styles.td, fontWeight: isCurrentYear ? 700 : 500, color: isCurrentYear ? colors.primary : '#607d8b' }}>
-                                                                      <span style={{ display:'inline-flex', alignItems:'center', gap:4, background: isCurrentYear ? '#e3f2fd' : '#f5f5f5', color: isCurrentYear ? colors.primary : '#607d8b', fontWeight: 700, fontSize:11, padding:'4px 8px', borderRadius:12 }}>
-                                                                        {isCurrentYear && '📌 '}{sub.year_level}{isCurrentYear && ' (Current)'}
-                                                                      </span>
-                                                                    </td>
+                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : (isCurrentYear ? 'rgba(2,119,189,0.03)' : undefined) }}>
                                   <td style={styles.td}>{sub.name}</td>
+                                  <td style={{ ...styles.td, fontWeight: isCurrentYear ? 700 : 500, color: isCurrentYear ? colors.primary : '#607d8b' }}>
+                                    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background: isCurrentYear ? '#e3f2fd' : '#f5f5f5', color: isCurrentYear ? colors.primary : '#607d8b', fontWeight: 700, fontSize:11, padding:'4px 8px', borderRadius:12 }}>
+                                      {isCurrentYear && '📌 '}{sub.year_level}{isCurrentYear && ' (Current)'}
+                                    </span>
+                                  </td>
                                   <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
                                   <td style={styles.td}>
                                     {isSelected ? (
