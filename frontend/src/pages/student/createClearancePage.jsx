@@ -185,7 +185,7 @@ const CreateClearancePage = () => {
       default: list.sort((a,b)=> a.name.localeCompare(b.name));
     }
     return list;
-  },[subjects, search, sort, selectedYear, student]);
+  },[subjects, search, sort, selectedYear]);
 
   const parseYear = (y) => {
     if (!y) return 0;
@@ -201,22 +201,6 @@ const CreateClearancePage = () => {
     const arr = Array.from(set);
     return arr.sort((a,b)=> parseYear(a) - parseYear(b));
   },[subjects]);
-
-  const allVisibleSelected = filteredSubjects.length>0 && filteredSubjects.every(s=> selectedSubjects.some(sel=> sel.subject_id===s.subject_id));
-
-  const toggleSelectAllVisible = ()=>{
-    if (allVisibleSelected){
-      // remove visible
-      setSelectedSubjects(prev=> prev.filter(s=> !filteredSubjects.some(f=> f.subject_id===s.subject_id)));
-    } else {
-      // add any not selected
-      setSelectedSubjects(prev=> {
-        const existingIds = new Set(prev.map(p=> p.subject_id));
-        const additions = filteredSubjects.filter(s=> !existingIds.has(s.subject_id));
-        return [...prev, ...additions];
-      });
-    }
-  };
 
   // Close modal on ESC
   useEffect(()=>{
@@ -414,23 +398,9 @@ const CreateClearancePage = () => {
                           <option value="teacherAsc">Teacher A→Z</option>
                           <option value="teacherDesc">Teacher Z→A</option>
                         </select>
-                        <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={toggleSelectAllVisible} disabled={!filteredSubjects.length}>
-                          {allVisibleSelected? 'Unselect Visible' : 'Select Visible'}
-                        </button>
-                        <button type="button" style={{ ...composeButton('primary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> setSelectedSubjects([...subjects])} disabled={selectedSubjects.length === subjects.length}>
-                          Select All
-                        </button>
-                        <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> {
-                          if (selectedYear === 'all') return;
-                          const max = parseYear(selectedYear);
-                          setSelectedSubjects(subjects.filter(s=> parseYear(s.year_level) <= max));
-                        }} disabled={selectedYear === 'all' || !subjects.length}>
-                          Select Year
-                        </button>
-                        
                         <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} / {subjects.length} SELECTED</div>
                       </div>
-                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>✅ Tip: You can select subjects from all year levels in {student.course}. Click "Select All" to add all {subjects.length} subjects, or toggle individual rows. Your current year level: <strong>{student.year_level}</strong></p>
+                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>✅ Tip: You can select subjects from all year levels in {student.course}. Use the year dropdown to filter by year level, then click rows to toggle selection. Your current year level: <strong>{student.year_level}</strong></p>
                       <div style={{ maxHeight:260, overflow:'auto', border:'2px solid #e1f5fe', borderRadius:16 }}>
                         <table style={{ ...styles.table, marginTop:0 }}>
                           <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Year Level</th><th style={styles.th}>Teacher</th><th style={styles.th}>Selected</th></tr></thead>
