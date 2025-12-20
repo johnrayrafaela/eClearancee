@@ -80,7 +80,7 @@ const TeacherDashboard = () => {
   };
 
   const StatLine = ({ label, value, color }) => (
-    <div style={{ display:'flex', justifyContent:'space-between', fontSize: typeScale.base, color:'#455a64', lineHeight:1.2 }}>
+    <div style={{ display:'flex', justifyContent:'space-between', fontSize: typeScale.base, color:'#fff', lineHeight:1.2 }}>
       <span style={{ display:'flex', alignItems:'center', gap:4 }}>
         <span style={{ width:10, height:10, borderRadius:3, background: color, boxShadow:'0 0 0 1px rgba(0,0,0,0.05)' }} />
         {label}
@@ -178,7 +178,7 @@ const TeacherDashboard = () => {
                 fontSize: typeScale.xl,
                 fontWeight: 600
               }}>
-                📊 Student Analytics
+                📊 Approval Analytics
               </h3>
               <div style={{ fontSize: '1.2rem' }}>📈</div>
             </div>
