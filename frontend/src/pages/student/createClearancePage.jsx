@@ -162,7 +162,9 @@ const CreateClearancePage = () => {
 
     // Specific year selection takes precedence (e.g., '1st', '2nd')
     if (selectedYear && selectedYear !== 'all') {
-      list = list.filter(s => s.year_level === selectedYear);
+      // Treat selectedYear as an upper bound: include all years <= selectedYear
+      const max = parseYear(selectedYear);
+      list = list.filter(s => parseYear(s.year_level) <= max);
       return list;
     }
 
@@ -197,10 +199,19 @@ const CreateClearancePage = () => {
     return list;
   },[subjects, search, sort, yearFilter, student]);
 
+  const parseYear = (y) => {
+    if (!y) return 0;
+    const m = String(y).match(/(\d+)/);
+    if (m) return parseInt(m[1],10);
+    const map = { '1st':1,'2nd':2,'3rd':3,'4th':4,'5th':5 };
+    return map[String(y).toLowerCase()] || 0;
+  };
+
   // Compute unique year options from subjects (sorted)
   const yearOptions = useMemo(()=>{
     const set = new Set(subjects.map(s=> s.year_level).filter(Boolean));
-    return Array.from(set).sort();
+    const arr = Array.from(set);
+    return arr.sort((a,b)=> parseYear(a) - parseYear(b));
   },[subjects]);
 
   const allVisibleSelected = filteredSubjects.length>0 && filteredSubjects.every(s=> selectedSubjects.some(sel=> sel.subject_id===s.subject_id));
@@ -412,7 +423,8 @@ const CreateClearancePage = () => {
                         </button>
                         <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> {
                           if (selectedYear === 'all') return;
-                          setSelectedSubjects(subjects.filter(s=> s.year_level === selectedYear));
+                          const max = parseYear(selectedYear);
+                          setSelectedSubjects(subjects.filter(s=> parseYear(s.year_level) <= max));
                         }} disabled={selectedYear === 'all' || !subjects.length}>
                           Select Year
                         </button>
