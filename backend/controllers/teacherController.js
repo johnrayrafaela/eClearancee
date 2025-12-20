@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Teacher  = require('../models/Teacher');
+const User = require('../models/User');
+const Staff = require('../models/Staff');
 const Subject = require('../models/Subject');
 const StudentSubjectStatus = require('../models/StudentSubjectStatus');
 
@@ -11,8 +13,14 @@ exports.registerTeacher = async (req, res) => {
   lastname = lastname?.trim();
 
   try {
-  const existing = await Teacher.findOne({ where: { email } });
-    if (existing) return res.status(400).json({ message: 'Email already registered' });
+  // Check if email exists in ANY user table (students, teachers, staff)
+    const existingTeacher = await Teacher.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
+    const existingStaff = await Staff.findOne({ where: { email } });
+    
+    if (existingTeacher || existingUser || existingStaff) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
