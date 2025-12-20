@@ -35,7 +35,7 @@ export const gradients = {
 };
 
 export const buttonStyles = {
-  base: { border: 'none', borderRadius: 25, padding: '12px 25px', fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem', color: '#fff', display:'inline-flex', alignItems:'center', gap:8, boxShadow: '0 6px 20px rgba(0,0,0,0.15)', transition: 'all .3s ease' },
+  base: { border: 'none', borderRadius: 28, padding: '12px 26px', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem', color: '#fff', display:'inline-flex', alignItems:'center', gap:10, boxShadow: '0 10px 30px rgba(2,119,189,0.18)', transition: 'all .3s ease' },
   primary: { background: gradients.primary, boxShadow: '0 6px 20px rgba(2,119,189,0.35)' },
   success: { background: gradients.success, boxShadow: '0 6px 20px rgba(76,175,80,0.35)' },
   warning: { background: gradients.warning, boxShadow: '0 6px 20px rgba(255,152,0,0.35)' },
@@ -55,8 +55,8 @@ export const cardStyles = {
 
 export const modalStyles = {
   backdrop: { position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(5px)', zIndex:1100, display:'flex', justifyContent:'center', alignItems:'flex-start', overflowY:'auto', padding:'60px 20px 40px' },
-  containerLg: { background: gradients.light, width:'100%', maxWidth:1100, borderRadius:24, boxShadow:'0 25px 60px rgba(0,0,0,0.30)', padding:'34px 38px 40px', position:'relative', animation:'fadeInUp .55s ease' },
-  closeBtn: { position:'absolute', top:14, right:16, background:'linear-gradient(135deg,#eceff1 0%,#cfd8dc 100%)', border:'none', borderRadius:'50%', width:44, height:44, cursor:'pointer', fontSize:24, fontWeight:700, color:'#455a64', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 18px rgba(0,0,0,0.15)' }
+  containerLg: { background: gradients.light, width:'100%', maxWidth:1100, borderRadius:20, boxShadow:'0 28px 70px rgba(2,32,54,0.28)', padding:'28px 32px', position:'relative', animation:'fadeInUp .55s ease' },
+  closeBtn: { position:'absolute', top:14, right:16, background:'linear-gradient(135deg,#f44336 0%,#d32f2f 100%)', border:'none', borderRadius:'50%', width:44, height:44, cursor:'pointer', fontSize:24, fontWeight:700, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 6px 24px rgba(244,67,54,0.28)' }
 };
 
 export const badgeStyles = {

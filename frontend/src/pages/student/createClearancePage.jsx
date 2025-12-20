@@ -354,16 +354,32 @@ const CreateClearancePage = () => {
 
       {!clearance && !showConfirm && !created && (
         <div style={{ textAlign:'center', margin:'10px 0 10px' }}>
-          <button style={{ ...composeButton('primary'), fontSize: '1rem', padding:'14px 36px', borderRadius:40 }} onClick={handlePrecheck} disabled={loading || !selectedSemester}>{loading? 'Loading...' : '🚀 Request Clearance'}</button>
+          <button
+            onClick={handlePrecheck}
+            disabled={loading || !selectedSemester}
+            style={{
+              background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)',
+              color: '#fff',
+              padding: '14px 36px',
+              borderRadius: 40,
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              boxShadow: '0 8px 30px rgba(25,118,210,0.22)'
+            }}
+          >
+            {loading? 'Loading...' : '🚀 Request Clearance'}
+          </button>
         </div>
       )}
 
       {showConfirm && !created && student && (
         <div style={modalStyles.backdrop} aria-modal='true' role='dialog' aria-label='Select subjects and departments'>
-          <div style={modalStyles.containerLg}>
-            <button onClick={()=> setShowConfirm(false)} style={modalStyles.closeBtn} aria-label='Close modal'>×</button>
-            <h3 style={{ margin:'0 0 6px', fontSize:26, fontWeight:900, letterSpacing:1.1, color:colors.primary }}>Finalize Clearance</h3>
-            <p style={{ margin:'0 0 28px', color:'#607d8b', fontSize:14, fontWeight:500 }}>Review your information, choose the subjects to include, and confirm.</p>
+          <div style={{ ...modalStyles.containerLg, background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)', borderRadius: 20, boxShadow: '0 25px 60px rgba(0,0,0,0.28)', padding: 28, maxWidth: 980 }}>
+            <button onClick={()=> setShowConfirm(false)} style={{ ...modalStyles.closeBtn, background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', color: '#fff' }} aria-label='Close modal'>×</button>
+            <h3 style={{ margin:'0 0 6px', fontSize:26, fontWeight:900, letterSpacing:1.1, color:'#0277bd' }}>Finalize Clearance</h3>
+            <p style={{ margin:'0 0 28px', color:'#455a64', fontSize:14, fontWeight:500 }}>Review your information, choose the subjects to include, and confirm.</p>
             <div style={{ display:'flex', gap:28, flexWrap:'wrap' }}>
               {/* Student Info Card */}
               <div style={{ ...cardStyles.section, flex:'1 1 250px', minWidth:240, maxWidth:330 }}>
@@ -492,8 +508,8 @@ const CreateClearancePage = () => {
               </div>
             </div>
             <div style={{ display:'flex', justifyContent:'flex-end', gap:16, marginTop:36, flexWrap:'wrap' }}>
-              <button onClick={()=> setShowConfirm(false)} disabled={loading} style={{ ...composeButton('secondary'), padding:'12px 28px', borderRadius:30 }}>Cancel</button>
-              <button onClick={handleCreateClearance} disabled={loading || !selectedSubjects.length} style={{ ...composeButton('primary'), padding:'14px 34px', borderRadius:40 }}>{loading? 'Submitting...' : '✅ Confirm & Submit'}</button>
+              <button onClick={()=> setShowConfirm(false)} disabled={loading} style={{ background: 'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)', color: '#fff', border: 'none', padding: '12px 28px', borderRadius: 30, fontWeight:700, cursor:'pointer' }}>Cancel</button>
+              <button onClick={handleCreateClearance} disabled={loading || !selectedSubjects.length} style={{ background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', color: '#fff', border: 'none', padding: '14px 34px', borderRadius: 40, fontWeight:800, cursor:'pointer', boxShadow:'0 10px 30px rgba(2,119,189,0.22)' }}>{loading? 'Submitting...' : '✅ Confirm & Submit'}</button>
             </div>
           </div>
         </div>
