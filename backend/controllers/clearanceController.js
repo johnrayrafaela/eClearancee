@@ -114,14 +114,16 @@ exports.precheckClearance = async (req, res) => {
     const { student_id, semester } = req.query;
     const student = await User.findByPk(student_id);
     if (!student) return res.status(404).json({ message: 'Student not found' });
-    const where = { course: student.course, year_level: student.year_level };
+    // Get subjects for the student's course (all year levels, not just their current year level)
+    const where = { course: student.course };
     if (semester) where.semester = semester;
     const subjects = await Subject.findAll({
       where,
       include: [
         { model: Teacher, as: 'teacher', attributes: ['teacher_id','firstname','lastname','email','signature'] },
         { model: Department, as: 'department', attributes: ['department_id','name'], include: [{ model: Staff, as: 'staff', attributes: ['staff_id','firstname','lastname','email','signature'] }] }
-      ]
+      ],
+      order: [['year_level', 'ASC'], ['name', 'ASC']] // Sort by year level then name
     });
     const departmentMap = {};
     subjects.forEach(s => {

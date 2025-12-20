@@ -374,15 +374,19 @@ const CreateClearancePage = () => {
                         <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={toggleSelectAllVisible} disabled={!filteredSubjects.length}>
                           {allVisibleSelected? 'Unselect Visible' : 'Select Visible'}
                         </button>
-                        <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} SELECTED</div>
+                        <button type="button" style={{ ...composeButton('primary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> setSelectedSubjects([...subjects])} disabled={selectedSubjects.length === subjects.length}>
+                          Select All
+                        </button>
+                        <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} / {subjects.length} SELECTED</div>
                       </div>
-                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>Click a row to select / deselect. Use the search and sort controls to narrow down subjects.</p>
+                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>✅ Tip: You can select subjects from all year levels in {student.course}. Click "Select All" to add all {subjects.length} subjects, or toggle individual rows. Your current year level: <strong>{student.year_level}</strong></p>
                       <div style={{ maxHeight:260, overflow:'auto', border:'2px solid #e1f5fe', borderRadius:16 }}>
                         <table style={{ ...styles.table, marginTop:0 }}>
-                          <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Teacher</th><th style={styles.th}>Selected</th></tr></thead>
+                          <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Year Level</th><th style={styles.th}>Teacher</th><th style={styles.th}>Selected</th></tr></thead>
                           <tbody>
                             {filteredSubjects.map(sub => {
                               const isSelected = selectedSubjects.some(s=> s.subject_id === sub.subject_id);
+                                                            const isCurrentYear = sub.year_level === student.year_level;
                               return (
                                 <tr
                                   key={sub.subject_id}
@@ -392,8 +396,13 @@ const CreateClearancePage = () => {
                                       return [...prev, sub];
                                     });
                                   }}
-                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : undefined }}
+                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : (isCurrentYear ? 'rgba(2,119,189,0.03)' : undefined) }}
                                 >
+                                                                    <td style={{ ...styles.td, fontWeight: isCurrentYear ? 700 : 500, color: isCurrentYear ? colors.primary : '#607d8b' }}>
+                                                                      <span style={{ display:'inline-flex', alignItems:'center', gap:4, background: isCurrentYear ? '#e3f2fd' : '#f5f5f5', color: isCurrentYear ? colors.primary : '#607d8b', fontWeight: 700, fontSize:11, padding:'4px 8px', borderRadius:12 }}>
+                                                                        {isCurrentYear && '📌 '}{sub.year_level}{isCurrentYear && ' (Current)'}
+                                                                      </span>
+                                                                    </td>
                                   <td style={styles.td}>{sub.name}</td>
                                   <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
                                   <td style={styles.td}>
