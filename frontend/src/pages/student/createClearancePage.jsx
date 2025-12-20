@@ -63,6 +63,7 @@ const CreateClearancePage = () => {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('nameAsc');
   const [yearFilter, setYearFilter] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
   const [showDepartments, setShowDepartments] = useState(true);
   const [toasts, setToasts] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -159,6 +160,12 @@ const CreateClearancePage = () => {
   const filteredSubjects = useMemo(()=>{
     let list = [...subjects];
 
+    // Specific year selection takes precedence (e.g., '1st', '2nd')
+    if (selectedYear && selectedYear !== 'all') {
+      list = list.filter(s => s.year_level === selectedYear);
+      return list;
+    }
+
     // Year filter: all / current / previous (for irregular students)
     if (yearFilter && yearFilter !== 'all' && student) {
       if (yearFilter === 'current') {
@@ -189,6 +196,12 @@ const CreateClearancePage = () => {
     }
     return list;
   },[subjects, search, sort, yearFilter, student]);
+
+  // Compute unique year options from subjects (sorted)
+  const yearOptions = useMemo(()=>{
+    const set = new Set(subjects.map(s=> s.year_level).filter(Boolean));
+    return Array.from(set).sort();
+  },[subjects]);
 
   const allVisibleSelected = filteredSubjects.length>0 && filteredSubjects.every(s=> selectedSubjects.some(sel=> sel.subject_id===s.subject_id));
 
@@ -381,6 +394,10 @@ const CreateClearancePage = () => {
                           <option value="current">Current year</option>
                           <option value="previous">Previous years</option>
                         </select>
+                        <select value={selectedYear} onChange={e=> setSelectedYear(e.target.value)} style={{ ...styles.selectSmall, width:150 }}>
+                          <option value="all">— Specific year —</option>
+                          {yearOptions.map(y=> <option key={y} value={y}>{y}</option>)}
+                        </select>
                         <select value={sort} onChange={e=> setSort(e.target.value)} style={styles.selectSmall}>
                           <option value="nameAsc">Name A→Z</option>
                           <option value="nameDesc">Name Z→A</option>
@@ -392,6 +409,12 @@ const CreateClearancePage = () => {
                         </button>
                         <button type="button" style={{ ...composeButton('primary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> setSelectedSubjects([...subjects])} disabled={selectedSubjects.length === subjects.length}>
                           Select All
+                        </button>
+                        <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> {
+                          if (selectedYear === 'all') return;
+                          setSelectedSubjects(subjects.filter(s=> s.year_level === selectedYear));
+                        }} disabled={selectedYear === 'all' || !subjects.length}>
+                          Select Year
                         </button>
                         <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={()=> setSelectedSubjects(subjects.filter(s=> s.year_level !== student.year_level))} disabled={!subjects.length || selectedSubjects.length === subjects.filter(s=> s.year_level !== student.year_level).length}>
                           Select Previous Years
