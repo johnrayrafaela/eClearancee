@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
 import api from '../../api/client';
-import '../../style/AnalyticsPage.css';
 import {
   fadeInUp,
-  slideInLeft,
-  slideInRight,
   keyframes,
   gradients,
   pageStyles,
+  cardStyles,
   headerStyles,
   injectKeyframes,
   typeScale,
@@ -39,7 +37,7 @@ const AnalyticsPage = () => {
     Approved: 0,
     Rejected: 0,
   });
-  const [tab, setTab] = useState('Clearance');
+  const [selectedView, setSelectedView] = useState('Clearance');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { injectKeyframes(); }, []);
@@ -94,10 +92,33 @@ const AnalyticsPage = () => {
     })();
     return () => { mounted = false; };
   }, []);
+  const buildBar = (counts) => {
+    const sum = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+    const seg = (v) => (v / sum) * 100;
+    return (
+      <div style={{ display: 'flex', width: '100%', height: 10, borderRadius: 6, overflow: 'hidden', background: '#eceff1', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)' }}>
+        <div style={{ width: seg(clearanceData.Approved) + '%', background: 'linear-gradient(90deg,#4caf50,#2e7d32)', transition: 'width .4s', display: clearanceData.Approved ? 'block' : 'none' }} />
+        <div style={{ width: seg(clearanceData.Pending) + '%', background: 'linear-gradient(90deg,#ffb300,#ff9800)', transition: 'width .4s', display: clearanceData.Pending ? 'block' : 'none' }} />
+        <div style={{ width: seg(clearanceData.Rejected) + '%', background: 'linear-gradient(90deg,#e53935,#c62828)', transition: 'width .4s', display: clearanceData.Rejected ? 'block' : 'none' }} />
+      </div>
+    );
+  };
+
+  const StatLine = ({ label, value, color }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: typeScale.base, color: '#455a64', lineHeight: 1.2 }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ width: 10, height: 10, borderRadius: 3, background: color, boxShadow: '0 0 0 1px rgba(0,0,0,0.05)' }} />
+        {label}
+      </span>
+      <strong style={{ fontWeight: 600 }}>{value}</strong>
+    </div>
+  );
+
   const chartOptions = {
     plugins: {
       legend: {
-        display: false
+        position: 'bottom',
+        labels: { boxWidth: 14, padding: 12, font: { size: 12 } }
       },
       tooltip: {
         backgroundColor: 'rgba(0,0,0,0.7)',
@@ -110,30 +131,6 @@ const AnalyticsPage = () => {
     animation: { duration: 600 },
     maintainAspectRatio: false
   };
-
-  const MetricCard = ({ label, value, icon, color, delay }) => (
-    <div style={{
-      background: gradients.light,
-      padding: '14px 16px',
-      borderRadius: 14,
-      border: '1px solid #e1f5fe',
-      boxShadow: '0 4px 10px rgba(2,119,189,0.05)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 6,
-      animation: 'fadeInUp .55s ease',
-      animationDelay: delay,
-      animationFillMode: 'backwards',
-      minWidth: 160
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: typeScale.base, fontWeight: 600, color: '#0277bd', letterSpacing: '.25px' }}>{label}</span>
-        <span style={{ fontSize: '1.3rem' }}>{icon}</span>
-      </div>
-      <div style={{ fontSize: '1.75rem', fontWeight: 700, color: color || '#01579b', textShadow: '0 1px 2px rgba(2,119,189,0.18)' }}>{value}</div>
-      <div style={{ height: 4, borderRadius: 2, background: 'linear-gradient(90deg,#0288d1,#81d4fa)' }} />
-    </div>
-  );
 
   const clearancePie = {
     labels: ['Pending', 'Approved', 'Rejected'],
@@ -219,171 +216,250 @@ const AnalyticsPage = () => {
           </p>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="analytics-tabs" style={{ marginBottom: 24 }}>
-          <button
-            className={`analytics-tab-btn${tab === 'Clearance' ? ' active' : ''}`}
-            onClick={() => setTab('Clearance')}
-          >
-            Clearance Status
-          </button>
-          <button
-            className={`analytics-tab-btn${tab === 'Users' ? ' active' : ''}`}
-            onClick={() => setTab('Users')}
-          >
-            User Analytics
-          </button>
-          <button
-            className={`analytics-tab-btn${tab === 'Subjects' ? ' active' : ''}`}
-            onClick={() => setTab('Subjects')}
-          >
-            Subject Status
-          </button>
-          <button
-            className={`analytics-tab-btn${tab === 'Departments' ? ' active' : ''}`}
-            onClick={() => setTab('Departments')}
-          >
-            Department Status
-          </button>
+  return (
+    <div style={pageStyles.container}>
+      <style>{keyframes}</style>
+      <div style={pageStyles.content}>
+        {/* Hero Header */}
+        <div style={{ ...pageStyles.hero, ...fadeInUp, padding: 24 }}>
+          <div style={{ fontSize: '1.4rem', marginBottom: 8 }}>📊</div>
+          <h1 style={{ ...headerStyles.pageTitle, color: '#fff', fontSize: typeScale.xxl, textShadow: '1px 1px 2px rgba(0,0,0,0.25)', marginBottom: 4 }}>System Analytics Dashboard</h1>
+          <p style={{ fontSize: typeScale.md, opacity: .9, margin: 0, lineHeight: 1.3 }}>
+            Comprehensive platform analytics: clearance status, user distribution, subject & department insights.
+          </p>
         </div>
 
-        {/* Metric Cards Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 16, marginBottom: 24 }}>
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ background: '#eceff1', borderRadius: 14, height: 100, animation: 'shimmer 1.4s infinite' }} />
-            ))
-          ) : (
-            <>
-              <MetricCard label="Total Users" value={studentCount + staffCount + teacherCount} icon="👥" color="#0277bd" delay="0s" />
-              <MetricCard label="Students" value={studentCount} icon="🎓" color="#0288d1" delay=".05s" />
-              <MetricCard label="Staff" value={staffCount} icon="🧩" color="#ab47bc" delay=".1s" />
-              <MetricCard label="Teachers" value={teacherCount} icon="👨‍🏫" color="#ffa726" delay=".15s" />
-            </>
-          )}
+        {/* Overall Summary Card */}
+        <div style={{ ...cardStyles.default, animation: 'fadeInUp .6s ease', marginBottom: 24 }}>
+          <div style={{ background: gradients.primary, padding: '14px 16px', color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ fontSize: '1.4rem' }}>📈</div>
+            <div>
+              <h3 style={{ margin: 0, fontWeight: 600, fontSize: typeScale.xl, letterSpacing: '.25px' }}>Clearance Performance</h3>
+              <p style={{ margin: '2px 0 0 0', opacity: .9, fontSize: typeScale.md }}>System-wide clearance request status overview.</p>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#e1f5fe' }}>View:</label>
+              <select value={selectedView} onChange={e => setSelectedView(e.target.value)} style={{
+                padding: '6px 10px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.6)',
+                background: 'rgba(255,255,255,0.15)',
+                color: '#fff',
+                fontSize: typeScale.sm,
+                backdropFilter: 'blur(4px)',
+                outline: 'none'
+              }}>
+                <option value="Clearance">Clearance</option>
+                <option value="Users">Users</option>
+                <option value="Subjects">Subjects</option>
+                <option value="Departments">Departments</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {loading ? (
+              <div style={{ background: '#eceff1', height: 180, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+            ) : (
+              <>
+                {selectedView === 'Clearance' && (
+                  <>
+                    {buildBar(clearanceData)}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+                      <div style={{ background: '#e8f5e9', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#2e7d32' }}>Approved</span>
+                        <strong style={{ fontSize: typeScale.xl }}>{clearanceData.Approved}</strong>
+                        <span style={{ fontSize: typeScale.xxs, color: '#2e7d32' }}>completed</span>
+                      </div>
+                      <div style={{ background: '#fff8e1', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#ef6c00' }}>Pending</span>
+                        <strong style={{ fontSize: typeScale.xl }}>{clearanceData.Pending}</strong>
+                        <span style={{ fontSize: typeScale.xxs, color: '#ef6c00' }}>in progress</span>
+                      </div>
+                      <div style={{ background: '#ffebee', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#c62828' }}>Rejected</span>
+                        <strong style={{ fontSize: typeScale.xl }}>{clearanceData.Rejected}</strong>
+                        <span style={{ fontSize: typeScale.xxs, color: '#c62828' }}>declined</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {selectedView === 'Users' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+                    <div style={{ background: '#e3f2fd', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#01579b' }}>Students</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{studentCount}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#01579b' }}>total</span>
+                    </div>
+                    <div style={{ background: '#f3e5f5', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#512da8' }}>Staff</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{staffCount}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#512da8' }}>members</span>
+                    </div>
+                    <div style={{ background: '#ffe0b2', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#e65100' }}>Teachers</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{teacherCount}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#e65100' }}>faculty</span>
+                    </div>
+                  </div>
+                )}
+                {selectedView === 'Subjects' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+                    <div style={{ background: '#c8e6c9', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#1b5e20' }}>Approved</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{subjectStatusCounts.Approved}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#1b5e20' }}>subjects</span>
+                    </div>
+                    <div style={{ background: '#ffe082', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#f57f17' }}>Requested</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{subjectStatusCounts.Requested}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#f57f17' }}>pending</span>
+                    </div>
+                    <div style={{ background: '#ef9a9a', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#b71c1c' }}>Rejected</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{subjectStatusCounts.Rejected}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#b71c1c' }}>declined</span>
+                    </div>
+                  </div>
+                )}
+                {selectedView === 'Departments' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+                    <div style={{ background: '#fff9c4', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#f57f17' }}>Pending</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{departmentStatusCounts.Pending}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#f57f17' }}>depts</span>
+                    </div>
+                    <div style={{ background: '#bbdefb', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#0d47a1' }}>Requested</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{departmentStatusCounts.Requested}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#0d47a1' }}>active</span>
+                    </div>
+                    <div style={{ background: '#c8e6c9', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#1b5e20' }}>Approved</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{departmentStatusCounts.Approved}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#1b5e20' }}>completed</span>
+                    </div>
+                    <div style={{ background: '#ffccbc', padding: '10px 12px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: typeScale.sm, fontWeight: 600, color: '#bf360c' }}>Rejected</span>
+                      <strong style={{ fontSize: typeScale.xl }}>{departmentStatusCounts.Rejected}</strong>
+                      <span style={{ fontSize: typeScale.xxs, color: '#bf360c' }}>declined</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 20, marginBottom: 24 }}>
-          {/* Clearance Status */}
-          {tab === 'Clearance' && (
-            <div className="analytics-card" style={{ ...slideInLeft }}>
-              <h3>📄 Clearance Status Distribution</h3>
+        {/* Charts Section */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'stretch' }}>
+          {selectedView === 'Clearance' && (
+            <div style={{ flex: '1 1 280px', minWidth: 260, background: '#fafafa', border: '1px solid #e0f2f1', borderRadius: 16, padding: '14px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', position: 'relative' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: typeScale.lg, fontWeight: 600, color: '#01579b', letterSpacing: '.25px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🧮</span> Distribution
+              </h4>
               {loading ? (
-                <div style={{ background: '#eceff1', height: 200, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+                <div style={{ background: '#eceff1', height: 260, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+              ) : clearanceData.Pending + clearanceData.Approved + clearanceData.Rejected === 0 ? (
+                <div style={{ fontSize: typeScale.base, color: '#546e7a', padding: '40px 4px', textAlign: 'center' }}>No data to visualize.</div>
               ) : (
-                <>
+                <div style={{ height: 260, position: 'relative' }}>
                   <Pie data={clearancePie} options={chartOptions} />
-                  <div className="analytics-stats">
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: '#ffd54f' }}></span>
-                      Pending: <span className="analytics-stat-value">{clearanceData.Pending}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: '#43a047' }}></span>
-                      Approved: <span className="analytics-stat-value">{clearanceData.Approved}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: '#e53935' }}></span>
-                      Rejected: <span className="analytics-stat-value">{clearanceData.Rejected}</span>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
             </div>
           )}
-
-          {/* User Analytics */}
-          {tab === 'Users' && (
-            <div className="analytics-card" style={{ ...slideInRight }}>
-              <h3>👥 User Analytics</h3>
+          {selectedView === 'Users' && (
+            <div style={{ flex: '1 1 280px', minWidth: 260, background: '#fafafa', border: '1px solid #e0f2f1', borderRadius: 16, padding: '14px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', position: 'relative' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: typeScale.lg, fontWeight: 600, color: '#01579b', letterSpacing: '.25px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>👥</span> Distribution
+              </h4>
               {loading ? (
-                <div style={{ background: '#eceff1', height: 200, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+                <div style={{ background: '#eceff1', height: 260, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+              ) : studentCount + staffCount + teacherCount === 0 ? (
+                <div style={{ fontSize: typeScale.base, color: '#546e7a', padding: '40px 4px', textAlign: 'center' }}>No data to visualize.</div>
               ) : (
-                <>
+                <div style={{ height: 260, position: 'relative' }}>
                   <Pie data={usersPie} options={chartOptions} />
-                  <div className="analytics-stats">
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: '#26c6da' }}></span>
-                      Students: <span className="analytics-stat-value">{studentCount}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: '#ab47bc' }}></span>
-                      Staff: <span className="analytics-stat-value">{staffCount}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: '#ffa726' }}></span>
-                      Teachers: <span className="analytics-stat-value">{teacherCount}</span>
-                    </div>
-                    <div className="analytics-stat-label" style={{ fontWeight: 700, marginTop: 8, background: '#e3f2fd' }}>
-                      <span className="analytics-stat-color" style={{ background: '#0277bd' }}></span>
-                      Total Users: <span className="analytics-stat-value">{studentCount + staffCount + teacherCount}</span>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
             </div>
           )}
-
-          {/* Subject Status */}
-          {tab === 'Subjects' && (
-            <div className="analytics-card" style={{ ...slideInLeft }}>
-              <h3>📚 Subject Status Distribution</h3>
+          {selectedView === 'Subjects' && (
+            <div style={{ flex: '1 1 280px', minWidth: 260, background: '#fafafa', border: '1px solid #e0f2f1', borderRadius: 16, padding: '14px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', position: 'relative' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: typeScale.lg, fontWeight: 600, color: '#01579b', letterSpacing: '.25px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>📚</span> Distribution
+              </h4>
               {loading ? (
-                <div style={{ background: '#eceff1', height: 200, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+                <div style={{ background: '#eceff1', height: 260, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+              ) : subjectStatusCounts.Requested + subjectStatusCounts.Approved + subjectStatusCounts.Rejected === 0 ? (
+                <div style={{ fontSize: typeScale.base, color: '#546e7a', padding: '40px 4px', textAlign: 'center' }}>No data to visualize.</div>
               ) : (
-                <>
+                <div style={{ height: 260, position: 'relative' }}>
                   <Pie data={subjectStatusPie} options={chartOptions} />
-                  <div className="analytics-stats">
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Requested }}></span>
-                      Requested: <span className="analytics-stat-value">{subjectStatusCounts.Requested}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Approved }}></span>
-                      Approved: <span className="analytics-stat-value">{subjectStatusCounts.Approved}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Rejected }}></span>
-                      Rejected: <span className="analytics-stat-value">{subjectStatusCounts.Rejected}</span>
-                    </div>
-                  </div>
-                </>
+                </div>
+              )}
+            </div>
+          )}
+          {selectedView === 'Departments' && (
+            <div style={{ flex: '1 1 280px', minWidth: 260, background: '#fafafa', border: '1px solid #e0f2f1', borderRadius: 16, padding: '14px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', position: 'relative' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: typeScale.lg, fontWeight: 600, color: '#01579b', letterSpacing: '.25px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🏢</span> Distribution
+              </h4>
+              {loading ? (
+                <div style={{ background: '#eceff1', height: 260, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+              ) : departmentStatusCounts.Pending + departmentStatusCounts.Requested + departmentStatusCounts.Approved + departmentStatusCounts.Rejected === 0 ? (
+                <div style={{ fontSize: typeScale.base, color: '#546e7a', padding: '40px 4px', textAlign: 'center' }}>No data to visualize.</div>
+              ) : (
+                <div style={{ height: 260, position: 'relative' }}>
+                  <Pie data={departmentStatusPie} options={chartOptions} />
+                </div>
               )}
             </div>
           )}
 
-          {/* Department Status */}
-          {tab === 'Departments' && (
-            <div className="analytics-card" style={{ ...slideInRight }}>
-              <h3>🏢 Department Status Distribution</h3>
-              {loading ? (
-                <div style={{ background: '#eceff1', height: 200, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
-              ) : (
-                <>
-                  <Pie data={departmentStatusPie} options={chartOptions} />
-                  <div className="analytics-stats">
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Pending }}></span>
-                      Pending: <span className="analytics-stat-value">{departmentStatusCounts.Pending}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Requested }}></span>
-                      Requested: <span className="analytics-stat-value">{departmentStatusCounts.Requested}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Approved }}></span>
-                      Approved: <span className="analytics-stat-value">{departmentStatusCounts.Approved}</span>
-                    </div>
-                    <div className="analytics-stat-label">
-                      <span className="analytics-stat-color" style={{ background: statusColors.Rejected }}></span>
-                      Rejected: <span className="analytics-stat-value">{departmentStatusCounts.Rejected}</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          {/* Highlights Section */}
+          <div style={{ flex: '1 1 320px', minWidth: 280, background: '#f5fafd', border: '1px solid #e1f5fe', borderRadius: 16, padding: '14px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <h4 style={{ margin: 0, fontSize: typeScale.lg, fontWeight: 600, color: '#01579b', letterSpacing: '.25px' }}>📌 Key Metrics</h4>
+            {loading ? (
+              <div style={{ background: '#eceff1', height: 180, borderRadius: 12, animation: 'shimmer 1.5s infinite' }} />
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6, fontSize: typeScale.base, color: '#455a64' }}>
+                {selectedView === 'Clearance' && (
+                  <>
+                    <li><strong style={{ color: '#2e7d32' }}>{((clearanceData.Approved / (clearanceData.Pending + clearanceData.Approved + clearanceData.Rejected || 1)) * 100).toFixed(1)}%</strong> approval rate.</li>
+                    <li><strong style={{ color: '#ef6c00' }}>{clearanceData.Pending}</strong> requests pending review.</li>
+                    <li><strong style={{ color: '#01579b' }}>{clearanceData.Pending + clearanceData.Approved + clearanceData.Rejected}</strong> total requests processed.</li>
+                  </>
+                )}
+                {selectedView === 'Users' && (
+                  <>
+                    <li><strong style={{ color: '#01579b' }}>{studentCount + staffCount + teacherCount}</strong> total users in system.</li>
+                    <li><strong style={{ color: '#0277bd' }}>{studentCount}</strong> students registered.</li>
+                    <li><strong style={{ color: '#512da8' }}>{staffCount}</strong> staff members active.</li>
+                    <li><strong style={{ color: '#e65100' }}>{teacherCount}</strong> faculty members on file.</li>
+                  </>
+                )}
+                {selectedView === 'Subjects' && (
+                  <>
+                    <li><strong style={{ color: '#1b5e20' }}>{subjectStatusCounts.Approved}</strong> subjects approved.</li>
+                    <li><strong style={{ color: '#f57f17' }}>{subjectStatusCounts.Requested}</strong> awaiting approval.</li>
+                    <li><strong style={{ color: '#b71c1c' }}>{subjectStatusCounts.Rejected}</strong> rejected subjects.</li>
+                  </>
+                )}
+                {selectedView === 'Departments' && (
+                  <>
+                    <li><strong style={{ color: '#0d47a1' }}>{departmentStatusCounts.Requested}</strong> departments with active requests.</li>
+                    <li><strong style={{ color: '#1b5e20' }}>{departmentStatusCounts.Approved}</strong> fully processed.</li>
+                    <li><strong style={{ color: '#f57f17' }}>{departmentStatusCounts.Pending}</strong> pending action.</li>
+                  </>
+                )}
+              </ul>
+            )}
+          </div>
         </div>
+      </div>
+    </div>
+  );
       </div>
     </div>
   );
