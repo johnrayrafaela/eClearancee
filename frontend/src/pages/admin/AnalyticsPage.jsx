@@ -149,13 +149,13 @@ const AnalyticsPage = () => {
 
   return (
     <div className="analytics-root">
-      <h2 className="analytics-title">📊 Data Analytics</h2>
+      <h2 className="analytics-title">📊 Data Analytics Dashboard</h2>
       <div className="analytics-tabs">
         <button
           className={`analytics-tab-btn${tab === 'Clearance' ? ' active' : ''}`}
           onClick={() => setTab('Clearance')}
         >
-          Students Clearance Status
+          Clearance Status
         </button>
         <button
           className={`analytics-tab-btn${tab === 'Users' ? ' active' : ''}`}
@@ -167,7 +167,7 @@ const AnalyticsPage = () => {
           className={`analytics-tab-btn${tab === 'Subjects' ? ' active' : ''}`}
           onClick={() => setTab('Subjects')}
         >
-          Students Subject Status
+          Subject Status
         </button>
         <button
           className={`analytics-tab-btn${tab === 'Departments' ? ' active' : ''}`}
@@ -176,7 +176,7 @@ const AnalyticsPage = () => {
           Department Status
         </button>
       </div>
-      <div className="analytics-cards-row" style={{ display: 'flex', gap: 40, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="analytics-cards-row" style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         {tab === 'Clearance' && (
           <div className="analytics-card">
             <h3>Students Clearance Status Distribution</h3>
