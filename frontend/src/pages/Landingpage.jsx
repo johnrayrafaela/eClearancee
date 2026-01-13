@@ -10,14 +10,14 @@ const Landingpage = () => {
 
   // --- Styles & Tokens ---
   const palette = {
-    lightBg: 'linear-gradient(135deg,#ffffff 0%,#f3f9fc 55%,#e8f4ff 100%)',
-    accent: '#ffb300',
-    accentGrad: 'linear-gradient(135deg,#ffb300,#ff9800)',
-    primary: '#01579b',
-    textDark: '#103446',
-    softText: '#476172',
-    surface: '#ffffff',
-    panel: 'linear-gradient(150deg,rgba(255,255,255,0.65),rgba(255,255,255,0.35))'
+    lightBg: 'linear-gradient(180deg,#021428 0%,#03293b 60%,#04314a 100%)',
+    accent: '#ffd166',
+    accentGrad: 'linear-gradient(135deg,#ffd166,#ffb35c)',
+    primary: '#cfeefd',
+    textDark: '#eaf6ff',
+    softText: 'rgba(234,246,255,0.82)',
+    surface: 'rgba(255,255,255,0.03)',
+    panel: 'linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))'
   };
 
   const outer = {
@@ -32,12 +32,12 @@ const Landingpage = () => {
 
   const gradientOverlay = {
     position: 'absolute', inset: 0,
-    background: 'radial-gradient(circle at 20% 25%,rgba(255,179,0,0.18),transparent 55%), radial-gradient(circle at 85% 70%,rgba(2,119,189,0.15),transparent 55%)',
+    background: 'radial-gradient(circle at 20% 25%,rgba(255,209,102,0.06),transparent 55%), radial-gradient(circle at 85% 70%,rgba(30,144,255,0.06),transparent 55%)',
     pointerEvents: 'none'
   };
 
-  const noise = { position:'absolute', inset:0, pointerEvents:'none', mixBlendMode:'overlay', opacity:.08,
-    background:'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22240%22 viewBox=%220 0 240 240%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22240%22 height=%22240%22 filter=%22url(%23n)%22 opacity=%220.4%22/%3E%3C/svg%3E") repeat' };
+  const noise = { position:'absolute', inset:0, pointerEvents:'none', mixBlendMode:'overlay', opacity:.04,
+    background:'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22240%22 viewBox=%220 0 240 240%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.6%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22240%22 height=%22240%22 filter=%22url(%23n)%22 opacity=%220.28%22/%3E%3C/svg%3E") repeat' };
 
   const nav = {
     display: 'flex', alignItems:'center', justifyContent:'space-between',
@@ -46,11 +46,11 @@ const Landingpage = () => {
 
   const logoWrap = { display:'flex', alignItems:'center', gap:12, textDecoration:'none', color:palette.primary };
   const logoImg = { width:58, height:58, borderRadius:'18px', boxShadow:'0 4px 16px -4px rgba(2,119,189,0.30)', objectFit:'cover', background:'#fff', padding:6 };
-  const brandTxt = { fontSize:'1.6rem', fontWeight:800, letterSpacing:'.8px', margin:0, color:palette.primary };
+  const brandTxt = { fontSize:'1.6rem', fontWeight:800, letterSpacing:'.8px', margin:0, color:palette.textDark };
 
   const navActions = { display:'flex', gap:14 };
-  const ghostBtn = { ...buttonStyles.secondary, background:'#ffffff', border:'1px solid #d7e7ef', color:palette.primary, padding:'10px 20px', fontSize:'.8rem', fontWeight:600, letterSpacing:'.5px', boxShadow:'0 2px 6px rgba(0,0,0,0.04)' };
-  const solidBtn = { ...buttonStyles.primary, background:palette.accentGrad, padding:'10px 24px', fontSize:'.8rem', fontWeight:700, letterSpacing:'.6px', boxShadow:'0 6px 22px -6px rgba(255,152,0,0.45)' };
+  const ghostBtn = { ...buttonStyles.secondary, background:'transparent', border:'1px solid rgba(255,255,255,0.12)', color:palette.textDark, padding:'10px 20px', fontSize:'.8rem', fontWeight:600, letterSpacing:'.5px', boxShadow:'none' };
+  const solidBtn = { ...buttonStyles.primary, background:'linear-gradient(135deg,#1e90ff,#4fb0ff)', padding:'10px 24px', fontSize:'.8rem', fontWeight:700, letterSpacing:'.6px', boxShadow:'0 8px 30px -12px rgba(30,144,255,0.5)', color:'#001a2e' };
 
   const hero = { position:'relative', padding:'clamp(2rem,5.6vw,4rem) clamp(1rem,5vw,4.5rem) clamp(2.2rem,5vw,4rem)', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(340px,1fr))', alignItems:'center', gap:'3.5rem', zIndex:10, maxWidth:1600, margin:'0 auto' };
   const heroText = { position:'relative'};
@@ -62,18 +62,18 @@ const Landingpage = () => {
   const outlineCTA = { ...ghostBtn, fontSize:'.85rem', padding:'16px 26px', borderRadius:16 };
 
   const metrics = { display:'flex', flexWrap:'wrap', gap:22, marginTop:10 };
-  const metricCard = { flex:'1 1 140px', minWidth:140, background:'#ffffff', padding:'16px 18px 18px', border:'1px solid #dcecf3', borderRadius:20, boxShadow:'0 4px 18px -6px rgba(0,0,0,0.12)', position:'relative', overflow:'hidden' };
-  const metricVal = { fontSize:'1.55rem', fontWeight:800, letterSpacing:'.5px', color:palette.primary, margin:'0 0 4px' };
+  const metricCard = { flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.03)', padding:'16px 18px 18px', border:'1px solid rgba(255,255,255,0.06)', borderRadius:20, boxShadow:'0 6px 24px -12px rgba(0,0,0,0.6)', position:'relative', overflow:'hidden' };
+  const metricVal = { fontSize:'1.55rem', fontWeight:800, letterSpacing:'.5px', color:palette.textDark, margin:'0 0 4px' };
   const metricLbl = { fontSize:'.6rem', textTransform:'uppercase', letterSpacing:'1.8px', fontWeight:700, color:palette.softText };
 
   const featureBand = { position:'relative', marginTop:'3.5rem', padding:'0  clamp(1rem,5vw,4.5rem) 4.5rem' };
   const bandGrid = { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))', gap:'26px', maxWidth:1600, margin:'0 auto' };
-  const featureCard = { background:'#ffffff', border:'1px solid #d9e7ef', padding:'20px 20px 26px', borderRadius:22, position:'relative', overflow:'hidden', boxShadow:'0 6px 22px -8px rgba(0,0,0,0.12)', transition:'transform .35s cubic-bezier(.34,1.56,.4,1)', cursor:'default' };
+  const featureCard = { background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', padding:'20px 20px 26px', borderRadius:22, position:'relative', overflow:'hidden', boxShadow:'0 12px 40px -18px rgba(0,0,0,0.7)', transition:'transform .35s cubic-bezier(.34,1.56,.4,1)', cursor:'default' };
   const featureIcon = { fontSize:'1.9rem', marginBottom:14 };
-  const featureTitle = { margin:'0 0 10px', fontSize:'1.05rem', fontWeight:700, letterSpacing:'.4px', color:palette.primary };
+  const featureTitle = { margin:'0 0 10px', fontSize:'1.05rem', fontWeight:700, letterSpacing:'.4px', color:palette.textDark };
   const featureTxt = { margin:0, fontSize:'.8rem', lineHeight:1.55, color:palette.softText, fontWeight:500 };
 
-  const footer = { textAlign:'center', padding:'44px 20px 34px', fontSize:'.7rem', color:palette.softText, letterSpacing:'.5px', borderTop:'1px solid #d9e7ef', marginTop:'2.8rem' };
+  const footer = { textAlign:'center', padding:'44px 20px 34px', fontSize:'.7rem', color:palette.softText, letterSpacing:'.5px', borderTop:'1px solid rgba(255,255,255,0.04)', marginTop:'2.8rem' };
 
   // Decorative floating shapes
   const decoWrap = { position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none' };

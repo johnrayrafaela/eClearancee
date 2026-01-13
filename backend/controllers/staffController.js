@@ -1,4 +1,6 @@
 const Staff = require('../models/Staff');
+const User = require('../models/User');
+const Teacher = require('../models/Teacher');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Department = require('../models/Department');
@@ -11,8 +13,14 @@ exports.registerStaff = async (req, res) => {
     email = (email || '').trim().toLowerCase();
     firstname = firstname?.trim();
     lastname = lastname?.trim();
-    const existing = await Staff.findOne({ where: { email } });
-    if (existing) return res.status(400).json({ message: 'Email already registered' });
+    // Check if email exists in ANY user table (students, teachers, staff)
+    const existingStaff = await Staff.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
+    const existingTeacher = await Teacher.findOne({ where: { email } });
+    
+    if (existingStaff || existingUser || existingTeacher) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const staff = await Staff.create({ firstname, lastname, email, password: hashedPassword, signature: signature || null });
     res.status(201).json({ message: 'Staff registered', staff: { staff_id: staff.staff_id, firstname, lastname, email, signature: staff.signature } });

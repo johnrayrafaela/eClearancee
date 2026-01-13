@@ -1094,7 +1094,16 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                       <td style={styles.td}>
                         {(status === 'Pending' || status === 'Rejected') && (
                           <button
-                            style={styles.button}
+                            style={{
+                              background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '8px 14px',
+                              borderRadius: 14,
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              boxShadow: '0 6px 18px rgba(2,119,189,0.18)'
+                            }}
                             disabled={
                               requesting[subject.subject_id] ||
                               (reqObj.type === 'File' && (!files[subject.subject_id] || files[subject.subject_id].length === 0)) ||
@@ -1481,7 +1490,16 @@ const ClearanceStatusPage = ({ onStatusChange, onStatusesUpdate }) => {
                       <td style={styles.td}>
                         {(deptStatus === 'Pending' || deptStatus === 'Rejected') && (
                           <button
-                            style={styles.button}
+                            style={{
+                              background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '8px 14px',
+                              borderRadius: 14,
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              boxShadow: '0 6px 18px rgba(2,119,189,0.18)'
+                            }}
                             disabled={
                               deptRequesting[dept.department_id] ||
                               ((deptReqObj.type === 'File' || deptReqObj.type === 'Text' || deptReqObj.type === 'Other') && (!deptFiles[dept.department_id] || deptFiles[dept.department_id].length === 0)) ||

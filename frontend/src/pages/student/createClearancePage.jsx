@@ -62,6 +62,7 @@ const CreateClearancePage = () => {
   // Enhancements
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('nameAsc');
+  const [selectedYear, setSelectedYear] = useState('all');
   const [showDepartments, setShowDepartments] = useState(true);
   const [toasts, setToasts] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -157,6 +158,13 @@ const CreateClearancePage = () => {
   // Filter & sort subjects when selecting
   const filteredSubjects = useMemo(()=>{
     let list = [...subjects];
+
+    // Specific year selection (exact match)
+    if (selectedYear && selectedYear !== 'all') {
+      list = list.filter(s => String(s.year_level) === String(selectedYear));
+      return list;
+    }
+
     if (search.trim()){
       const q = search.toLowerCase();
       list = list.filter(s=> s.name.toLowerCase().includes(q) || (s.teacher && `${s.teacher.firstname} ${s.teacher.lastname}`.toLowerCase().includes(q)));
@@ -177,23 +185,22 @@ const CreateClearancePage = () => {
       default: list.sort((a,b)=> a.name.localeCompare(b.name));
     }
     return list;
-  },[subjects, search, sort]);
+  },[subjects, search, sort, selectedYear]);
 
-  const allVisibleSelected = filteredSubjects.length>0 && filteredSubjects.every(s=> selectedSubjects.some(sel=> sel.subject_id===s.subject_id));
-
-  const toggleSelectAllVisible = ()=>{
-    if (allVisibleSelected){
-      // remove visible
-      setSelectedSubjects(prev=> prev.filter(s=> !filteredSubjects.some(f=> f.subject_id===s.subject_id)));
-    } else {
-      // add any not selected
-      setSelectedSubjects(prev=> {
-        const existingIds = new Set(prev.map(p=> p.subject_id));
-        const additions = filteredSubjects.filter(s=> !existingIds.has(s.subject_id));
-        return [...prev, ...additions];
-      });
-    }
+  const parseYear = (y) => {
+    if (!y) return 0;
+    const m = String(y).match(/(\d+)/);
+    if (m) return parseInt(m[1],10);
+    const map = { '1st':1,'2nd':2,'3rd':3,'4th':4,'5th':5 };
+    return map[String(y).toLowerCase()] || 0;
   };
+
+  // Compute unique year options from subjects (sorted)
+  const yearOptions = useMemo(()=>{
+    const set = new Set(subjects.map(s=> s.year_level).filter(Boolean));
+    const arr = Array.from(set);
+    return arr.sort((a,b)=> parseYear(a) - parseYear(b));
+  },[subjects]);
 
   // Close modal on ESC
   useEffect(()=>{
@@ -331,16 +338,32 @@ const CreateClearancePage = () => {
 
       {!clearance && !showConfirm && !created && (
         <div style={{ textAlign:'center', margin:'10px 0 10px' }}>
-          <button style={{ ...composeButton('primary'), fontSize: '1rem', padding:'14px 36px', borderRadius:40 }} onClick={handlePrecheck} disabled={loading || !selectedSemester}>{loading? 'Loading...' : '🚀 Request Clearance'}</button>
+          <button
+            onClick={handlePrecheck}
+            disabled={loading || !selectedSemester}
+            style={{
+              background: 'linear-gradient(135deg, #1976d2 0%, #0277bd 100%)',
+              color: '#fff',
+              padding: '14px 36px',
+              borderRadius: 40,
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              boxShadow: '0 8px 30px rgba(25,118,210,0.22)'
+            }}
+          >
+            {loading? 'Loading...' : '🚀 Request Clearance'}
+          </button>
         </div>
       )}
 
       {showConfirm && !created && student && (
         <div style={modalStyles.backdrop} aria-modal='true' role='dialog' aria-label='Select subjects and departments'>
-          <div style={modalStyles.containerLg}>
-            <button onClick={()=> setShowConfirm(false)} style={modalStyles.closeBtn} aria-label='Close modal'>×</button>
-            <h3 style={{ margin:'0 0 6px', fontSize:26, fontWeight:900, letterSpacing:1.1, color:colors.primary }}>Finalize Clearance</h3>
-            <p style={{ margin:'0 0 28px', color:'#607d8b', fontSize:14, fontWeight:500 }}>Review your information, choose the subjects to include, and confirm.</p>
+          <div style={{ ...modalStyles.containerLg, background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)', borderRadius: 20, boxShadow: '0 25px 60px rgba(0,0,0,0.28)', padding: 28, maxWidth: 980 }}>
+            <button onClick={()=> setShowConfirm(false)} style={{ ...modalStyles.closeBtn, background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', color: '#fff' }} aria-label='Close modal'>×</button>
+            <h3 style={{ margin:'0 0 6px', fontSize:26, fontWeight:900, letterSpacing:1.1, color:'#0277bd' }}>Finalize Clearance</h3>
+            <p style={{ margin:'0 0 28px', color:'#455a64', fontSize:14, fontWeight:500 }}>Review your information, choose the subjects to include, and confirm.</p>
             <div style={{ display:'flex', gap:28, flexWrap:'wrap' }}>
               {/* Student Info Card */}
               <div style={{ ...cardStyles.section, flex:'1 1 250px', minWidth:240, maxWidth:330 }}>
@@ -365,24 +388,26 @@ const CreateClearancePage = () => {
                           style={styles.searchInput}
                           autoFocus
                         />
+                        <select value={selectedYear} onChange={e=> setSelectedYear(e.target.value)} style={{ ...styles.selectSmall, width:180 }}>
+                          <option value="all">All years (select below)</option>
+                          {yearOptions.map(y=> <option key={y} value={y}>{y}</option>)}
+                        </select>
                         <select value={sort} onChange={e=> setSort(e.target.value)} style={styles.selectSmall}>
                           <option value="nameAsc">Name A→Z</option>
                           <option value="nameDesc">Name Z→A</option>
                           <option value="teacherAsc">Teacher A→Z</option>
                           <option value="teacherDesc">Teacher Z→A</option>
                         </select>
-                        <button type="button" style={{ ...composeButton('secondary'), padding:'10px 20px', borderRadius:30, fontSize:12 }} onClick={toggleSelectAllVisible} disabled={!filteredSubjects.length}>
-                          {allVisibleSelected? 'Unselect Visible' : 'Select Visible'}
-                        </button>
-                        <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} SELECTED</div>
+                        <div style={{ fontSize:11, fontWeight:800, color:colors.primary, letterSpacing:1 }}>{selectedSubjects.length} / {subjects.length} SELECTED</div>
                       </div>
-                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>Click a row to select / deselect. Use the search and sort controls to narrow down subjects.</p>
+                      <p style={{ margin: '4px 0 10px', fontSize: 12, fontWeight: 600, letterSpacing: .5, color: '#607d8b' }}>✅ Tip: You can select subjects from all year levels in {student.course}. Use the year dropdown to filter by year level, then click rows to toggle selection. Your current year level: <strong>{student.year_level}</strong></p>
                       <div style={{ maxHeight:260, overflow:'auto', border:'2px solid #e1f5fe', borderRadius:16 }}>
                         <table style={{ ...styles.table, marginTop:0 }}>
-                          <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Teacher</th><th style={styles.th}>Selected</th></tr></thead>
+                          <thead><tr><th style={styles.th}>Subject Name</th><th style={styles.th}>Year Level</th><th style={styles.th}>Teacher</th><th style={styles.th}>Selected</th></tr></thead>
                           <tbody>
                             {filteredSubjects.map(sub => {
                               const isSelected = selectedSubjects.some(s=> s.subject_id === sub.subject_id);
+                                                            const isCurrentYear = sub.year_level === student.year_level;
                               return (
                                 <tr
                                   key={sub.subject_id}
@@ -392,9 +417,13 @@ const CreateClearancePage = () => {
                                       return [...prev, sub];
                                     });
                                   }}
-                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : undefined }}
-                                >
+                                  style={{ transition:'background .25s, transform .25s', cursor:'pointer', background: isSelected ? 'linear-gradient(135deg,#e3f2fd 0%,#bbdefb 100%)' : (isCurrentYear ? 'rgba(2,119,189,0.03)' : undefined) }}>
                                   <td style={styles.td}>{sub.name}</td>
+                                  <td style={{ ...styles.td, fontWeight: isCurrentYear ? 700 : 500, color: isCurrentYear ? colors.primary : '#607d8b' }}>
+                                    <span style={{ display:'inline-flex', alignItems:'center', gap:4, background: isCurrentYear ? '#e3f2fd' : '#f5f5f5', color: isCurrentYear ? colors.primary : '#607d8b', fontWeight: 700, fontSize:11, padding:'4px 8px', borderRadius:12 }}>
+                                      {isCurrentYear && '📌 '}{sub.year_level}{isCurrentYear && ' (Current)'}
+                                    </span>
+                                  </td>
                                   <td style={styles.td}>{sub.teacher ? `${sub.teacher.firstname} ${sub.teacher.lastname}` : 'N/A'}</td>
                                   <td style={styles.td}>
                                     {isSelected ? (
@@ -449,8 +478,8 @@ const CreateClearancePage = () => {
               </div>
             </div>
             <div style={{ display:'flex', justifyContent:'flex-end', gap:16, marginTop:36, flexWrap:'wrap' }}>
-              <button onClick={()=> setShowConfirm(false)} disabled={loading} style={{ ...composeButton('secondary'), padding:'12px 28px', borderRadius:30 }}>Cancel</button>
-              <button onClick={handleCreateClearance} disabled={loading || !selectedSubjects.length} style={{ ...composeButton('primary'), padding:'14px 34px', borderRadius:40 }}>{loading? 'Submitting...' : '✅ Confirm & Submit'}</button>
+              <button onClick={()=> setShowConfirm(false)} disabled={loading} style={{ background: 'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)', color: '#fff', border: 'none', padding: '12px 28px', borderRadius: 30, fontWeight:700, cursor:'pointer' }}>Cancel</button>
+              <button onClick={handleCreateClearance} disabled={loading || !selectedSubjects.length} style={{ background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', color: '#fff', border: 'none', padding: '14px 34px', borderRadius: 40, fontWeight:800, cursor:'pointer', boxShadow:'0 10px 30px rgba(2,119,189,0.22)' }}>{loading? 'Submitting...' : '✅ Confirm & Submit'}</button>
             </div>
           </div>
         </div>

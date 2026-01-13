@@ -178,7 +178,7 @@ const TeacherDashboard = () => {
                 fontSize: typeScale.xl,
                 fontWeight: 600
               }}>
-                📊 Student Analytics
+                📊 Approval Analytics
               </h3>
               <div style={{ fontSize: '1.2rem' }}>📈</div>
             </div>
@@ -196,8 +196,8 @@ const TeacherDashboard = () => {
                   <SemesterCard title="2nd Semester" counts={sem2} delay=".1s" />
                 </div>
                 <div style={{
-                  background:'linear-gradient(135deg,#0277bd 0%,#01579b 100%)',
-                  color:'#fff',
+                  background:'#fff',
+                  color:'#0277bd',
                   padding:'10px 14px',
                   borderRadius:14,
                   display:'flex',
@@ -206,11 +206,11 @@ const TeacherDashboard = () => {
                   boxShadow:'0 6px 16px rgba(2,119,189,0.25)'
                 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
-                    <strong style={{ fontSize: typeScale.xl, letterSpacing:'.5px' }}>Overall Summary</strong>
+                    <strong style={{ fontSize: typeScale.xl, letterSpacing:'.5px', color:'#0277bd' }}>Overall Summary</strong>
                     <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                      <span style={{ fontSize:typeScale.xxs, background:'rgba(255,255,255,0.15)', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>✓ {overallApprovalRate}% approved</span>
-                      <span style={{ fontSize:typeScale.xxs, background:'rgba(255,255,255,0.15)', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>✗ {overallRejectionRate}% rejected</span>
-                      <span style={{ fontSize:typeScale.xxs, background:'rgba(255,255,255,0.15)', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>Σ {grandTotal || 0}</span>
+                      <span style={{ fontSize:typeScale.xxs, background:'#e8f5e9', color:'#2e7d32', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>✓ {overallApprovalRate}% approved</span>
+                      <span style={{ fontSize:typeScale.xxs, background:'#ffebee', color:'#c62828', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>✗ {overallRejectionRate}% rejected</span>
+                      <span style={{ fontSize:typeScale.xxs, background:'#e1f5fe', color:'#0277bd', padding:'4px 8px', borderRadius:20, fontWeight:600 }}>Σ {grandTotal || 0}</span>
                     </div>
                   </div>
                   {buildBar({ Approved: totalApproved, Requested: totalRequested, Rejected: totalRejected })}

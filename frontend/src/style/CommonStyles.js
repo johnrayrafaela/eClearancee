@@ -128,12 +128,12 @@ export const buttonStyles = {
     background: gradients.primary,
     color: '#fff',
     border: 'none',
-    borderRadius: 25,
-    padding: '12px 25px',
-    fontWeight: 600,
+    borderRadius: 28,
+    padding: '12px 26px',
+    fontWeight: 700,
     cursor: 'pointer',
-    fontSize: '0.9rem',
-    boxShadow: '0 4px 15px rgba(2,119,189,0.3)',
+    fontSize: '0.95rem',
+    boxShadow: '0 10px 30px rgba(2,119,189,0.18)',
     transition: 'all 0.3s ease'
   },
   success: {
@@ -164,24 +164,24 @@ export const buttonStyles = {
     background: gradients.danger,
     color: '#fff',
     border: 'none',
-    borderRadius: 25,
-    padding: '12px 25px',
-    fontWeight: 600,
+    borderRadius: 28,
+    padding: '12px 26px',
+    fontWeight: 700,
     cursor: 'pointer',
-    fontSize: '0.9rem',
-    boxShadow: '0 4px 15px rgba(244,67,54,0.3)',
+    fontSize: '0.95rem',
+    boxShadow: '0 10px 30px rgba(244,67,54,0.18)',
     transition: 'all 0.3s ease'
   },
   secondary: {
     background: 'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: 25,
-    padding: '12px 25px',
-    fontWeight: 600,
+    borderRadius: 28,
+    padding: '12px 26px',
+    fontWeight: 700,
     cursor: 'pointer',
-    fontSize: '0.9rem',
-    boxShadow: '0 4px 15px rgba(144,164,174,0.3)',
+    fontSize: '0.95rem',
+    boxShadow: '0 8px 24px rgba(96,125,139,0.16)',
     transition: 'all 0.3s ease'
   }
 };
@@ -263,8 +263,8 @@ export const modalStyles = {
   container: {
     background: gradients.light,
     borderRadius: 20,
-    boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
-    padding: 30,
+    boxShadow: '0 28px 70px rgba(2,32,54,0.18)',
+    padding: 28,
     width: '90%',
     maxWidth: 600,
     maxHeight: '90vh',
@@ -275,8 +275,8 @@ export const modalStyles = {
   largeContainer: {
     background: gradients.light,
     borderRadius: 20,
-    boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
-    padding: 30,
+    boxShadow: '0 28px 70px rgba(2,32,54,0.18)',
+    padding: 28,
     width: '90%',
     maxWidth: 1000,
     maxHeight: '90vh',
@@ -293,7 +293,7 @@ export const modalStyles = {
     position: 'absolute',
     top: -10,
     right: -10,
-    background: gradients.danger,
+    background: 'linear-gradient(135deg,#f44336 0%,#d32f2f 100%)',
     color: 'white',
     border: 'none',
     borderRadius: '50%',
@@ -304,7 +304,7 @@ export const modalStyles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 15px rgba(244,67,54,0.3)',
+    boxShadow: '0 6px 24px rgba(244,67,54,0.28)',
     zIndex: 10
   }
 };
