@@ -200,23 +200,8 @@ const AnalyticsPage = () => {
   };
 
   return (
-    <div style={pageStyles.container}>
-      <style>{keyframes}</style>
-      <div style={pageStyles.content}>
-        <div style={{ ...pageStyles.hero, ...fadeInUp, padding: 24 }}>
-          <div style={{ fontSize: '1.4rem', marginBottom: 8 }}>📊</div>
-          <h1 style={{
-            ...headerStyles.pageTitle,
-            color: '#0277bd',
-            fontSize: typeScale.xxl,
-            marginBottom: 4
-          }}>Data Analytics Dashboard</h1>
-          <p style={{ fontSize: typeScale.md, opacity: 0.85, margin: 0, lineHeight: 1.3, color: '#546e7a' }}>
-            Comprehensive system analytics: clearance status, user distribution, and departmental insights.
-          </p>
-        </div>
 
-  return (
+   
     <div style={pageStyles.container}>
       <style>{keyframes}</style>
       <div style={pageStyles.content}>
@@ -243,16 +228,17 @@ const AnalyticsPage = () => {
                 padding: '6px 10px',
                 borderRadius: 10,
                 border: '1px solid rgba(255,255,255,0.6)',
-                background: 'rgba(255,255,255,0.15)',
+                background: '#0277bd',
                 color: '#fff',
                 fontSize: typeScale.sm,
-                backdropFilter: 'blur(4px)',
-                outline: 'none'
+                outline: 'none',
+                cursor: 'pointer',
+                fontWeight: 600
               }}>
-                <option value="Clearance">Clearance</option>
-                <option value="Users">Users</option>
-                <option value="Subjects">Subjects</option>
-                <option value="Departments">Departments</option>
+                <option value="Clearance" style={{ background: '#fff', color: '#0277bd' }}>Clearance</option>
+                <option value="Users" style={{ background: '#fff', color: '#0277bd' }}>Users</option>
+                <option value="Subjects" style={{ background: '#fff', color: '#0277bd' }}>Subjects</option>
+                <option value="Departments" style={{ background: '#fff', color: '#0277bd' }}>Departments</option>
               </select>
             </div>
           </div>
@@ -460,9 +446,8 @@ const AnalyticsPage = () => {
       </div>
     </div>
   );
-      </div>
-    </div>
-  );
+
+
 };
 
 export default AnalyticsPage;
