@@ -229,7 +229,7 @@ const FacultyDepartmentRequests = () => {
               <th style={tableStyles.th}>Block</th>
               <th style={tableStyles.th}>Status</th>
               <th style={tableStyles.th}>Requirements</th>
-              <th style={tableStyles.th}>File</th>
+              <th style={tableStyles.th}>Submission</th>
               <th style={tableStyles.th}>Remarks</th>
               <th style={tableStyles.th}>Action</th>
             </tr>
@@ -254,11 +254,17 @@ const FacultyDepartmentRequests = () => {
                   </td>
                   <td style={tableStyles.td}>{renderRequirements(req)}</td>
                   <td style={tableStyles.td}>
-                    {req.file_path ? (
+                    {req.link ? (
+                      <a
+                        href={req.link}
+                        target="_blank" rel="noopener noreferrer" style={{ color:'#0369a1', textDecoration:'none', fontSize:'.55rem', fontWeight:600 }}>
+                        🔗 View Link
+                      </a>
+                    ) : req.file_path ? (
                       <a
                         href={buildFileUrl(`/department-status/file/${req.department_id}?file=${encodeURIComponent(req.file_path)}`)}
                         target="_blank" rel="noopener noreferrer" style={{ color:'#0369a1', textDecoration:'none', fontSize:'.55rem', fontWeight:600 }}>
-                        View File
+                        📄 View File
                       </a>
                     ) : <span style={{ color:'#9ca3af' }}>-</span>}
                   </td>
