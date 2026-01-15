@@ -114,12 +114,28 @@ exports.serveUploadedFile = async (req, res) => {
   const { file } = req.query;
   try {
     if (!file) return res.status(400).json({ message: 'File parameter is required.' });
+    
     const fileDir = path.join(__dirname, '../uploads/department-requests');
     const filePath = path.join(fileDir, file);
+    
+    // Security check: ensure the resolved path is within the uploads directory
+    const realDir = path.resolve(fileDir);
+    const realPath = path.resolve(filePath);
+    if (!realPath.startsWith(realDir)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+    
     if (!fs.existsSync(filePath)) {
+      // Try to find it in the database to provide better error message
+      const DepartmentStatus = require('../models/DepartmentStatus');
+      const record = await DepartmentStatus.findByPk(id);
+      if (record && record.file_path) {
+        return res.status(404).json({ message: `File "${record.file_path}" does not exist on server. It may have been deleted or the upload failed.` });
+      }
       return res.status(404).json({ message: 'File does not exist on server.' });
     }
-    res.sendFile(filePath);
+    
+    res.download(filePath);
   } catch (err) {
     res.status(500).json({ message: 'Error serving file', error: err.message });
   }
