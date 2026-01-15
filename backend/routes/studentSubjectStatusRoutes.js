@@ -44,13 +44,27 @@ router.get('/file/:id', (req, res) => {
   const realDir = path.resolve(fileDir);
   const realPath = path.resolve(filePath);
   if (!realPath.startsWith(realDir)) {
+    console.warn('[File Access Denied]', realPath);
     return res.status(403).json({ message: 'Access denied.' });
   }
   
   if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ message: 'File does not exist on server.' });
+    console.warn('[File Not Found]', 'Requested:', file, 'Full path:', filePath, 'Exists:', fs.existsSync(fileDir));
+    // Check if directory exists
+    if (!fs.existsSync(fileDir)) {
+      return res.status(404).json({ 
+        message: 'Upload directory not found. This may be due to server restart or file deletion.',
+        details: `Looking for file: ${file}`
+      });
+    }
+    return res.status(404).json({ 
+      message: 'File does not exist on server.',
+      details: `The file "${file}" was not found. It may have been deleted or the server may have been reset.`,
+      file: file
+    });
   }
   
+  console.log('[File Served]', file);
   res.download(filePath);
 });
 

@@ -52,10 +52,14 @@ exports.requestDepartmentApproval = async (req, res) => {
           return res.status(400).json({ message: 'File is required for this requirement type.' });
         }
         file_path = req.file.filename;
+        console.log('[DeptStatus Upload] File saved:', file_path, 'for student:', student_id, 'dept:', department_id);
       }
     } else {
       // Default treat as file-based
-      if (req.file) file_path = req.file.filename;
+      if (req.file) {
+        file_path = req.file.filename;
+        console.log('[DeptStatus Upload] File saved (default):', file_path);
+      }
     }
     const status = 'Requested';
     const newStatus = await DepartmentStatus.create({ 
@@ -63,6 +67,7 @@ exports.requestDepartmentApproval = async (req, res) => {
     });
     res.json(newStatus);
   } catch (err) {
+    console.error('[DeptStatus Error]:', err);
     res.status(500).json({ message: 'Error requesting department approval', error: err.message });
   }
 };
