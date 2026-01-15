@@ -179,13 +179,17 @@ exports.deleteStudent = async (req, res) => {
     // Delete related StudentSubjectStatus records
     await StudentSubjectStatus.destroy({ where: { student_id: id } });
 
-    // Delete related Clearance records (uncommented to fix FK error)
+    // Delete related Clearance records
     await Clearance.destroy({ where: { student_id: id } });
+
+    // Delete related DepartmentStatus records
+    const DepartmentStatus = require('../models/DepartmentStatus');
+    await DepartmentStatus.destroy({ where: { student_id: id } });
 
     await student.destroy();
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
-    console.error('Delete student error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Delete student error:', err.message, err.stack);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
