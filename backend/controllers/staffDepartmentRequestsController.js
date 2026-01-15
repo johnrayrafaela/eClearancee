@@ -19,7 +19,7 @@ exports.getStaffDepartmentRequests = async (req, res) => {
         { model: Department, as: 'department', attributes: ['department_id','name'] },
         { model: User, as: 'student', attributes: ['student_id','firstname','lastname','course','year_level','block'] }
       ],
-      attributes: ['id','student_id','department_id','semester','status','file_path','requirements','remarks','createdAt'],
+      attributes: ['id','student_id','department_id','semester','status','file_path','requirements','link','remarks','createdAt'],
       order: [['createdAt', 'DESC']]
     });
     res.json(requests);

@@ -50,7 +50,8 @@ router.get('/file/:id', (req, res) => {
   }
   
   console.log('[File Served]', file);
-  res.download(filePath);
+  res.setHeader('Content-Disposition', 'inline');
+  res.sendFile(filePath);
 });
 router.get('/analytics/student', departmentStatusController.getStudentDepartmentStatusAnalytics);
 router.get('/analytics/staff', departmentStatusController.getStaffDepartmentStatusAnalytics);

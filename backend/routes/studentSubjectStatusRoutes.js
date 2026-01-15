@@ -65,7 +65,8 @@ router.get('/file/:id', (req, res) => {
   }
   
   console.log('[File Served]', file);
-  res.download(filePath);
+  res.setHeader('Content-Disposition', 'inline');
+  res.sendFile(filePath);
 });
 
 module.exports = router;
