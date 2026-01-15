@@ -12,6 +12,7 @@ const TeacherSubjectRequirements = () => {
   const [loading, setLoading] = useState(true);
   const [activeYear, setActiveYear] = useState('All');
   const [activeSemester, setActiveSemester] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -101,13 +102,20 @@ const TeacherSubjectRequirements = () => {
 
   // Confirmation removed; direct save now.
 
-  // Filter subjects by active year level and semester
+  // Filter subjects by active year level, semester, and search term
   let filteredSubjects = subjects;
   if (activeYear !== 'All') {
     filteredSubjects = filteredSubjects.filter(s => s.year_level === activeYear);
   }
   if (activeSemester !== 'All') {
     filteredSubjects = filteredSubjects.filter(s => s.semester === activeSemester);
+  }
+  if (searchTerm) {
+    filteredSubjects = filteredSubjects.filter(s =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.description && s.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
   }
 
   // RequirementModal Component
@@ -598,6 +606,35 @@ const TeacherSubjectRequirements = () => {
               })}
             </div>
           </div>
+        </div>
+
+        {/* Search Bar */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)', 
+          borderRadius: 16, 
+          padding: '18px', 
+          marginBottom: 20,
+          boxShadow: '0 6px 20px rgba(2,119,189,0.08)',
+          ...slideInLeft
+        }}>
+          <input
+            type="text"
+            placeholder="🔍 Search subjects by name, course, or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-focus"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: 12,
+              border: '2px solid #e1f5fe',
+              fontSize: '.95rem',
+              outline: 'none',
+              background: '#f8fafc',
+              boxSizing: 'border-box',
+              transition: 'border-color 0.3s ease'
+            }}
+          />
         </div>
 
         {/* My Subjects Section */}

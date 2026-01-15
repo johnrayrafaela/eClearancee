@@ -109,6 +109,75 @@ exports.createClearance = async (req, res) => {
   }
 };
 
+exports.updateClearanceSubjects = async (req, res) => {
+  try {
+    const { student_id, semester, subject_ids } = req.body;
+    const student = await User.findByPk(student_id);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+    
+    const clearance = await Clearance.findOne({ where: { student_id, semester } });
+    if (!clearance) return res.status(404).json({ message: 'Clearance not found for this semester' });
+
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+
+    // Delete all existing StudentSubjectStatus records for this clearance
+    await StudentSubjectStatus.destroy({ where: { student_id, semester } });
+
+    // Create new StudentSubjectStatus records for the selected subjects
+    if (Array.isArray(subject_ids) && subject_ids.length) {
+      for (const subject_id of subject_ids) {
+        await StudentSubjectStatus.create({ student_id, subject_id, status: 'Pending', semester });
+      }
+    }
+
+    // Fetch updated subjects with departments
+    const subjectsWithDept = await Subject.findAll({
+      where: { subject_id: subject_ids || [] },
+      include: [
+        { model: Department, as: 'department', attributes: ['department_id','name','requirements','status'], include: [{ model: Staff, as: 'staff', attributes: ['staff_id','firstname','lastname','email','signature'] }] },
+        { model: Teacher, as: 'teacher', attributes: ['teacher_id','firstname','lastname','email','signature'] }
+      ]
+    });
+
+    const departmentMap = {};
+    subjectsWithDept.forEach(s => {
+      if (s.department) {
+        const d = s.department;
+        if (!departmentMap[d.department_id]) {
+          departmentMap[d.department_id] = {
+            department_id: d.department_id,
+            name: d.name,
+            staff: d.staff ? {
+              staff_id: d.staff.staff_id,
+              firstname: d.staff.firstname,
+              lastname: d.staff.lastname,
+              email: d.staff.email,
+              signature: d.staff.signature,
+            } : null
+          };
+        }
+      }
+    });
+    const departments = Object.values(departmentMap);
+
+    res.json({
+      message: 'Clearance subjects updated successfully',
+      clearance,
+      student: {
+        firstname: student.firstname,
+        lastname: student.lastname,
+        course: student.course,
+        year_level: student.year_level,
+        block: student.block,
+      },
+      subjects: subjectsWithDept,
+      departments,
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
 exports.precheckClearance = async (req, res) => {
   try {
     const { student_id, semester } = req.query;
@@ -264,6 +333,12 @@ exports.deleteClearance = async (req, res) => {
     if (!student) return res.status(404).json({ message: 'Student not found.' });
     const valid = await bcrypt.compare(password, student.password);
     if (!valid) return res.status(401).json({ message: 'Incorrect password.' });
+    
+    // Delete associated StudentSubjectStatus records for this semester
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    await StudentSubjectStatus.destroy({ where: { student_id, semester } });
+    
+    // Delete the clearance
     await clearance.destroy();
     res.json({ message: 'Clearance deleted.' });
   } catch (err) { res.status(500).json({ message: 'Server error', error: err.message }); }
@@ -271,9 +346,15 @@ exports.deleteClearance = async (req, res) => {
 
 exports.adminDeleteClearance = async (req, res) => {
   try {
-    const { student_id } = req.body;
-    const clearance = await Clearance.findOne({ where: { student_id } });
+    const { student_id, semester } = req.body;
+    const clearance = await Clearance.findOne({ where: { student_id, semester } });
     if (!clearance) return res.status(404).json({ message: 'No clearance found to delete.' });
+    
+    // Delete associated StudentSubjectStatus records for this semester
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    await StudentSubjectStatus.destroy({ where: { student_id, semester } });
+    
+    // Delete the clearance
     await clearance.destroy();
     res.json({ message: 'Clearance deleted by admin.' });
   } catch (err) { res.status(500).json({ message: 'Server error', error: err.message }); }

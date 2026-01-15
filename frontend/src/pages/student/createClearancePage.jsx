@@ -141,9 +141,18 @@ const CreateClearancePage = () => {
   const handleCreateClearance = async ()=>{
     setShowConfirm(false); setLoading(true); setError('');
     try {
-  const resp = await api.post('/clearance/create',{ student_id: user.student_id, semester: selectedSemester, subject_ids: selectedSubjects.map(s=>s.subject_id)});
-      setClearance(resp.data.clearance); setStudent(resp.data.student); setSubjects(resp.data.subjects); setDepartments(resp.data.departments||[]); setCreated(true);
-      addToast('Clearance created successfully.','success');
+      // Check if clearance already exists
+      if (clearance) {
+        // Update existing clearance with new subject selections
+        const resp = await api.patch('/clearance/update-subjects',{ student_id: user.student_id, semester: selectedSemester, subject_ids: selectedSubjects.map(s=>s.subject_id)});
+        setClearance(resp.data.clearance); setStudent(resp.data.student); setSubjects(resp.data.subjects); setDepartments(resp.data.departments||[]); setCreated(true);
+        addToast('Clearance subjects updated successfully.','success');
+      } else {
+        // Create new clearance
+        const resp = await api.post('/clearance/create',{ student_id: user.student_id, semester: selectedSemester, subject_ids: selectedSubjects.map(s=>s.subject_id)});
+        setClearance(resp.data.clearance); setStudent(resp.data.student); setSubjects(resp.data.subjects); setDepartments(resp.data.departments||[]); setCreated(true);
+        addToast('Clearance created successfully.','success');
+      }
     } catch(e){ setError(e.response?.data?.message || 'Something went wrong.'); }
     finally { setLoading(false); }
   };
@@ -479,7 +488,7 @@ const CreateClearancePage = () => {
             </div>
             <div style={{ display:'flex', justifyContent:'flex-end', gap:16, marginTop:36, flexWrap:'wrap' }}>
               <button onClick={()=> setShowConfirm(false)} disabled={loading} style={{ background: 'linear-gradient(135deg, #90a4ae 0%, #607d8b 100%)', color: '#fff', border: 'none', padding: '12px 28px', borderRadius: 30, fontWeight:700, cursor:'pointer' }}>Cancel</button>
-              <button onClick={handleCreateClearance} disabled={loading || !selectedSubjects.length} style={{ background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', color: '#fff', border: 'none', padding: '14px 34px', borderRadius: 40, fontWeight:800, cursor:'pointer', boxShadow:'0 10px 30px rgba(2,119,189,0.22)' }}>{loading? 'Submitting...' : '✅ Confirm & Submit'}</button>
+              <button onClick={handleCreateClearance} disabled={loading || !selectedSubjects.length} style={{ background: 'linear-gradient(135deg, #0277bd 0%, #01579b 100%)', color: '#fff', border: 'none', padding: '14px 34px', borderRadius: 40, fontWeight:800, cursor:'pointer', boxShadow:'0 10px 30px rgba(2,119,189,0.22)' }}>{loading? 'Submitting...' : (clearance ? '✅ Update Clearance' : '✅ Confirm & Submit')}</button>
             </div>
           </div>
         </div>
