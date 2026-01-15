@@ -4,10 +4,7 @@ import Navbar from './Navbar';
 
 const NAVBAR_WIDTH = 220;
 
-const layoutStyles = {
-  minHeight: '100vh',
-  background: '#f7fafc',
-};
+
 
 const Layout = ({ children }) => {
   const location = useLocation();
