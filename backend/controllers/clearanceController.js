@@ -333,6 +333,12 @@ exports.deleteClearance = async (req, res) => {
     if (!student) return res.status(404).json({ message: 'Student not found.' });
     const valid = await bcrypt.compare(password, student.password);
     if (!valid) return res.status(401).json({ message: 'Incorrect password.' });
+    
+    // Delete associated StudentSubjectStatus records for this semester
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    await StudentSubjectStatus.destroy({ where: { student_id, semester } });
+    
+    // Delete the clearance
     await clearance.destroy();
     res.json({ message: 'Clearance deleted.' });
   } catch (err) { res.status(500).json({ message: 'Server error', error: err.message }); }
@@ -340,9 +346,15 @@ exports.deleteClearance = async (req, res) => {
 
 exports.adminDeleteClearance = async (req, res) => {
   try {
-    const { student_id } = req.body;
-    const clearance = await Clearance.findOne({ where: { student_id } });
+    const { student_id, semester } = req.body;
+    const clearance = await Clearance.findOne({ where: { student_id, semester } });
     if (!clearance) return res.status(404).json({ message: 'No clearance found to delete.' });
+    
+    // Delete associated StudentSubjectStatus records for this semester
+    const StudentSubjectStatus = require('../models/StudentSubjectStatus');
+    await StudentSubjectStatus.destroy({ where: { student_id, semester } });
+    
+    // Delete the clearance
     await clearance.destroy();
     res.json({ message: 'Clearance deleted by admin.' });
   } catch (err) { res.status(500).json({ message: 'Server error', error: err.message }); }
