@@ -12,6 +12,7 @@ const TeacherAddSubject = () => {
   const [unclaimedSubjects, setUnclaimedSubjects] = useState([]);
   const [filteredUnclaimedSubjects, setFilteredUnclaimedSubjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [mySubjectsSearchTerm, setMySubjectsSearchTerm] = useState('');
   const [form, setForm] = useState({ name: '', semester: '1st', requirements: '', course: '', year_level: '' });
   const courses = ['BSIT', 'BEED', 'BSED', 'BSHM', 'ENTREP'];
   const yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
@@ -42,6 +43,20 @@ const TeacherAddSubject = () => {
       setFilteredUnclaimedSubjects(unclaimedSubjects);
     }
   }, [searchTerm, unclaimedSubjects]);
+
+  // Get filtered My Subjects
+  const getFilteredMySubjects = () => {
+    const mySubjects = subjects.filter(subj => subj.teacher_id === user.teacher_id);
+    if (mySubjectsSearchTerm) {
+      return mySubjects.filter(subject =>
+        subject.name.toLowerCase().includes(mySubjectsSearchTerm.toLowerCase()) ||
+        subject.course.toLowerCase().includes(mySubjectsSearchTerm.toLowerCase()) ||
+        subject.year_level.toLowerCase().includes(mySubjectsSearchTerm.toLowerCase()) ||
+        subject.semester.toLowerCase().includes(mySubjectsSearchTerm.toLowerCase())
+      );
+    }
+    return mySubjects;
+  };
 
   const fetchSubjects = async () => {
     setLoading(true);
@@ -847,15 +862,37 @@ const TeacherAddSubject = () => {
         }}>
           
           {/* Section Header */}
-          <div style={{ background:'linear-gradient(135deg,#0277bd 0%,#015079 100%)', padding:24, color:'#fff', display:'flex', alignItems:'center', gap:16 }}>
+          <div style={{ background:'linear-gradient(135deg,#0277bd 0%,#015079 100%)', padding:24, color:'#fff', display:'flex', alignItems:'center', gap:16, flexWrap: 'wrap' }}>
             <div style={{ fontSize:'1.8rem' }}>📚</div>
             <div>
               <h3 style={{ margin:0, fontWeight:700, fontSize:'1.35rem', letterSpacing:'.4px' }}>My Subjects</h3>
               <p style={{ margin:'6px 0 0', opacity:.9, fontSize:'.8rem', letterSpacing:.4 }}>Manage claimed subjects</p>
             </div>
             <div style={{ marginLeft:'auto', fontSize:'.75rem', fontWeight:700, background:'rgba(255,255,255,0.18)', padding:'6px 14px', borderRadius:24 }}>
-              {subjects.filter(subj => subj.teacher_id === user.teacher_id).length} total
+              {getFilteredMySubjects().length} / {subjects.filter(subj => subj.teacher_id === user.teacher_id).length}
             </div>
+          </div>
+
+          {/* Search Bar */}
+          <div style={{ padding: '16px 18px', background: '#f8fafc', borderBottom: '1px solid #e0e0e0' }}>
+            <input
+              type="text"
+              placeholder="🔍 Search subjects by name, course, year, or semester..."
+              value={mySubjectsSearchTerm}
+              onChange={(e) => setMySubjectsSearchTerm(e.target.value)}
+              className="search-focus"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: 12,
+                border: '2px solid #e1f5fe',
+                fontSize: '.9rem',
+                outline: 'none',
+                background: '#fff',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.3s ease'
+              }}
+            />
           </div>
 
           {/* Subjects Content */}
@@ -877,41 +914,48 @@ const TeacherAddSubject = () => {
                   </div>
                 ))}
               </div>
-            ) : subjects.filter(subj => subj.teacher_id === user.teacher_id).length === 0 ? (
+            ) : getFilteredMySubjects().length === 0 ? (
               <div style={{ 
                 textAlign: 'center', 
                 color: '#90a4ae', 
                 padding: 60,
                 ...fadeInUp
               }}>
-                <div style={{ fontSize: '3.5rem', marginBottom: 20 }}>🎯</div>
+                <div style={{ fontSize: '3.5rem', marginBottom: 20 }}>
+                  {mySubjectsSearchTerm ? '🔍' : '🎯'}
+                </div>
                 <h4 style={{ marginBottom: 12, color: '#546e7a', fontSize: '1.1rem' }}>
-                  No subjects claimed yet
+                  {mySubjectsSearchTerm ? 'No subjects found' : 'No subjects claimed yet'}
                 </h4>
                 <p style={{ marginBottom: 20, fontSize: '0.9rem' }}>
-                  Start by claiming available subjects or creating new ones
+                  {mySubjectsSearchTerm 
+                    ? 'Try adjusting your search filters'
+                    : 'Start by claiming available subjects or creating new ones'
+                  }
                 </p>
-                <button 
-                  className="btn-hover"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #2196f3 0%, #0277bd 100%)', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: 25, 
-                    padding: '15px 30px', 
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 6px 20px rgba(33,150,243,0.3)'
-                  }}
-                  onClick={() => setShowAvailableModal(true)}
-                >
-                  🔍 Browse Available Subjects
-                </button>
+                {!mySubjectsSearchTerm && (
+                  <button 
+                    className="btn-hover"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #2196f3 0%, #0277bd 100%)', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: 25, 
+                      padding: '15px 30px', 
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 20px rgba(33,150,243,0.3)'
+                    }}
+                    onClick={() => setShowAvailableModal(true)}
+                  >
+                    🔍 Browse Available Subjects
+                  </button>
+                )}
               </div>
             ) : (
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:24 }}>
-                {subjects.filter(subj => subj.teacher_id === user.teacher_id).map((subj, index) => (
+                {getFilteredMySubjects().map((subj, index) => (
                   <div 
                     key={subj.subject_id} 
                     className="card-hover"
