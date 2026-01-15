@@ -9,6 +9,7 @@ const Clearance = require('../models/Clearance');
 Clearance.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 router.post('/create', clearanceController.createClearance);
+router.patch('/update-subjects', clearanceController.updateClearanceSubjects);
 router.get('/precheck', clearanceController.precheckClearance);
 router.get('/status', clearanceController.getClearanceStatus);
 router.delete('/delete', clearanceController.deleteClearance);
